@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plordico</title>
+
+  <!-- Firebase CDN (compat mode — sin bundler) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --bg:        #0e0f11;
+      --surface:   #16181c;
+      --surface-2: #1e2026;
+      --border:    #2a2d35;
+      --border-hi: #3a3e4a;
+      --text:      #e8eaf0;
+      --text-dim:  #7a7f8e;
+      --text-faint:#3e4250;
+      --amber:     #f5a623;
+      --amber-dim: #7a5010;
+      --amber-glow:rgba(245,166,35,.12);
+      --green:     #4caf80;
+      --green-dim: #1a3d2b;
+      --red:       #e05c5c;
+      --red-dim:   #3d1a1a;
+      --radius:    6px;
+      --mono:      'Space Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
+      --transition: .18s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ─── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── LAYOUT ─────────────────────────────────────────────── */
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── TOPBAR ─────────────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--amber);
+    }
+
+    .logo span {
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    /* ─── LOGIN SCREEN ───────────────────────────────────────── */
+    #screen-login {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--amber), transparent);
+      opacity: .7;
+    }
+
+    .login-glyph {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      letter-spacing: .1em;
+      margin-bottom: 32px;
+    }
+
+    .login-card h1 {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -.01em;
+    }
+
+    .login-card p {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    /* ─── BUTTONS ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      pointer-events: none;
+    }
+
+    .btn-google {
+      width: 100%;
+      padding: 12px 20px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-google:hover {
+      border-color: var(--amber);
+      background: var(--amber-glow);
+      color: var(--amber);
+    }
+    .btn-google:active { transform: scale(.98); }
+
+    .btn-ghost {
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .btn-ghost:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+    }
+
+    .btn-amber {
+      padding: 10px 20px;
+      background: var(--amber);
+      color: var(--bg);
+      font-weight: 700;
+    }
+    .btn-amber:hover { filter: brightness(1.1); }
+
+    /* Google icon */
+    .google-icon {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ─── MAIN SCREEN ────────────────────────────────────────── */
+    #screen-main { flex: 1; display: flex; flex-direction: column; }
+
+    .user-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-hi);
+      object-fit: cover;
+    }
+
+    .user-name {
+      font-size: 13px;
+      color: var(--text-dim);
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ─── CONTENT AREA ───────────────────────────────────────── */
+    .content {
+      flex: 1;
+      padding: 32px 24px;
+      max-width: 720px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 16px;
+    }
+
+    /* ─── STATUS CARD ────────────────────────────────────────── */
+    .status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .status-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .status-row:first-child { padding-top: 0; }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-pending  { background: var(--text-faint); }
+    .dot-loading  { background: var(--amber); animation: pulse 1s ease-in-out infinite; }
+    .dot-ok       { background: var(--green); }
+    .dot-error    { background: var(--red); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .3; }
+    }
+
+    .status-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      flex: 1;
+    }
+
+    .status-value {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      text-align: right;
+    }
+    .status-value.ok    { color: var(--green); }
+    .status-value.error { color: var(--red); }
+    .status-value.amber { color: var(--amber); }
+
+    /* ─── FIRESTORE RESULT BOX ───────────────────────────────── */
+    .result-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.8;
+      color: var(--text-dim);
+      margin-top: 16px;
+      display: none;
+    }
+    .result-box.visible { display: block; }
+
+    .result-box .key   { color: var(--amber); }
+    .result-box .val   { color: var(--text); }
+    .result-box .ts    { color: var(--text-faint); }
+
+    /* ─── WELCOME BANNER ─────────────────────────────────────── */
+    .welcome-banner {
+      background: var(--green-dim);
+      border: 1px solid var(--green);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      font-size: 13px;
+      color: var(--green);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ─── FOOTER NOTE ─────────────────────────────────────────── */
+    .footer-note {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      padding: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── SPINNER ─────────────────────────────────────────────── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── UTILS ───────────────────────────────────────────────── */
+    .hidden { display: none !important; }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────── */
+    @media (max-width: 520px) {
+      .topbar { padding: 0 16px; }
+      .login-card { padding: 36px 24px; }
+      .content { padding: 24px 16px; }
+      .user-name { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">PLORDICO <span>/ task mgr</span></div>
+    <div id="user-bar" class="user-bar hidden">
+      <img id="user-avatar" class="avatar" src="" alt="avatar" />
+      <span id="user-name" class="user-name"></span>
+      <button class="btn btn-ghost" id="btn-signout">Salir</button>
+    </div>
+  </header>
+
+  <!-- LOGIN SCREEN -->
+  <div id="screen-login">
+    <div class="login-card">
+      <div class="login-glyph">// v0.1.0 — base + auth</div>
+      <h1>Plordico</h1>
+      <p>Gestión de tareas personal.<br/>Iniciá sesión para continuar.</p>
+      <button class="btn btn-google" id="btn-signin">
+        <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Iniciar sesión con Google
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN SCREEN -->
+  <div id="screen-main" class="hidden">
+    <div class="content">
+
+      <!-- Welcome -->
+      <div class="welcome-banner" id="welcome-banner">
+        <span>✓</span>
+        <span id="welcome-msg">Sesión activa.</span>
+      </div>
+
+      <!-- Connection status -->
+      <div class="section-label">Estado de conexión</div>
+      <div class="status-card">
+
+        <div class="status-row">
+          <div class="status-dot" id="dot-auth"></div>
+          <span class="status-label">Firebase Auth</span>
+          <span class="status-value" id="val-auth">—</span>
+        </div>
+
+        <div class="status-row">
+          <div class="status-dot dot-pending" id="dot-write"></div>
+          <span class="status-label">Firestore — escritura</span>
+          <span class="status-value" id="val-write">—</span>
+        </div>
+
+        <div class="status-row">
+          <div class="status-dot dot-pending" id="dot-read"></div>
+          <span class="status-label">Firestore — lectura</span>
+          <span class="status-value" id="val-read">—</span>
+        </div>
+
+      </div>
+
+      <!-- Firestore result -->
+      <div class="result-box" id="result-box">
+        <!-- populated by JS -->
+      </div>
+
+      <!-- Re-run test button -->
+      <button class="btn btn-amber hidden" id="btn-retest" style="margin-top:20px;">
+        Correr prueba de nuevo
+      </button>
+
+    </div>
+
+    <footer class="footer-note">
+      plordico · fase 1 / 6 &nbsp;·&nbsp; auth + firestore ✓
+    </footer>
+  </div>
+
+</div>
+
+<script>
+// ─── FIREBASE CONFIG ───────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyAFoC9QZ4xAaGtvlMmay8_yTue4c9wN_6A",
+  authDomain:        "plordico-8f546.firebaseapp.com",
+  projectId:         "plordico-8f546",
+  storageBucket:     "plordico-8f546.firebasestorage.app",
+  messagingSenderId: "225374429448",
+  appId:             "1:225374429448:web:c4c6264297fabb611b4cbd"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ─── DOM REFS ──────────────────────────────────────────────────
+const screenLogin  = document.getElementById('screen-login');
+const screenMain   = document.getElementById('screen-main');
+const userBarEl    = document.getElementById('user-bar');
+const userAvatarEl = document.getElementById('user-avatar');
+const userNameEl   = document.getElementById('user-name');
+const welcomeMsg   = document.getElementById('welcome-msg');
+const btnSignIn    = document.getElementById('btn-signin');
+const btnSignOut   = document.getElementById('btn-signout');
+const btnRetest    = document.getElementById('btn-retest');
+const resultBox    = document.getElementById('result-box');
+
+// status elements
+const dotAuth  = document.getElementById('dot-auth');
+const dotWrite = document.getElementById('dot-write');
+const dotRead  = document.getElementById('dot-read');
+const valAuth  = document.getElementById('val-auth');
+const valWrite = document.getElementById('val-write');
+const valRead  = document.getElementById('val-read');
+
+// ─── HELPERS ───────────────────────────────────────────────────
+function setDot(el, state) {
+  el.className = 'status-dot';
+  if (state === 'loading') el.classList.add('dot-loading');
+  else if (state === 'ok')  el.classList.add('dot-ok');
+  else if (state === 'err') el.classList.add('dot-error');
+  else                      el.classList.add('dot-pending');
+}
+
+function setVal(el, text, cls = '') {
+  el.textContent = text;
+  el.className   = 'status-value' + (cls ? ' ' + cls : '');
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString('es-AR', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+}
+
+function renderResult(docId, data) {
+  resultBox.innerHTML = `
+    <span class="key">documento</span>  <span class="val">${docId}</span><br/>
+    <span class="key">origen</span>     <span class="val">${data.origen || '—'}</span><br/>
+    <span class="key">mensaje</span>    <span class="val">${data.mensaje || '—'}</span><br/>
+    <span class="key">uid</span>        <span class="ts">${data.uid || '—'}</span><br/>
+    <span class="key">timestamp</span>  <span class="ts">${fmtDate(data.timestamp)}</span>
+  `;
+  resultBox.classList.add('visible');
+}
+
+// ─── FIRESTORE TEST ────────────────────────────────────────────
+async function runFirestoreTest(user) {
+  // reset
+  setDot(dotWrite, 'loading'); setVal(valWrite, 'escribiendo…', 'amber');
+  setDot(dotRead,  'pending'); setVal(valRead,  '—');
+  resultBox.classList.remove('visible');
+
+  const payload = {
+    origen:    'plordico-test',
+    mensaje:   '✓ Conexión Firestore verificada.',
+    uid:       user.uid,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  let docRef;
+
+  // WRITE
+  try {
+    docRef = await db.collection('_connection_test').add(payload);
+    setDot(dotWrite, 'ok');
+    setVal(valWrite, `doc: ${docRef.id.slice(0, 12)}…`, 'ok');
+  } catch (err) {
+    setDot(dotWrite, 'err');
+    setVal(valWrite, err.code || 'error', 'error');
+    setDot(dotRead, 'err');
+    setVal(valRead, 'no ejecutada', 'error');
+    btnRetest.classList.remove('hidden');
+    console.error('[Firestore write]', err);
+    return;
+  }
+
+  // READ (pequeña pausa para que el server timestamp esté listo)
+  setDot(dotRead, 'loading'); setVal(valRead, 'leyendo…', 'amber');
+  await new Promise(r => setTimeout(r, 600));
+
+  try {
+    const snap = await docRef.get();
+    if (snap.exists) {
+      setDot(dotRead, 'ok');
+      setVal(valRead, 'datos verificados', 'ok');
+      renderResult(snap.id, snap.data());
+    } else {
+      throw new Error('Documento no encontrado.');
+    }
+  } catch (err) {
+    setDot(dotRead, 'err');
+    setVal(valRead, err.message || 'error', 'error');
+    console.error('[Firestore read]', err);
+  }
+
+  btnRetest.classList.remove('hidden');
+}
+
+// ─── AUTH STATE ────────────────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  if (user) {
+    // show main
+    screenLogin.classList.add('hidden');
+    screenMain.classList.remove('hidden');
+    userBarEl.classList.remove('hidden');
+
+    userAvatarEl.src = user.photoURL || '';
+    userAvatarEl.alt = user.displayName || 'usuario';
+    userNameEl.textContent = user.displayName || user.email;
+    welcomeMsg.textContent = `Bienvenido, ${user.displayName?.split(' ')[0] || 'usuario'}.`;
+
+    // auth status row
+    setDot(dotAuth, 'ok');
+    setVal(valAuth, user.email, 'ok');
+
+    // run Firestore test
+    runFirestoreTest(user);
+
+  } else {
+    // show login
+    screenMain.classList.add('hidden');
+    screenLogin.classList.remove('hidden');
+    userBarEl.classList.add('hidden');
+    btnRetest.classList.add('hidden');
+    resultBox.classList.remove('visible');
+
+    setDot(dotAuth, 'pending'); setVal(valAuth, '—');
+    setDot(dotWrite,'pending'); setVal(valWrite,'—');
+    setDot(dotRead, 'pending'); setVal(valRead, '—');
+  }
+});
+
+// ─── EVENTS ────────────────────────────────────────────────────
+btnSignIn.addEventListener('click', () => {
+  btnSignIn.disabled = true;
+  btnSignIn.innerHTML = `<span class="spinner"></span> Conectando…`;
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => {
+    console.error('[Auth]', err);
+    btnSignIn.disabled = false;
+    btnSignIn.innerHTML = `
+      <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Iniciar sesión con Google`;
+  });
+});
+
+btnSignOut.addEventListener('click', () => {
+  auth.signOut();
+});
+
+btnRetest.addEventListener('click', () => {
+  btnRetest.classList.add('hidden');
+  const user = auth.currentUser;
+  if (user) runFirestoreTest(user);
+});
+</script>
+</body>
+</html>
