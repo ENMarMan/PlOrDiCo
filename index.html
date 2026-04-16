@@ -50,22 +50,127 @@
     .screen { display: none; min-height: 100vh; flex-direction: column; }
     .screen.active { display: flex; }
 
-    /* LOGIN */
-    #screen-login { align-items: center; justify-content: center; padding: 24px; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(240,165,0,.07) 0%, transparent 70%); }
-    .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 52px 40px 44px; text-align: center; position: relative; overflow: hidden; }
-    .login-card::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--amber), transparent); }
-    .login-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 28px; }
-    .login-logo { font-family: var(--mono); font-size: 28px; font-weight: 700; letter-spacing: .04em; margin-bottom: 10px; }
-    .ll-lo { color: var(--text-dim); }
-    .ll-or { color: var(--amber); }
-    .login-sub { color: var(--text-dim); font-size: 13px; font-weight: 300; margin-bottom: 44px; line-height: 1.5; }
-    .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 13px 20px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--tr); }
-    .btn-google:hover { border-color: var(--amber); background: var(--amber-glow); color: var(--amber); }
-    .btn-google:active { transform: scale(.98); }
-    .btn-google:disabled { opacity: .4; pointer-events: none; }
-    .google-svg { width: 18px; height: 18px; flex-shrink: 0; }
+    /* LOGIN (reemplazado completamente por la versión funcional de plordico.html) */
+    #screen-login {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
 
-    /* APP SHELL */
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--amber), transparent);
+      opacity: .7;
+    }
+
+    .login-glyph {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      letter-spacing: .1em;
+      margin-bottom: 32px;
+    }
+
+    .login-card h1 {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -.01em;
+    }
+
+    .login-card p {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    /* BUTTONS (copiados de plordico.html para que el login funcione exactamente igual) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--tr);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      pointer-events: none;
+    }
+
+    .btn-google {
+      width: 100%;
+      padding: 12px 20px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-google:hover {
+      border-color: var(--amber);
+      background: var(--amber-glow);
+      color: var(--amber);
+    }
+    .btn-google:active { transform: scale(.98); }
+
+    .btn-ghost {
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .btn-ghost:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+    }
+
+    .btn-amber {
+      padding: 10px 20px;
+      background: var(--amber);
+      color: var(--bg);
+      font-weight: 700;
+    }
+    .btn-amber:hover { filter: brightness(1.1); }
+
+    /* Google icon */
+    .google-icon {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+    }
+    .google-svg {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ─── APP SHELL ──────────────────────────────────────────────── */
     #screen-app { flex-direction: column; }
     .topbar { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 200; flex-shrink: 0; }
     .topbar-logo { font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: .06em; }
@@ -214,7 +319,7 @@
     .dep-item.selected { border-color: var(--amber); background: var(--amber-glow2); }
     .dep-item input[type="checkbox"] { accent-color: var(--amber); width: 13px; height: 13px; flex-shrink: 0; }
 
-    /* BUTTONS */
+    /* BUTTONS (resto de botones de la app se mantienen) */
     .btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--amber); color: var(--bg); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; transition: var(--tr); }
     .btn-primary:hover { filter: brightness(1.1); }
     .btn-primary:disabled { opacity: .4; pointer-events: none; }
@@ -258,22 +363,25 @@
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN (reemplazado por la versión exacta que funcionaba en plordico.html) -->
 <div id="screen-login" class="screen active">
   <div class="login-card">
-    <div class="login-eyebrow">// v0.3.0 — task management</div>
-    <div class="login-logo">
-      <span class="ll-lo">Pl</span><span class="ll-or">Or</span><span class="ll-lo">Di</span><span class="ll-or">Co</span>
-    </div>
-    <p class="login-sub">Gestión de tareas personal.<br/>Iniciá sesión para continuar.</p>
-    <button class="btn-google" id="btn-signin">
-      <svg class="google-svg" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+    <div class="login-glyph">// v0.1.0 — base + auth</div>
+    <h1>Plordico</h1>
+    <p>Gestión de tareas personal.<br/>Iniciá sesión para continuar.</p>
+    <button class="btn btn-google" id="btn-signin">
+      <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
       Iniciar sesión con Google
     </button>
   </div>
 </div>
 
-<!-- APP -->
+<!-- APP (todo lo demás se mantiene exactamente igual) -->
 <div id="screen-app" class="screen">
   <header class="topbar">
     <div class="topbar-logo">
@@ -373,7 +481,7 @@
   </div>
 </div>
 
-<!-- MODAL TAREA -->
+<!-- MODAL TAREA (sin cambios) -->
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
     <div class="modal-header">
@@ -480,7 +588,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// FIREBASE
+// FIREBASE (sin cambios)
 const firebaseConfig = {
   apiKey:            "AIzaSyAFoC9QZ4xAaGtvlMmay8_yTue4c9wN_6A",
   authDomain:        "plordico-8f546.firebaseapp.com",
@@ -493,7 +601,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-// STATE
+// STATE (sin cambios)
 let currentUser     = null;
 let tasks           = [];
 let editingId       = null;
@@ -505,7 +613,7 @@ let searchQuery     = '';
 let recurrenceOn    = false;
 let unsubscribe     = null;
 
-// DOM
+// DOM (sin cambios)
 const screenLogin    = document.getElementById('screen-login');
 const screenApp      = document.getElementById('screen-app');
 const btnSignIn      = document.getElementById('btn-signin');
@@ -545,7 +653,7 @@ const tagsInput      = document.getElementById('tags-input');
 const tagsWrap       = document.getElementById('tags-wrap');
 const depList        = document.getElementById('dep-list');
 
-// UTILS
+// UTILS (sin cambios)
 let toastTimer;
 function showToast(msg, type = '') {
   clearTimeout(toastTimer);
@@ -579,7 +687,7 @@ function getAllTags() {
   return [...s].sort();
 }
 
-// AUTH
+// AUTH (sin cambios)
 const GSVG = `<svg class="google-svg" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>`;
 
 auth.onAuthStateChanged(user => {
@@ -608,7 +716,7 @@ btnSignIn.addEventListener('click', () => {
 });
 btnSignOut.addEventListener('click', () => auth.signOut());
 
-// FIRESTORE
+// FIRESTORE (sin cambios)
 function subscribeToTasks() {
   if (unsubscribe) unsubscribe();
   unsubscribe = db.collection('tasks')
@@ -667,7 +775,7 @@ async function toggleDone(id, current) {
   catch(e) { showToast('Error.', 'err'); }
 }
 
-// RENDER LIST
+// RENDER LIST (sin cambios)
 function getFiltered() {
   let list = [...tasks];
   const fm = { pending: t=>t.status==='pending', in_progress: t=>t.status==='in_progress', done: t=>t.status==='done', high: t=>t.priority==='high', strategic: t=>t.type==='strategic' };
@@ -732,7 +840,7 @@ function buildCard(task) {
   return card;
 }
 
-// TAG FILTER ROW
+// TAG FILTER ROW (sin cambios)
 function renderTagFilterRow() {
   tagFilterRow.querySelectorAll('.filter-chip').forEach(el => el.remove());
   const tags = getAllTags();
@@ -751,7 +859,7 @@ function renderTagFilterRow() {
   });
 }
 
-// TAGS PANEL
+// TAGS PANEL (sin cambios)
 function renderTagsPanel() {
   const tags = getAllTags();
   tagsPanelCount.textContent = tags.length ? `${tags.length} etiqueta${tags.length>1?'s':''}` : '';
@@ -802,13 +910,13 @@ function renderTagsPanel() {
   });
 }
 
-// MODAL
+// MODAL (sin cambios)
 function openModal(task=null) {
   editingId=task?task.id:null; currentTags=task?[...(task.tags||[])]:[];
   selectedDeps=task?new Set(task.dependencies||[]):new Set();
   modalTitle.textContent=task?'Editar tarea':'Nueva tarea';
   btnDelete.classList.toggle('hidden',!task);
-  fTitle.value=task?task.title:''; fDesc.value=task?(task.description||')':'';
+  fTitle.value=task?task.title:''; fDesc.value=task?(task.description||''):'';
   fPriority.value=task?task.priority:'high'; fType.value=task?task.type:'operative';
   fStatus.value=task?task.status:'pending'; fDue.value=task&&task.dueDate?task.dueDate:'';
   const rec=task&&task.recurrence&&task.recurrence.enabled?task.recurrence:null;
