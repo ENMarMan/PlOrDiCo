@@ -143,7 +143,7 @@
     .badge-pending   { background: var(--surface-3);  color: var(--text-dim); }
     .badge-progress  { background: var(--blue-dim);   color: var(--blue);   }
     .badge-done      { background: var(--green-dim);  color: var(--green);  }
-    .task-tag { display: inline-flex; padding: 2px 7px; border-radius: 3px; font-size: 10px; background: var(--surface-3); color: var(--text-dim); border: 1px solid var(--border); }
+    .task-tag { display: inline-flex; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 500; background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(240,165,0,.2); }
     .task-due { font-family: var(--mono); font-size: 10px; color: var(--text-faint); display: flex; align-items: center; gap: 3px; }
     .task-due.overdue { color: var(--red); }
     .task-due.soon    { color: var(--orange); }
@@ -332,7 +332,10 @@
           <button class="filter-chip" data-filter="in_progress"><span class="dot" style="background:var(--blue)"></span>En curso</button>
           <button class="filter-chip" data-filter="done"><span class="dot" style="background:var(--green)"></span>Completadas</button>
           <button class="filter-chip" data-filter="high"><span class="dot" style="background:var(--red)"></span>Alta prioridad</button>
+          <button class="filter-chip" data-filter="low"><span class="dot" style="background:var(--blue)"></span>Baja prioridad</button>
           <button class="filter-chip" data-filter="strategic"><span class="dot" style="background:var(--amber)"></span>Estratégicas</button>
+          <button class="filter-chip" data-filter="operative"><span class="dot" style="background:var(--text-dim)"></span>Operativas</button>
+          <button class="filter-chip" data-filter="with_due"><span class="dot" style="background:var(--green)"></span>En agenda</button>
         </div>
         <div class="search-wrap">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -702,7 +705,7 @@ async function toggleDone(id, current) {
 // RENDER LIST
 function getFiltered() {
   let list = [...tasks];
-  const fm = { pending: t=>t.status==='pending', in_progress: t=>t.status==='in_progress', done: t=>t.status==='done', high: t=>t.priority==='high', strategic: t=>t.type==='strategic' };
+  const fm = { pending: t=>t.status==='pending', in_progress: t=>t.status==='in_progress', done: t=>t.status==='done', high: t=>t.priority==='high', low: t=>t.priority==='low', strategic: t=>t.type==='strategic', operative: t=>t.type==='operative', with_due: t=>!!t.dueDate };
   if (fm[activeFilter]) list = list.filter(fm[activeFilter]);
   if (activeTagFilter)  list = list.filter(t => (t.tags||[]).includes(activeTagFilter));
   if (searchQuery) {
@@ -775,8 +778,16 @@ function renderTagFilterRow() {
     chip.className = 'filter-chip tag-chip' + (activeTagFilter===tag?' active':'');
     chip.textContent = tag;
     chip.addEventListener('click', () => {
-      if (activeTagFilter === tag) { activeTagFilter = null; chip.classList.remove('active'); }
-      else { tagFilterRow.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active')); activeTagFilter=tag; chip.classList.add('active'); }
+      if (activeTagFilter === tag) {
+        activeTagFilter = null; chip.classList.remove('active');
+      } else {
+        tagFilterRow.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+        activeTagFilter = tag; chip.classList.add('active');
+        // Resetear filtro principal a "Todas"
+        document.querySelectorAll('.filter-chip[data-filter]').forEach(c=>c.classList.remove('active'));
+        document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
+        activeFilter = 'all';
+      }
       renderList();
     });
     tagFilterRow.appendChild(chip);
@@ -907,13 +918,19 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+    if (tab.dataset.panel === 'etiquetas') renderTagsPanel();
+    if (tab.dataset.panel === 'lista') { renderTagFilterRow(); renderList(); }
   });
 });
 
 document.querySelectorAll('.filter-chip[data-filter]').forEach(chip=>{
   chip.addEventListener('click',()=>{
     document.querySelectorAll('.filter-chip[data-filter]').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active'); activeFilter=chip.dataset.filter; renderList();
+    chip.classList.add('active'); activeFilter=chip.dataset.filter;
+    // Limpiar filtro de etiqueta activo al cambiar filtro principal
+    activeTagFilter = null;
+    tagFilterRow.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    renderList();
   });
 });
 searchInput.addEventListener('input',()=>{searchQuery=searchInput.value.trim();renderList();});
