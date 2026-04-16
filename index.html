@@ -840,7 +840,7 @@ function openModal(task=null) {
   selectedDeps=task?new Set(task.dependencies||[]):new Set();
   modalTitle.textContent=task?'Editar tarea':'Nueva tarea';
   btnDelete.classList.toggle('hidden',!task);
-  fTitle.value=task?task.title:''; fDesc.value=task?(task.description||')':'';
+  fTitle.value=task?task.title:''; fDesc.value=task?(task.description||''):'';
   fPriority.value=task?task.priority:'high'; fType.value=task?task.type:'operative';
   fStatus.value=task?task.status:'pending'; fDue.value=task&&task.dueDate?task.dueDate:'';
   const rec=task&&task.recurrence&&task.recurrence.enabled?task.recurrence:null;
