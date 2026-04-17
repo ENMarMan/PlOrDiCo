@@ -155,7 +155,7 @@
 
     /* PANEL ETIQUETAS */
     .tags-panel { flex: 1; overflow-y: auto; padding: 24px 20px; }
-    .tags-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .tags-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
     .tags-panel-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); }
     .tags-panel-count { font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
     .tag-mgmt-list { display: flex; flex-direction: column; gap: 8px; max-width: 600px; }
@@ -214,12 +214,27 @@
     .tags-text-input { background: none; border: none; outline: none; color: var(--text); font-size: 13px; min-width: 70px; flex: 1; }
     .tags-text-input::placeholder { color: var(--text-faint); }
 
-    /* DEP LIST */
-    .dep-list { display: flex; flex-direction: column; gap: 5px; max-height: 160px; overflow-y: auto; }
-    .dep-item { display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; transition: var(--tr); font-size: 13px; }
-    .dep-item:hover { border-color: var(--border-hi); }
-    .dep-item.selected { border-color: var(--amber); background: var(--amber-glow2); }
-    .dep-item input[type="checkbox"] { accent-color: var(--amber); width: 13px; height: 13px; flex-shrink: 0; }
+    /* DEP DROPDOWN */
+    .dep-dropdown-wrap { position: relative; }
+    .dep-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 11px; color: var(--text-dim); font-size: 13px; cursor: pointer; transition: var(--tr); text-align: left; }
+    .dep-trigger:hover { border-color: var(--border-hi); color: var(--text); }
+    .dep-trigger.open { border-color: var(--amber); color: var(--text); border-radius: var(--radius) var(--radius) 0 0; }
+    .dep-trigger-label { flex: 1; }
+    .dep-trigger-arrow { font-size: 10px; transition: transform var(--tr); }
+    .dep-trigger.open .dep-trigger-arrow { transform: rotate(180deg); }
+    .dep-dropdown-panel { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface-2); border: 1px solid var(--amber); border-top: none; border-radius: 0 0 var(--radius) var(--radius); max-height: 200px; overflow-y: auto; z-index: 50; }
+    .dep-dropdown-panel.open { display: block; }
+    .dep-dropdown-panel::-webkit-scrollbar { width: 4px; }
+    .dep-dropdown-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .dep-item { display: flex; align-items: center; gap: 10px; padding: 8px 11px; cursor: pointer; transition: var(--tr); font-size: 13px; border-bottom: 1px solid var(--border); }
+    .dep-item:last-child { border-bottom: none; }
+    .dep-item:hover { background: var(--surface-3); }
+    .dep-item.selected { background: var(--amber-glow2); }
+    .dep-item input[type="checkbox"] { accent-color: var(--amber); width: 13px; height: 13px; flex-shrink: 0; pointer-events: none; }
+    .dep-selected-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; min-height: 0; }
+    .dep-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-3); border: 1px solid var(--border-hi); border-radius: 3px; padding: 2px 7px; font-size: 11px; color: var(--text-dim); }
+    .dep-pill-remove { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 12px; line-height: 1; padding: 0; transition: var(--tr); }
+    .dep-pill-remove:hover { color: var(--red); }
 
     /* BUTTONS */
     .btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--amber); color: var(--bg); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; transition: var(--tr); }
@@ -229,6 +244,22 @@
     .btn-danger:hover { background: var(--red-glow); }
     .btn-cancel { display: inline-flex; align-items: center; padding: 9px 14px; background: transparent; color: var(--text-dim); border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; cursor: pointer; transition: var(--tr); }
     .btn-cancel:hover { border-color: var(--border-hi); color: var(--text); }
+    /* Botón nueva etiqueta en panel */
+    .btn-new-tag { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-size: 13px; cursor: pointer; transition: var(--tr); }
+    .btn-new-tag:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+    .new-tag-form { display: flex; gap: 8px; align-items: center; max-width: 600px; margin-bottom: 14px; }
+    .new-tag-form.hidden { display: none; }
+    .new-tag-input { flex: 1; background: var(--surface-2); border: 1px solid var(--amber); border-radius: var(--radius); padding: 7px 11px; color: var(--text); font-size: 14px; }
+    .new-tag-input:focus { outline: none; }
+    /* Botón eliminar en tarjeta */
+    .task-card-actions { position: absolute; top: 8px; right: 8px; display: none; gap: 4px; }
+    .task-card:hover .task-card-actions { display: flex; }
+    .card-btn-delete { width: 24px; height: 24px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-faint); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
+    .card-btn-delete:hover { border-color: var(--red-dim); color: var(--red); background: var(--red-glow); }
+    /* Tag suggestions en modal */
+    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .tag-suggestion { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface-3); border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer; transition: var(--tr); }
+    .tag-suggestion:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
 
     /* COMING SOON */
     .coming-soon { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 20px; text-align: center; }
@@ -388,6 +419,12 @@
       <div class="tags-panel-header">
         <span class="tags-panel-title">Gestión de etiquetas</span>
         <span class="tags-panel-count" id="tags-panel-count"></span>
+        <button class="btn-new-tag" id="btn-new-tag">＋ Nueva etiqueta</button>
+      </div>
+      <div class="new-tag-form hidden" id="new-tag-form">
+        <input type="text" class="new-tag-input" id="new-tag-input" placeholder="Nombre de la etiqueta…" maxlength="30" />
+        <button class="btn-primary" id="btn-new-tag-save" style="padding:7px 14px;font-size:13px">Agregar</button>
+        <button class="btn-cancel" id="btn-new-tag-cancel" style="padding:7px 10px;font-size:13px">✕</button>
       </div>
       <div class="tag-mgmt-list" id="tag-mgmt-list"></div>
     </div>
@@ -480,12 +517,20 @@
         <div class="tags-input-wrap" id="tags-wrap">
           <input type="text" class="tags-text-input" id="tags-input" placeholder="ej: urgente, cliente…" maxlength="30" />
         </div>
+        <div class="tag-suggestions" id="tag-suggestions"></div>
       </div>
 
       <!-- DEPENDENCIAS -->
       <div class="form-group">
         <label class="form-label">Depende de</label>
-        <div class="dep-list" id="dep-list"></div>
+        <div class="dep-dropdown-wrap" id="dep-dropdown-wrap">
+          <button type="button" class="dep-trigger" id="dep-trigger">
+            <span class="dep-trigger-label" id="dep-trigger-label">Seleccionar tareas…</span>
+            <span class="dep-trigger-arrow">▼</span>
+          </button>
+          <div class="dep-dropdown-panel" id="dep-dropdown-panel"></div>
+        </div>
+        <div class="dep-selected-pills" id="dep-selected-pills"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -517,6 +562,7 @@ const db   = firebase.firestore();
 // STATE
 let currentUser     = null;
 let tasks           = [];
+let freeTags        = [];
 let editingId       = null;
 let currentTags     = [];
 let selectedDeps    = new Set();
@@ -564,7 +610,6 @@ const recOptions     = document.getElementById('recurrence-options');
 const recIntervalGrp = document.getElementById('rec-interval-group');
 const tagsInput      = document.getElementById('tags-input');
 const tagsWrap       = document.getElementById('tags-wrap');
-const depList        = document.getElementById('dep-list');
 
 // UTILS
 let toastTimer;
@@ -595,7 +640,7 @@ function recLabel(rec) {
   return { workdays:'Días lab.', daily:`Cada ${rec.interval||1}d`, weekly:'Semanal', monthly:'Mensual', yearly:'Anual' }[rec.type] || rec.type;
 }
 function getAllTags() {
-  const s = new Set();
+  const s = new Set(freeTags);
   tasks.forEach(t => (t.tags||[]).forEach(tag => s.add(tag)));
   return [...s].sort();
 }
@@ -646,6 +691,11 @@ btnSignOut.addEventListener('click', () => auth.signOut());
 // FIRESTORE
 function subscribeToTasks() {
   if (unsubscribe) unsubscribe();
+  // Cargar tags libres del usuario
+  db.collection('userConfig').doc(currentUser.uid).onSnapshot(snap => {
+    freeTags = snap.exists ? (snap.data().freeTags || []) : [];
+    renderTagFilterRow(); renderTagsPanel();
+  });
   unsubscribe = db.collection('tasks')
     .where('uid', '==', currentUser.uid)
     .orderBy('createdAt', 'desc')
@@ -721,7 +771,19 @@ function getFiltered() {
 
 function renderList() {
   taskList.querySelectorAll('.task-card,.group-header').forEach(el => el.remove());
-  const filtered = getFiltered();
+  let filtered = getFiltered();
+  // Ordenar por fecha límite cuando el filtro es "En agenda"
+  if (activeFilter === 'with_due') {
+    filtered = filtered.slice().sort((a, b) => {
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return a.dueDate.localeCompare(b.dueDate);
+    });
+    if (!filtered.length) { emptyState.classList.remove('hidden'); return; }
+    emptyState.classList.add('hidden');
+    filtered.forEach(t => taskList.appendChild(buildCard(t)));
+    return;
+  }
   if (!filtered.length) { emptyState.classList.remove('hidden'); return; }
   emptyState.classList.add('hidden');
   [
@@ -746,6 +808,9 @@ function buildCard(task) {
   const st     = task.status==='pending' ? 'Pendiente' : task.status==='in_progress' ? 'En curso' : 'Completada';
   card.innerHTML = `
     <div class="task-card-accent" style="background:${accent}"></div>
+    <div class="task-card-actions">
+      <button class="card-btn-delete" title="Eliminar tarea">✕</button>
+    </div>
     <div class="task-card-top">
       <div class="task-check${task.status==='done'?' checked':''}"></div>
       <div class="task-body">
@@ -763,6 +828,12 @@ function buildCard(task) {
       </div>
     </div>`;
   card.querySelector('.task-check').addEventListener('click', e => { e.stopPropagation(); toggleDone(task.id, task.status); });
+  card.querySelector('.card-btn-delete').addEventListener('click', async e => {
+    e.stopPropagation();
+    if (!confirm(`¿Eliminar "${task.title}"?`)) return;
+    try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+    catch(err) { showToast('Error.', 'err'); }
+  });
   card.addEventListener('click', () => openModal(task));
   return card;
 }
@@ -800,15 +871,16 @@ function renderTagsPanel() {
   tagsPanelCount.textContent = tags.length ? `${tags.length} etiqueta${tags.length>1?'s':''}` : '';
   tagMgmtList.innerHTML = '';
   if (!tags.length) {
-    tagMgmtList.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>Todavía no hay etiquetas.<br/>Agregalas al crear o editar tareas.</p></div>`;
+    tagMgmtList.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>Todavía no hay etiquetas.<br/>Usá el botón "Nueva etiqueta" para crear una.</p></div>`;
     return;
   }
   tags.forEach(tag => {
     const count = tasks.filter(t=>(t.tags||[]).includes(tag)).length;
+    const isFree = freeTags.includes(tag) && count === 0;
     const item = document.createElement('div'); item.className = 'tag-mgmt-item';
     item.innerHTML = `
       <span class="tag-mgmt-name">${escHtml(tag)}</span>
-      <span class="tag-mgmt-count">${count} tarea${count!==1?'s':''}</span>
+      <span class="tag-mgmt-count">${count ? `${count} tarea${count!==1?'s':''}` : '<span style="color:var(--text-faint);font-size:10px">sin tareas</span>'}</span>
       <div class="tag-mgmt-actions">
         <button class="btn-icon rename-btn" title="Renombrar">✎</button>
         <button class="btn-icon danger delete-btn" title="Eliminar">✕</button>
@@ -826,6 +898,11 @@ function renderTagsPanel() {
         tasks.filter(t=>(t.tags||[]).includes(tag)).forEach(t => {
           batch.update(db.collection('tasks').doc(t.id), { tags: t.tags.map(tg=>tg===tag?nv:tg), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
         });
+        // Actualizar en freeTags si existe
+        if (freeTags.includes(tag)) {
+          const ref = db.collection('userConfig').doc(currentUser.uid);
+          batch.set(ref, { freeTags: [...freeTags.filter(t=>t!==tag), nv] }, { merge: true });
+        }
         try { await batch.commit(); showToast('Etiqueta renombrada.','ok'); } catch(e) { showToast('Error.','err'); }
       }
       inp.addEventListener('blur', commit);
@@ -833,11 +910,15 @@ function renderTagsPanel() {
     });
 
     item.querySelector('.delete-btn').addEventListener('click', async () => {
-      if (!confirm(`¿Eliminar la etiqueta "${tag}" de todas las tareas?`)) return;
+      if (!confirm(`¿Eliminar la etiqueta "${tag}"${count ? ` de ${count} tarea${count>1?'s':''}` : ''}?`)) return;
       const batch = db.batch();
       tasks.filter(t=>(t.tags||[]).includes(tag)).forEach(t => {
         batch.update(db.collection('tasks').doc(t.id), { tags: t.tags.filter(tg=>tg!==tag), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
       });
+      if (freeTags.includes(tag)) {
+        const ref = db.collection('userConfig').doc(currentUser.uid);
+        batch.set(ref, { freeTags: freeTags.filter(t=>t!==tag) }, { merge: true });
+      }
       try { await batch.commit(); showToast('Etiqueta eliminada.','ok'); } catch(e) { showToast('Error.','err'); }
     });
 
@@ -861,7 +942,7 @@ function openModal(task=null) {
   recOptions.classList.toggle('hidden',!recurrenceOn);
   if(rec){fRecType.value=rec.type||'workdays';fRecInterval.value=rec.interval||1;fRecEnd.value=rec.endDate||'';updateRecInterval();}
   else{fRecType.value='workdays';fRecInterval.value=1;fRecEnd.value='';recIntervalGrp.classList.add('hidden');}
-  renderTagsUI(); renderDepList(task?task.id:null);
+  renderTagsUI(); renderTagSuggestions(); renderDepDropdown(task?task.id:null);
   modalBackdrop.classList.add('open'); setTimeout(()=>fTitle.focus(),80);
 }
 
@@ -872,25 +953,94 @@ function renderTagsUI() {
   currentTags.forEach(tag => {
     const pill=document.createElement('span'); pill.className='tag-pill';
     pill.innerHTML=`${escHtml(tag)}<button class="tag-remove">×</button>`;
-    pill.querySelector('.tag-remove').addEventListener('click',()=>{currentTags=currentTags.filter(t=>t!==tag);renderTagsUI();});
+    pill.querySelector('.tag-remove').addEventListener('click',()=>{currentTags=currentTags.filter(t=>t!==tag);renderTagsUI();renderTagSuggestions();});
     tagsWrap.insertBefore(pill,tagsInput);
   });
 }
 
-function renderDepList(excludeId) {
-  const candidates=tasks.filter(t=>t.id!==excludeId);
-  depList.innerHTML='';
-  if(!candidates.length){depList.innerHTML='<span style="font-size:12px;color:var(--text-faint)">No hay otras tareas disponibles.</span>';return;}
-  candidates.forEach(t=>{
-    const sel=selectedDeps.has(t.id);
-    const item=document.createElement('div'); item.className='dep-item'+(sel?' selected':'');
-    const sk=t.status==='done'?'done':t.status==='in_progress'?'progress':'pending';
-    const st=t.status==='done'?'Completada':t.status==='in_progress'?'En curso':'Pend.';
-    item.innerHTML=`<input type="checkbox" ${sel?'checked':''}><span style="flex:1;font-size:13px">${escHtml(t.title)}</span><span class="badge badge-${sk}" style="font-size:9px">${st}</span>`;
-    const cb=item.querySelector('input');
-    item.addEventListener('click',()=>{if(selectedDeps.has(t.id)){selectedDeps.delete(t.id);item.classList.remove('selected');cb.checked=false;}else{selectedDeps.add(t.id);item.classList.add('selected');cb.checked=true;}});
-    depList.appendChild(item);
+function renderTagSuggestions() {
+  const suggestionsEl = document.getElementById('tag-suggestions');
+  if (!suggestionsEl) return;
+  const existing = getAllTags().filter(t => !currentTags.includes(t));
+  suggestionsEl.innerHTML = '';
+  existing.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'tag-suggestion'; btn.textContent = '+ ' + tag;
+    btn.addEventListener('click', () => {
+      if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); renderTagSuggestions(); }
+    });
+    suggestionsEl.appendChild(btn);
   });
+}
+
+function renderDepDropdown(excludeId) {
+  const trigger = document.getElementById('dep-trigger');
+  const triggerLabel = document.getElementById('dep-trigger-label');
+  const panel = document.getElementById('dep-dropdown-panel');
+  const pillsEl = document.getElementById('dep-selected-pills');
+  if (!trigger || !panel || !pillsEl) return;
+
+  const candidates = tasks.filter(t => t.id !== excludeId);
+  panel.innerHTML = '';
+  if (!candidates.length) {
+    panel.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:var(--text-faint)">No hay otras tareas disponibles.</div>';
+  } else {
+    candidates.forEach(t => {
+      const sel = selectedDeps.has(t.id);
+      const item = document.createElement('div'); item.className = 'dep-item' + (sel ? ' selected' : '');
+      const sk = t.status==='done'?'done':t.status==='in_progress'?'progress':'pending';
+      const st = t.status==='done'?'Completada':t.status==='in_progress'?'En curso':'Pend.';
+      item.innerHTML = `<input type="checkbox" ${sel?'checked':''}><span style="flex:1">${escHtml(t.title)}</span><span class="badge badge-${sk}" style="font-size:9px">${st}</span>`;
+      item.addEventListener('click', () => {
+        if (selectedDeps.has(t.id)) { selectedDeps.delete(t.id); item.classList.remove('selected'); item.querySelector('input').checked=false; }
+        else { selectedDeps.add(t.id); item.classList.add('selected'); item.querySelector('input').checked=true; }
+        updateDepTriggerLabel();
+        renderDepPills(excludeId);
+      });
+      panel.appendChild(item);
+    });
+  }
+
+  function updateDepTriggerLabel() {
+    const count = selectedDeps.size;
+    triggerLabel.textContent = count ? `${count} tarea${count>1?'s':''} seleccionada${count>1?'s':''}` : 'Seleccionar tareas…';
+  }
+  updateDepTriggerLabel();
+
+  // Toggle dropdown
+  trigger.onclick = (e) => {
+    e.stopPropagation();
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    trigger.classList.toggle('open', !isOpen);
+  };
+  // Cerrar al hacer click fuera
+  document.addEventListener('click', function handler(e) {
+    if (!trigger.contains(e.target) && !panel.contains(e.target)) {
+      panel.classList.remove('open'); trigger.classList.remove('open');
+      document.removeEventListener('click', handler);
+    }
+  });
+
+  renderDepPills(excludeId);
+
+  function renderDepPills(exId) {
+    pillsEl.innerHTML = '';
+    [...selectedDeps].forEach(id => {
+      const t = tasks.find(x => x.id === id); if (!t) return;
+      const pill = document.createElement('span'); pill.className = 'dep-pill';
+      pill.innerHTML = `${escHtml(t.title)}<button class="dep-pill-remove" title="Quitar">×</button>`;
+      pill.querySelector('.dep-pill-remove').addEventListener('click', () => {
+        selectedDeps.delete(id);
+        panel.querySelectorAll('.dep-item').forEach(item => {
+          const cb = item.querySelector('input');
+          if (cb) { const taskTitle = item.querySelector('span:nth-child(2)').textContent; if (t.title === taskTitle) { item.classList.remove('selected'); cb.checked=false; } }
+        });
+        updateDepTriggerLabel(); renderDepPills(exId);
+      });
+      pillsEl.appendChild(pill);
+    });
+  }
 }
 
 function updateRecInterval() { recIntervalGrp.classList.toggle('hidden', fRecType.value!=='daily'); }
@@ -907,8 +1057,8 @@ fRecType.addEventListener('change', updateRecInterval);
 tagsInput.addEventListener('keydown',e=>{
   if((e.key==='Enter'||e.key===',')&&tagsInput.value.trim()){
     e.preventDefault(); const tag=tagsInput.value.trim().replace(/,/g,'');
-    if(tag&&!currentTags.includes(tag)){currentTags.push(tag);renderTagsUI();} tagsInput.value='';
-  } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();}
+    if(tag&&!currentTags.includes(tag)){currentTags.push(tag);renderTagsUI();renderTagSuggestions();} tagsInput.value='';
+  } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();renderTagSuggestions();}
 });
 tagsWrap.addEventListener('click',()=>tagsInput.focus());
 
@@ -943,6 +1093,38 @@ btnDelete.addEventListener('click',deleteTask);
 modalBackdrop.addEventListener('click',e=>{if(e.target===modalBackdrop)closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 fTitle.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fDesc.focus();}});
+
+// PANEL ETIQUETAS — nueva etiqueta
+const btnNewTag      = document.getElementById('btn-new-tag');
+const newTagForm     = document.getElementById('new-tag-form');
+const newTagInput    = document.getElementById('new-tag-input');
+const btnNewTagSave  = document.getElementById('btn-new-tag-save');
+const btnNewTagCancel= document.getElementById('btn-new-tag-cancel');
+
+btnNewTag.addEventListener('click', () => {
+  newTagForm.classList.remove('hidden'); newTagInput.focus();
+});
+btnNewTagCancel.addEventListener('click', () => {
+  newTagForm.classList.add('hidden'); newTagInput.value = '';
+});
+async function saveNewTag() {
+  const name = newTagInput.value.trim();
+  if (!name) { newTagInput.focus(); return; }
+  if (getAllTags().includes(name)) { showToast('Esa etiqueta ya existe.', 'err'); return; }
+  // Crear una tarea placeholder no es viable — la etiqueta solo existe asociada a tareas.
+  // Solución: guardar etiquetas "libres" en un documento de config del usuario.
+  const ref = db.collection('userConfig').doc(currentUser.uid);
+  try {
+    await ref.set({ freeTags: firebase.firestore.FieldValue.arrayUnion(name) }, { merge: true });
+    showToast('Etiqueta creada.', 'ok');
+    newTagInput.value = ''; newTagForm.classList.add('hidden');
+  } catch(e) { showToast('Error al guardar.', 'err'); }
+}
+btnNewTagSave.addEventListener('click', saveNewTag);
+newTagInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); saveNewTag(); }
+  if (e.key === 'Escape') { newTagForm.classList.add('hidden'); newTagInput.value = ''; }
+});
 </script>
 </body>
 </html>
