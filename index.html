@@ -266,6 +266,49 @@
     .tag-suggestion { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface-3); border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer; transition: var(--tr); }
     .tag-suggestion:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
 
+    /* MATRIZ DE EISENHOWER */
+    .matrix-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
+    .matrix-toolbar-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); }
+    .matrix-toggle-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .matrix-toggle-label { font-size: 12px; color: var(--text-dim); }
+    .matrix-scroll { flex: 1; overflow: auto; padding: 16px 20px 24px; }
+    .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 12px; min-width: 560px; }
+    .matrix-quadrant { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden; min-height: 200px; }
+    .matrix-quadrant.q1 { border-top: 2px solid var(--red); }
+    .matrix-quadrant.q2 { border-top: 2px solid var(--amber); }
+    .matrix-quadrant.q3 { border-top: 2px solid var(--orange); }
+    .matrix-quadrant.q4 { border-top: 2px solid var(--border-hi); }
+    .matrix-q-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .matrix-q-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .q1 .matrix-q-dot { background: var(--red); }
+    .q2 .matrix-q-dot { background: var(--amber); }
+    .q3 .matrix-q-dot { background: var(--orange); }
+    .q4 .matrix-q-dot { background: var(--border-hi); }
+    .matrix-q-title { font-size: 13px; font-weight: 600; line-height: 1.3; }
+    .matrix-q-sub { font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin-top: 1px; }
+    .matrix-q-count { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-faint); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 1px 8px; flex-shrink: 0; }
+    .matrix-q-body { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+    .matrix-q-body::-webkit-scrollbar { width: 3px; }
+    .matrix-q-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .matrix-empty { display: flex; align-items: center; justify-content: center; padding: 24px 12px; color: var(--text-faint); font-size: 12px; font-style: italic; }
+    .mcard { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 11px; cursor: pointer; transition: var(--tr); position: relative; overflow: hidden; }
+    .mcard:hover { border-color: var(--border-hi); background: var(--surface-3); }
+    .mcard.done { opacity: .45; }
+    .mcard.done .mcard-title { text-decoration: line-through; }
+    .mcard-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+    .mcard-inner { display: flex; align-items: flex-start; gap: 8px; }
+    .mcard-check { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--border-hi); background: transparent; flex-shrink: 0; cursor: pointer; transition: var(--tr); display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+    .mcard-check:hover { border-color: var(--green); }
+    .mcard-check.checked { background: var(--green); border-color: var(--green); }
+    .mcard-check.checked::after { content: '✓'; color: var(--bg); font-size: 9px; font-weight: 700; }
+    .mcard-body { flex: 1; min-width: 0; }
+    .mcard-title { font-size: 12px; font-weight: 500; line-height: 1.35; word-break: break-word; }
+    .mcard-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .mcard-due { font-family: var(--mono); font-size: 10px; color: var(--text-faint); }
+    .mcard-due.overdue { color: var(--red); }
+    .mcard-due.soon    { color: var(--orange); }
+    @media (max-width: 620px) { .matrix-grid { grid-template-columns: 1fr; min-width: unset; } }
+
     /* COMING SOON */
     .coming-soon { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 20px; text-align: center; }
     .coming-soon-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--amber); opacity: .7; }
@@ -399,10 +442,64 @@
 
   <!-- PANEL MATRIZ -->
   <div id="panel-matriz" class="panel">
-    <div class="coming-soon">
-      <div class="coming-soon-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg></div>
-      <h2>Matriz de Eisenhower</h2><p>Visualizá tus tareas organizadas por urgencia e importancia.</p>
-      <span class="coming-soon-tag">// fase 3</span>
+    <div class="matrix-toolbar">
+      <span class="matrix-toolbar-title">Matriz de Eisenhower</span>
+      <label class="matrix-toggle-wrap">
+        <div class="toggle-switch" id="matrix-toggle-switch"></div>
+        <span class="matrix-toggle-label" id="matrix-toggle-label">Ocultar completadas</span>
+      </label>
+    </div>
+    <div class="matrix-scroll">
+      <div class="matrix-grid">
+        <!-- Q1: Urgente + Importante -->
+        <div class="matrix-quadrant q1">
+          <div class="matrix-q-header">
+            <span class="matrix-q-dot"></span>
+            <div>
+              <div class="matrix-q-title">Hacer ahora</div>
+              <div class="matrix-q-sub">Urgente · Importante</div>
+            </div>
+            <span class="matrix-q-count" id="mq1-count">0</span>
+          </div>
+          <div class="matrix-q-body" id="mq1-body"></div>
+        </div>
+        <!-- Q2: No urgente + Importante -->
+        <div class="matrix-quadrant q2">
+          <div class="matrix-q-header">
+            <span class="matrix-q-dot"></span>
+            <div>
+              <div class="matrix-q-title">Planificar</div>
+              <div class="matrix-q-sub">No urgente · Importante</div>
+            </div>
+            <span class="matrix-q-count" id="mq2-count">0</span>
+          </div>
+          <div class="matrix-q-body" id="mq2-body"></div>
+        </div>
+        <!-- Q3: Urgente + No importante -->
+        <div class="matrix-quadrant q3">
+          <div class="matrix-q-header">
+            <span class="matrix-q-dot"></span>
+            <div>
+              <div class="matrix-q-title">Delegar</div>
+              <div class="matrix-q-sub">Urgente · No importante</div>
+            </div>
+            <span class="matrix-q-count" id="mq3-count">0</span>
+          </div>
+          <div class="matrix-q-body" id="mq3-body"></div>
+        </div>
+        <!-- Q4: No urgente + No importante -->
+        <div class="matrix-quadrant q4">
+          <div class="matrix-q-header">
+            <span class="matrix-q-dot"></span>
+            <div>
+              <div class="matrix-q-title">Eliminar</div>
+              <div class="matrix-q-sub">No urgente · No importante</div>
+            </div>
+            <span class="matrix-q-count" id="mq4-count">0</span>
+          </div>
+          <div class="matrix-q-body" id="mq4-body"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -714,6 +811,7 @@ function subscribeToTasks() {
     .onSnapshot(snap => {
       tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderList();
+      renderMatrix();
       renderTagFilterRow();
       renderTagsPanel();
     }, err => { console.error(err); showToast('Error: ' + err.code, 'err'); });
@@ -1105,6 +1203,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
     if (tab.dataset.panel === 'etiquetas') renderTagsPanel();
     if (tab.dataset.panel === 'lista') { renderTagFilterRow(); renderList(); }
+    if (tab.dataset.panel === 'matriz') renderMatrix();
   });
 });
 
@@ -1136,7 +1235,93 @@ modalBackdrop.addEventListener('click',e=>{if(e.target===modalBackdrop)closeModa
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 fTitle.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fDesc.focus();}});
 
-// PANEL ETIQUETAS — nueva etiqueta
+// MATRIZ DE EISENHOWER
+let matrixHideCompleted = false;
+
+const matrixToggleSwitch = document.getElementById('matrix-toggle-switch');
+const matrixToggleLabel  = document.getElementById('matrix-toggle-label');
+
+matrixToggleSwitch.parentElement.addEventListener('click', () => {
+  matrixHideCompleted = !matrixHideCompleted;
+  matrixToggleSwitch.className = 'toggle-switch' + (matrixHideCompleted ? ' on' : '');
+  matrixToggleLabel.textContent = matrixHideCompleted ? 'Completadas ocultas' : 'Ocultar completadas';
+  renderMatrix();
+});
+
+function renderMatrix() {
+  const quadrants = [
+    { id: 'mq1', priority: 'high',  type: 'strategic'  },
+    { id: 'mq2', priority: 'low',   type: 'strategic'  },
+    { id: 'mq3', priority: 'high',  type: 'operative'  },
+    { id: 'mq4', priority: 'low',   type: 'operative'  },
+  ];
+
+  quadrants.forEach(q => {
+    const body  = document.getElementById(q.id + '-body');
+    const count = document.getElementById(q.id + '-count');
+    body.innerHTML = '';
+
+    let items = tasks.filter(t => t.priority === q.priority && t.type === q.type);
+    if (matrixHideCompleted) items = items.filter(t => t.status !== 'done');
+
+    count.textContent = items.length;
+
+    if (!items.length) {
+      const empty = document.createElement('div');
+      empty.className = 'matrix-empty';
+      empty.textContent = 'Sin tareas';
+      body.appendChild(empty);
+      return;
+    }
+
+    // Orden: en curso → pendientes → completadas; dentro de cada grupo, por dueDate asc
+    items.sort((a, b) => {
+      const order = { in_progress: 0, pending: 1, done: 2 };
+      const so = (order[a.status] ?? 1) - (order[b.status] ?? 1);
+      if (so !== 0) return so;
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return a.dueDate.localeCompare(b.dueDate);
+    });
+
+    items.forEach(task => body.appendChild(buildMCard(task)));
+  });
+}
+
+function buildMCard(task) {
+  const card = document.createElement('div');
+  card.className = 'mcard' + (task.status === 'done' ? ' done' : '');
+  const accent = task.priority === 'high' ? 'var(--red)' : task.type === 'strategic' ? 'var(--amber)' : 'var(--border)';
+  const due    = dueBadge(task.dueDate);
+  const rl     = recLabel(task.recurrence);
+  const sk     = task.status === 'in_progress' ? 'progress' : task.status;
+  const st     = task.status === 'pending' ? 'Pendiente' : task.status === 'in_progress' ? 'En curso' : 'Completada';
+
+  card.innerHTML = `
+    <div class="mcard-accent" style="background:${accent}"></div>
+    <div class="mcard-inner">
+      <div class="mcard-check${task.status === 'done' ? ' checked' : ''}"></div>
+      <div class="mcard-body">
+        <div class="mcard-title">${escHtml(task.title)}</div>
+        <div class="mcard-meta">
+          <span class="badge badge-${sk}" style="font-size:9px;padding:1px 5px">${st}</span>
+          ${due ? `<span class="mcard-due ${due.cls}">⏱ ${due.label}</span>` : ''}
+          ${rl  ? `<span class="recurrence-badge" style="font-size:9px;padding:1px 5px">↺ ${rl}</span>` : ''}
+          ${hasPendingDeps(task) ? `<span class="dep-warning" style="font-size:9px;padding:1px 5px">⛓ deps.</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+
+  card.querySelector('.mcard-check').addEventListener('click', e => {
+    e.stopPropagation();
+    toggleDone(task.id, task.status);
+  });
+  card.addEventListener('click', () => openModal(task));
+  return card;
+}
+
+
 const btnNewTag      = document.getElementById('btn-new-tag');
 const newTagForm     = document.getElementById('new-tag-form');
 const newTagInput    = document.getElementById('new-tag-input');
