@@ -287,7 +287,7 @@
     .matrix-q-title { font-size: 13px; font-weight: 600; line-height: 1.3; }
     .matrix-q-sub { font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin-top: 1px; }
     .matrix-q-count { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-faint); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 1px 8px; flex-shrink: 0; }
-    .matrix-q-body { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+    .matrix-q-body { overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 5px; max-height: 340px; }
     .matrix-q-body::-webkit-scrollbar { width: 3px; }
     .matrix-q-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .matrix-empty { display: flex; align-items: center; justify-content: center; padding: 24px 12px; color: var(--text-faint); font-size: 12px; font-style: italic; }
@@ -296,7 +296,11 @@
     .mcard.done { opacity: .45; }
     .mcard.done .mcard-title { text-decoration: line-through; }
     .mcard-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
-    .mcard-inner { display: flex; align-items: flex-start; gap: 8px; }
+    .mcard-actions { position: absolute; top: 6px; right: 6px; display: none; }
+    .mcard:hover .mcard-actions { display: flex; }
+    .mcard-btn-delete { width: 20px; height: 20px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-3); color: var(--text-faint); cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
+    .mcard-btn-delete:hover { border-color: var(--red-dim); color: var(--red); background: var(--red-glow); }
+    .mcard-inner { display: flex; align-items: flex-start; gap: 8px; padding-right: 18px; }
     .mcard-check { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--border-hi); background: transparent; flex-shrink: 0; cursor: pointer; transition: var(--tr); display: flex; align-items: center; justify-content: center; margin-top: 1px; }
     .mcard-check:hover { border-color: var(--green); }
     .mcard-check.checked { background: var(--green); border-color: var(--green); }
@@ -307,7 +311,26 @@
     .mcard-due { font-family: var(--mono); font-size: 10px; color: var(--text-faint); }
     .mcard-due.overdue { color: var(--red); }
     .mcard-due.soon    { color: var(--orange); }
-    @media (max-width: 620px) { .matrix-grid { grid-template-columns: 1fr; min-width: unset; } }
+    @media (max-width: 620px) { .matrix-grid { grid-template-columns: 1fr; min-width: unset; } .matrix-q-body { max-height: 260px; } }
+
+    /* CHECKLIST */
+    .checklist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .btn-add-check { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-size: 12px; cursor: pointer; transition: var(--tr); }
+    .btn-add-check:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+    .checklist-items { display: flex; flex-direction: column; gap: 5px; }
+    .check-item-row { display: flex; align-items: center; gap: 7px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 9px; }
+    .check-item-cb { width: 15px; height: 15px; border-radius: 3px; border: 1.5px solid var(--border-hi); background: transparent; flex-shrink: 0; cursor: pointer; transition: var(--tr); display: flex; align-items: center; justify-content: center; }
+    .check-item-cb:hover { border-color: var(--green); }
+    .check-item-cb.checked { background: var(--green); border-color: var(--green); }
+    .check-item-cb.checked::after { content: '✓'; color: var(--bg); font-size: 9px; font-weight: 700; }
+    .check-item-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 13px; font-family: var(--sans); }
+    .check-item-input::placeholder { color: var(--text-faint); }
+    .check-item-input.done-text { text-decoration: line-through; color: var(--text-dim); }
+    .check-item-del { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; transition: var(--tr); }
+    .check-item-del:hover { color: var(--red); }
+    /* Checklist en tarjeta de lista y mcard */
+    .task-checklist-progress { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 10px; color: var(--text-faint); padding: 2px 7px; background: var(--surface-3); border-radius: 3px; }
+    .task-checklist-progress.complete { color: var(--green); }
 
     /* COMING SOON */
     .coming-soon { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 20px; text-align: center; }
@@ -451,49 +474,49 @@
     </div>
     <div class="matrix-scroll">
       <div class="matrix-grid">
-        <!-- Q1: Urgente + Importante -->
+        <!-- Q1: Alta · Estratégica -->
         <div class="matrix-quadrant q1">
           <div class="matrix-q-header">
             <span class="matrix-q-dot"></span>
             <div>
-              <div class="matrix-q-title">Hacer ahora</div>
-              <div class="matrix-q-sub">Urgente · Importante</div>
+              <div class="matrix-q-title">Alta · Estratégica</div>
+              <div class="matrix-q-sub">Alta prioridad · Importante</div>
             </div>
             <span class="matrix-q-count" id="mq1-count">0</span>
           </div>
           <div class="matrix-q-body" id="mq1-body"></div>
         </div>
-        <!-- Q2: No urgente + Importante -->
+        <!-- Q2: Alta · Operativa -->
         <div class="matrix-quadrant q2">
           <div class="matrix-q-header">
             <span class="matrix-q-dot"></span>
             <div>
-              <div class="matrix-q-title">Planificar</div>
-              <div class="matrix-q-sub">No urgente · Importante</div>
+              <div class="matrix-q-title">Alta · Operativa</div>
+              <div class="matrix-q-sub">Alta prioridad · No importante</div>
             </div>
             <span class="matrix-q-count" id="mq2-count">0</span>
           </div>
           <div class="matrix-q-body" id="mq2-body"></div>
         </div>
-        <!-- Q3: Urgente + No importante -->
+        <!-- Q3: Baja · Estratégica -->
         <div class="matrix-quadrant q3">
           <div class="matrix-q-header">
             <span class="matrix-q-dot"></span>
             <div>
-              <div class="matrix-q-title">Delegar</div>
-              <div class="matrix-q-sub">Urgente · No importante</div>
+              <div class="matrix-q-title">Baja · Estratégica</div>
+              <div class="matrix-q-sub">Baja prioridad · Importante</div>
             </div>
             <span class="matrix-q-count" id="mq3-count">0</span>
           </div>
           <div class="matrix-q-body" id="mq3-body"></div>
         </div>
-        <!-- Q4: No urgente + No importante -->
+        <!-- Q4: Baja · Operativa -->
         <div class="matrix-quadrant q4">
           <div class="matrix-q-header">
             <span class="matrix-q-dot"></span>
             <div>
-              <div class="matrix-q-title">Eliminar</div>
-              <div class="matrix-q-sub">No urgente · No importante</div>
+              <div class="matrix-q-title">Baja · Operativa</div>
+              <div class="matrix-q-sub">Baja prioridad · No importante</div>
             </div>
             <span class="matrix-q-count" id="mq4-count">0</span>
           </div>
@@ -554,6 +577,15 @@
       <div class="form-group">
         <label class="form-label">Descripción</label>
         <textarea class="form-textarea" id="f-desc" placeholder="Detalle opcional…"></textarea>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div class="form-group">
+        <div class="checklist-header">
+          <label class="form-label" style="margin:0">Checklist <span class="form-hint">— pasos de la tarea</span></label>
+          <button type="button" class="btn-add-check" id="btn-add-check-item">＋ Paso</button>
+        </div>
+        <div class="checklist-items" id="checklist-items"></div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -673,6 +705,7 @@ let tasks           = [];
 let freeTags        = [];
 let editingId       = null;
 let currentTags     = [];
+let currentChecklist = []; // [{text, done}]
 let selectedDeps    = new Set();
 let activeFilter    = 'all';
 let activeTagFilter = null;
@@ -833,6 +866,7 @@ async function saveTask() {
     priority: fPriority.value, type: fType.value, status: fStatus.value,
     dueDate: fDue.value || null, recurrence: rec,
     tags: [...currentTags], dependencies: [...selectedDeps],
+    checklist: currentChecklist.filter(i => i.text.trim()),
     uid: currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -857,10 +891,79 @@ async function deleteTask() {
 }
 
 async function toggleDone(id, current) {
-  const s = current === 'done' ? 'pending' : 'done';
-  try { await db.collection('tasks').doc(id).update({ status: s, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }); }
-  catch(e) { showToast('Error.', 'err'); }
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  const completing = current !== 'done';
+
+  if (completing && task.recurrence && task.recurrence.enabled) {
+    // Calcular la fecha de la siguiente ocurrencia
+    const nextDate = calcNextRecDate(task);
+    const batch = db.batch();
+    // Marcar la tarea actual como completada
+    batch.update(db.collection('tasks').doc(id), {
+      status: 'done',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    // Crear la siguiente tarea solo si no superó endDate
+    const rec = task.recurrence;
+    const shouldCreate = !rec.endDate || (nextDate && nextDate <= rec.endDate);
+    if (nextDate && shouldCreate) {
+      const newTask = {
+        ...task,
+        id: undefined,
+        status: 'pending',
+        dueDate: nextDate,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        // Resetear checklist si existe
+        checklist: (task.checklist || []).map(item => ({ ...item, done: false }))
+      };
+      delete newTask.id;
+      batch.set(db.collection('tasks').doc(), newTask);
+      showToast('Tarea completada · próxima creada para ' + nextDate, 'ok');
+    } else {
+      showToast('Tarea completada · fin de recurrencia.', 'ok');
+    }
+    try { await batch.commit(); } catch(e) { showToast('Error.', 'err'); }
+  } else {
+    const s = completing ? 'done' : 'pending';
+    try {
+      await db.collection('tasks').doc(id).update({
+        status: s,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e) { showToast('Error.', 'err'); }
+  }
 }
+
+function calcNextRecDate(task) {
+  const rec = task.recurrence;
+  if (!rec || !rec.enabled) return null;
+  // Base: dueDate de la tarea actual o hoy si no tiene
+  const base = task.dueDate ? new Date(task.dueDate + 'T00:00:00') : new Date();
+  base.setHours(0, 0, 0, 0);
+  let next = new Date(base);
+
+  if (rec.type === 'daily') {
+    next.setDate(next.getDate() + (parseInt(rec.interval) || 1));
+  } else if (rec.type === 'workdays') {
+    // Avanza al siguiente día hábil desde base
+    next.setDate(next.getDate() + 1);
+    while (next.getDay() === 0 || next.getDay() === 6) next.setDate(next.getDate() + 1);
+  } else if (rec.type === 'weekly') {
+    next.setDate(next.getDate() + 7);
+  } else if (rec.type === 'monthly') {
+    next.setMonth(next.getMonth() + 1);
+  } else if (rec.type === 'yearly') {
+    next.setFullYear(next.getFullYear() + 1);
+  } else {
+    return null;
+  }
+
+  const pad = n => String(n).padStart(2, '0');
+  return `${next.getFullYear()}-${pad(next.getMonth()+1)}-${pad(next.getDate())}`;
+}
+
 
 // RENDER LIST
 function getFiltered() {
@@ -955,6 +1058,7 @@ function buildCard(task) {
           <span class="badge badge-${sk}">${st}</span>
           ${due?`<span class="task-due ${due.cls}">⏱ ${due.label}</span>`:''}
           ${rl?`<span class="recurrence-badge">↺ ${rl}</span>`:''}
+          ${(()=>{ const cl=task.checklist||[]; if(!cl.length) return ''; const d=cl.filter(i=>i.done).length; return `<span class="task-checklist-progress${d===cl.length?' complete':''}">☑ ${d}/${cl.length}</span>`; })()}
           ${hasPendingDeps(task)?`<span class="dep-warning">⛓ deps. pendientes</span>`:''}
           ${(task.tags||[]).map(t=>`<span class="task-tag">${escHtml(t)}</span>`).join('')}
         </div>
@@ -1062,6 +1166,7 @@ function renderTagsPanel() {
 // MODAL
 function openModal(task=null) {
   editingId=task?task.id:null; currentTags=task?[...(task.tags||[])]:[];
+  currentChecklist = task ? (task.checklist || []).map(i => ({...i})) : [];
   selectedDeps=task?new Set(task.dependencies||[]):new Set();
   modalTitle.textContent=task?'Editar tarea':'Nueva tarea';
   btnDelete.classList.toggle('hidden',!task);
@@ -1075,7 +1180,7 @@ function openModal(task=null) {
   recOptions.classList.toggle('hidden',!recurrenceOn);
   if(rec){fRecType.value=rec.type||'workdays';fRecInterval.value=rec.interval||1;fRecEnd.value=rec.endDate||'';updateRecInterval();}
   else{fRecType.value='workdays';fRecInterval.value=1;fRecEnd.value='';recIntervalGrp.classList.add('hidden');}
-  renderTagsUI(); renderTagSuggestions(); renderDepDropdown(task?task.id:null);
+  renderTagsUI(); renderTagSuggestions(); renderDepDropdown(task?task.id:null); renderChecklistUI();
   modalBackdrop.classList.add('open'); setTimeout(()=>fTitle.focus(),80);
 }
 
@@ -1105,6 +1210,46 @@ function renderTagSuggestions() {
     suggestionsEl.appendChild(btn);
   });
 }
+
+function renderChecklistUI() {
+  const container = document.getElementById('checklist-items');
+  if (!container) return;
+  container.innerHTML = '';
+  currentChecklist.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'check-item-row';
+    row.innerHTML = `
+      <div class="check-item-cb${item.done ? ' checked' : ''}"></div>
+      <input type="text" class="check-item-input${item.done ? ' done-text' : ''}" placeholder="Describí el paso…" value="${escHtml(item.text)}" maxlength="120" />
+      <button type="button" class="check-item-del" title="Quitar">✕</button>`;
+    const cb  = row.querySelector('.check-item-cb');
+    const inp = row.querySelector('.check-item-input');
+    const del = row.querySelector('.check-item-del');
+    cb.addEventListener('click', () => {
+      currentChecklist[idx].done = !currentChecklist[idx].done;
+      renderChecklistUI();
+    });
+    inp.addEventListener('input', () => { currentChecklist[idx].text = inp.value; });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addCheckItem(); }
+    });
+    del.addEventListener('click', () => { currentChecklist.splice(idx, 1); renderChecklistUI(); });
+    container.appendChild(row);
+  });
+}
+
+function addCheckItem() {
+  currentChecklist.push({ text: '', done: false });
+  renderChecklistUI();
+  // Foco en el último input
+  const container = document.getElementById('checklist-items');
+  if (container) {
+    const inputs = container.querySelectorAll('.check-item-input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }
+}
+
+document.getElementById('btn-add-check-item').addEventListener('click', addCheckItem);
 
 function renderDepDropdown(excludeId) {
   const trigger = document.getElementById('dep-trigger');
@@ -1249,11 +1394,13 @@ matrixToggleSwitch.parentElement.addEventListener('click', () => {
 });
 
 function renderMatrix() {
+  // Q1: Alta + Estratégica  |  Q2: Alta + Operativa
+  // Q3: Baja + Estratégica  |  Q4: Baja + Operativa
   const quadrants = [
-    { id: 'mq1', priority: 'high',  type: 'strategic'  },
-    { id: 'mq2', priority: 'low',   type: 'strategic'  },
-    { id: 'mq3', priority: 'high',  type: 'operative'  },
-    { id: 'mq4', priority: 'low',   type: 'operative'  },
+    { id: 'mq1', priority: 'high', type: 'strategic' },
+    { id: 'mq2', priority: 'high', type: 'operative' },
+    { id: 'mq3', priority: 'low',  type: 'strategic' },
+    { id: 'mq4', priority: 'low',  type: 'operative' },
   ];
 
   quadrants.forEach(q => {
@@ -1274,17 +1421,23 @@ function renderMatrix() {
       return;
     }
 
-    // Orden: en curso → pendientes → completadas; dentro de cada grupo, por dueDate asc
+    // Orden: en curso → pendientes → completadas
+    // Dentro de cada grupo: con fecha límite primero (asc), luego sin fecha (por createdAt asc)
+    const statusOrder = { in_progress: 0, pending: 1, done: 2 };
     items.sort((a, b) => {
-      const order = { in_progress: 0, pending: 1, done: 2 };
-      const so = (order[a.status] ?? 1) - (order[b.status] ?? 1);
+      const so = (statusOrder[a.status] ?? 1) - (statusOrder[b.status] ?? 1);
       if (so !== 0) return so;
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return a.dueDate.localeCompare(b.dueDate);
+      const aHas = !!a.dueDate, bHas = !!b.dueDate;
+      if (aHas && bHas) return a.dueDate.localeCompare(b.dueDate);
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      // ambas sin fecha: por createdAt
+      const aTs = a.createdAt?.seconds ?? 0;
+      const bTs = b.createdAt?.seconds ?? 0;
+      return aTs - bTs;
     });
 
+    // Mostrar primeras 5; el resto queda dentro del scroll del body
     items.forEach(task => body.appendChild(buildMCard(task)));
   });
 }
@@ -1292,14 +1445,19 @@ function renderMatrix() {
 function buildMCard(task) {
   const card = document.createElement('div');
   card.className = 'mcard' + (task.status === 'done' ? ' done' : '');
-  const accent = task.priority === 'high' ? 'var(--red)' : task.type === 'strategic' ? 'var(--amber)' : 'var(--border)';
-  const due    = dueBadge(task.dueDate);
-  const rl     = recLabel(task.recurrence);
-  const sk     = task.status === 'in_progress' ? 'progress' : task.status;
-  const st     = task.status === 'pending' ? 'Pendiente' : task.status === 'in_progress' ? 'En curso' : 'Completada';
+  const accent = task.priority === 'high'
+    ? (task.type === 'strategic' ? 'var(--red)' : 'var(--orange)')
+    : (task.type === 'strategic' ? 'var(--amber)' : 'var(--border-hi)');
+  const due = dueBadge(task.dueDate);
+  const rl  = recLabel(task.recurrence);
+  const sk  = task.status === 'in_progress' ? 'progress' : task.status;
+  const st  = task.status === 'pending' ? 'Pendiente' : task.status === 'in_progress' ? 'En curso' : 'Completada';
 
   card.innerHTML = `
     <div class="mcard-accent" style="background:${accent}"></div>
+    <div class="mcard-actions">
+      <button class="mcard-btn-delete" title="Eliminar tarea">✕</button>
+    </div>
     <div class="mcard-inner">
       <div class="mcard-check${task.status === 'done' ? ' checked' : ''}"></div>
       <div class="mcard-body">
@@ -1308,6 +1466,7 @@ function buildMCard(task) {
           <span class="badge badge-${sk}" style="font-size:9px;padding:1px 5px">${st}</span>
           ${due ? `<span class="mcard-due ${due.cls}">⏱ ${due.label}</span>` : ''}
           ${rl  ? `<span class="recurrence-badge" style="font-size:9px;padding:1px 5px">↺ ${rl}</span>` : ''}
+          ${(()=>{ const cl=task.checklist||[]; if(!cl.length) return ''; const d=cl.filter(i=>i.done).length; return `<span class="task-checklist-progress${d===cl.length?' complete':''}" style="font-size:9px;padding:1px 5px">☑ ${d}/${cl.length}</span>`; })()}
           ${hasPendingDeps(task) ? `<span class="dep-warning" style="font-size:9px;padding:1px 5px">⛓ deps.</span>` : ''}
         </div>
       </div>
@@ -1316,6 +1475,12 @@ function buildMCard(task) {
   card.querySelector('.mcard-check').addEventListener('click', e => {
     e.stopPropagation();
     toggleDone(task.id, task.status);
+  });
+  card.querySelector('.mcard-btn-delete').addEventListener('click', async e => {
+    e.stopPropagation();
+    if (!confirm(`¿Eliminar "${task.title}"?`)) return;
+    try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+    catch(err) { showToast('Error.', 'err'); }
   });
   card.addEventListener('click', () => openModal(task));
   return card;
