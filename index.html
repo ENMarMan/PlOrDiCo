@@ -768,7 +768,7 @@ async function toggleDone(id, current) {
 function getFiltered() {
   let list = [...tasks];
   const today = new Date(); today.setHours(0,0,0,0);
-  const fm = { pending: t=>t.status==='pending', in_progress: t=>t.status==='in_progress', done: t=>t.status==='done', high: t=>t.priority==='high', low: t=>t.priority==='low', strategic: t=>t.type==='strategic', operative: t=>t.type==='operative', with_due: t=>!!t.dueDate, overdue: t=>!!t.dueDate && t.status!=='done' && new Date(t.dueDate+'T00:00:00') < today };
+  const fm = { pending: t=>t.status==='pending', in_progress: t=>t.status==='in_progress', done: t=>t.status==='done', high: t=>t.priority==='high', low: t=>t.priority==='low', strategic: t=>t.type==='strategic', operative: t=>t.type==='operative', with_due: t=>!!t.dueDate && t.status!=='done', overdue: t=>!!t.dueDate && t.status!=='done' && new Date(t.dueDate+'T00:00:00') < today };
   if (fm[activeFilter]) list = list.filter(fm[activeFilter]);
   if (activeTagFilter)  list = list.filter(t => (t.tags||[]).includes(activeTagFilter));
   if (searchQuery) {
