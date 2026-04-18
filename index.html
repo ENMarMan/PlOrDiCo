@@ -104,7 +104,12 @@
     .filter-chip.tag-chip { border-style: dashed; }
     .filter-chip.tag-chip.active { border-style: solid; }
     .filter-chip .dot { width: 5px; height: 5px; border-radius: 50%; }
-    .tag-filter-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding: 6px 20px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .sort-bar { display: none; align-items: center; gap: 8px; padding: 5px 20px 7px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surface); }
+    .sort-bar.visible { display: flex; }
+    .sort-bar-label { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); }
+    .sort-btn { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; transition: var(--tr); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
+    .sort-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .sort-btn.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
     .tag-filter-label { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); margin-right: 4px; }
     .search-wrap { position: relative; }
     .search-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px 6px 30px; color: var(--text); font-size: 13px; width: 170px; transition: var(--tr); }
@@ -367,6 +372,7 @@
           <button class="filter-chip" data-filter="strategic"><span class="dot" style="background:var(--amber)"></span>Estratégicas</button>
           <button class="filter-chip" data-filter="operative"><span class="dot" style="background:var(--text-dim)"></span>Operativas</button>
           <button class="filter-chip" data-filter="with_due"><span class="dot" style="background:var(--green)"></span>En agenda</button>
+          <button class="filter-chip" data-filter="overdue"><span class="dot" style="background:var(--red)"></span>Vencidas</button>
         </div>
         <div class="search-wrap">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -375,6 +381,11 @@
       </div>
       <div class="tag-filter-row hidden" id="tag-filter-row">
         <span class="tag-filter-label">Tags</span>
+      </div>
+      <div class="sort-bar" id="sort-bar">
+        <span class="sort-bar-label">Ordenar</span>
+        <button class="sort-btn active" id="sort-btn-asc" data-dir="asc">↑ Más vencidas primero</button>
+        <button class="sort-btn" id="sort-btn-desc" data-dir="desc">↓ Más recientes primero</button>
       </div>
       <div class="task-list-scroll" id="task-list">
         <div class="empty-state" id="empty-state">
@@ -569,6 +580,7 @@ let selectedDeps    = new Set();
 let activeFilter    = 'all';
 let activeTagFilter = null;
 let searchQuery     = '';
+let dueSortDir      = 'asc';  // 'asc' = más próximas primero / más vencidas primero
 let recurrenceOn    = false;
 let unsubscribe     = null;
 
@@ -755,7 +767,8 @@ async function toggleDone(id, current) {
 // RENDER LIST
 function getFiltered() {
   let list = [...tasks];
-  const fm = { pending: t=>t.status==='pending', in_progress: t=>t.status==='in_progress', done: t=>t.status==='done', high: t=>t.priority==='high', low: t=>t.priority==='low', strategic: t=>t.type==='strategic', operative: t=>t.type==='operative', with_due: t=>!!t.dueDate };
+  const today = new Date(); today.setHours(0,0,0,0);
+  const fm = { pending: t=>t.status==='pending', in_progress: t=>t.status==='in_progress', done: t=>t.status==='done', high: t=>t.priority==='high', low: t=>t.priority==='low', strategic: t=>t.type==='strategic', operative: t=>t.type==='operative', with_due: t=>!!t.dueDate, overdue: t=>!!t.dueDate && t.status!=='done' && new Date(t.dueDate+'T00:00:00') < today };
   if (fm[activeFilter]) list = list.filter(fm[activeFilter]);
   if (activeTagFilter)  list = list.filter(t => (t.tags||[]).includes(activeTagFilter));
   if (searchQuery) {
@@ -771,19 +784,41 @@ function getFiltered() {
 
 function renderList() {
   taskList.querySelectorAll('.task-card,.group-header').forEach(el => el.remove());
+  // Mostrar/ocultar sort-bar
+  const sortBar = document.getElementById('sort-bar');
+  const showSort = activeFilter === 'overdue' || activeFilter === 'with_due';
+  sortBar.classList.toggle('visible', showSort);
+  if (showSort) {
+    // Actualizar labels según contexto
+    const btnAsc  = document.getElementById('sort-btn-asc');
+    const btnDesc = document.getElementById('sort-btn-desc');
+    if (activeFilter === 'overdue') {
+      btnAsc.textContent  = '↑ Más vencidas primero';
+      btnDesc.textContent = '↓ Vencidas más recientes';
+    } else {
+      btnAsc.textContent  = '↑ Próximas a vencer primero';
+      btnDesc.textContent = '↓ Más lejanas primero';
+    }
+    btnAsc.classList.toggle('active',  dueSortDir === 'asc');
+    btnDesc.classList.toggle('active', dueSortDir === 'desc');
+  }
+
   let filtered = getFiltered();
-  // Ordenar por fecha límite cuando el filtro es "En agenda"
-  if (activeFilter === 'with_due') {
+
+  // Para overdue y with_due: ordenar por fecha y mostrar lista plana
+  if (activeFilter === 'overdue' || activeFilter === 'with_due') {
     filtered = filtered.slice().sort((a, b) => {
       if (!a.dueDate) return 1;
       if (!b.dueDate) return -1;
-      return a.dueDate.localeCompare(b.dueDate);
+      const cmp = a.dueDate.localeCompare(b.dueDate);
+      return dueSortDir === 'asc' ? cmp : -cmp;
     });
     if (!filtered.length) { emptyState.classList.remove('hidden'); return; }
     emptyState.classList.add('hidden');
     filtered.forEach(t => taskList.appendChild(buildCard(t)));
     return;
   }
+
   if (!filtered.length) { emptyState.classList.remove('hidden'); return; }
   emptyState.classList.add('hidden');
   [
@@ -1084,6 +1119,13 @@ document.querySelectorAll('.filter-chip[data-filter]').forEach(chip=>{
   });
 });
 searchInput.addEventListener('input',()=>{searchQuery=searchInput.value.trim();renderList();});
+
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    dueSortDir = btn.dataset.dir;
+    renderList();
+  });
+});
 
 fabNew.addEventListener('click',()=>openModal());
 modalClose.addEventListener('click',closeModal);
