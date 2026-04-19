@@ -271,8 +271,28 @@
     .matrix-toolbar-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); }
     .matrix-toggle-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
     .matrix-toggle-label { font-size: 12px; color: var(--text-dim); }
+    .matrix-filter-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--tr); }
+    .matrix-filter-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .matrix-filter-btn.active { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+    .matrix-filter-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--amber); color: var(--bg); font-size: 10px; font-weight: 700; font-family: var(--mono); }
+    .matrix-body { flex: 1; display: flex; overflow: hidden; }
+    .matrix-sidebar { width: 0; overflow: hidden; background: var(--surface); border-right: 0px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; transition: width .2s cubic-bezier(.4,0,.2,1), border-right-width .2s; }
+    .matrix-sidebar.open { width: 200px; border-right-width: 1px; overflow-y: auto; }
+    .matrix-sidebar::-webkit-scrollbar { width: 3px; }
+    .matrix-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .msb-section { padding: 14px 14px 8px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+    .msb-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 5px; white-space: nowrap; }
+    .msb-chip { display: flex; align-items: center; gap: 7px; width: 100%; padding: 6px 9px; border-radius: var(--radius); border: 1px solid transparent; background: transparent; color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; white-space: nowrap; }
+    .msb-chip:hover { background: var(--surface-2); color: var(--text); }
+    .msb-chip.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
+    .msb-chip .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .msb-chip-tag { display: flex; align-items: center; gap: 7px; width: 100%; padding: 6px 9px; border-radius: var(--radius); border: 1px dashed transparent; background: transparent; color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .msb-chip-tag:hover { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+    .msb-chip-tag.active { background: var(--amber-glow); border-style: solid; border-color: var(--amber); color: var(--amber); }
+    .msb-clear { margin: 10px 14px 14px; padding: 6px 9px; border-radius: var(--radius); border: 1px solid var(--border); background: transparent; color: var(--text-faint); font-size: 11px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; white-space: nowrap; }
+    .msb-clear:hover { border-color: var(--red-dim); color: var(--red); background: var(--red-glow); }
     .matrix-scroll { flex: 1; overflow: auto; padding: 16px 20px 24px; }
-    .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 12px; min-width: 560px; }
+    .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 480px; }
     .matrix-quadrant { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); display: flex; flex-direction: column; height: 360px; }
     .matrix-quadrant.q1 { border-top: 2px solid var(--red); }
     .matrix-quadrant.q2 { border-top: 2px solid var(--amber); }
@@ -311,7 +331,7 @@
     .mcard-due { font-family: var(--mono); font-size: 10px; color: var(--text-faint); }
     .mcard-due.overdue { color: var(--red); }
     .mcard-due.soon    { color: var(--orange); }
-    @media (max-width: 620px) { .matrix-grid { grid-template-columns: 1fr; min-width: unset; } .matrix-quadrant { height: 300px; } }
+    @media (max-width: 680px) { .matrix-grid { grid-template-columns: 1fr; min-width: unset; } .matrix-quadrant { height: 300px; } .matrix-sidebar.open { width: 170px; } }
 
     /* CHECKLIST */
     .checklist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -466,61 +486,103 @@
   <!-- PANEL MATRIZ -->
   <div id="panel-matriz" class="panel">
     <div class="matrix-toolbar">
-      <span class="matrix-toolbar-title">Matriz de Eisenhower</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="matrix-filter-btn" id="matrix-filter-btn" title="Filtros">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Filtros
+          <span class="matrix-filter-badge hidden" id="matrix-filter-badge">0</span>
+        </button>
+        <span class="matrix-toolbar-title">Matriz de Eisenhower</span>
+      </div>
       <label class="matrix-toggle-wrap">
         <div class="toggle-switch" id="matrix-toggle-switch"></div>
         <span class="matrix-toggle-label" id="matrix-toggle-label">Ocultar completadas</span>
       </label>
     </div>
-    <div class="matrix-scroll">
-      <div class="matrix-grid">
-        <!-- Q1: Alta · Estratégica -->
-        <div class="matrix-quadrant q1">
-          <div class="matrix-q-header">
-            <span class="matrix-q-dot"></span>
-            <div>
-              <div class="matrix-q-title">Alta · Estratégica</div>
-              <div class="matrix-q-sub">Alta prioridad · Importante</div>
-            </div>
-            <span class="matrix-q-count" id="mq1-count">0</span>
-          </div>
-          <div class="matrix-q-body" id="mq1-body"></div>
+
+    <div class="matrix-body">
+      <!-- SIDEBAR DE FILTROS -->
+      <div class="matrix-sidebar" id="matrix-sidebar">
+        <div class="msb-section">
+          <div class="msb-label">Estado</div>
+          <button class="msb-chip active" data-mf-status="all">Todas</button>
+          <button class="msb-chip" data-mf-status="pending">
+            <span class="dot" style="background:var(--text-dim)"></span>Pendientes
+          </button>
+          <button class="msb-chip" data-mf-status="in_progress">
+            <span class="dot" style="background:var(--blue)"></span>En curso
+          </button>
+          <button class="msb-chip" data-mf-status="done">
+            <span class="dot" style="background:var(--green)"></span>Completadas
+          </button>
         </div>
-        <!-- Q2: Alta · Operativa -->
-        <div class="matrix-quadrant q2">
-          <div class="matrix-q-header">
-            <span class="matrix-q-dot"></span>
-            <div>
-              <div class="matrix-q-title">Alta · Operativa</div>
-              <div class="matrix-q-sub">Alta prioridad · No importante</div>
-            </div>
-            <span class="matrix-q-count" id="mq2-count">0</span>
-          </div>
-          <div class="matrix-q-body" id="mq2-body"></div>
+        <div class="msb-section">
+          <div class="msb-label">Fecha</div>
+          <button class="msb-chip" data-mf-date="with_due">
+            <span class="dot" style="background:var(--green)"></span>En agenda
+          </button>
+          <button class="msb-chip" data-mf-date="overdue">
+            <span class="dot" style="background:var(--red)"></span>Vencidas
+          </button>
         </div>
-        <!-- Q3: Baja · Estratégica -->
-        <div class="matrix-quadrant q3">
-          <div class="matrix-q-header">
-            <span class="matrix-q-dot"></span>
-            <div>
-              <div class="matrix-q-title">Baja · Estratégica</div>
-              <div class="matrix-q-sub">Baja prioridad · Importante</div>
-            </div>
-            <span class="matrix-q-count" id="mq3-count">0</span>
-          </div>
-          <div class="matrix-q-body" id="mq3-body"></div>
+        <div class="msb-section" id="msb-tags-section">
+          <div class="msb-label">Etiquetas</div>
+          <div id="msb-tags-list"></div>
         </div>
-        <!-- Q4: Baja · Operativa -->
-        <div class="matrix-quadrant q4">
-          <div class="matrix-q-header">
-            <span class="matrix-q-dot"></span>
-            <div>
-              <div class="matrix-q-title">Baja · Operativa</div>
-              <div class="matrix-q-sub">Baja prioridad · No importante</div>
+        <button class="msb-clear hidden" id="msb-clear">✕ Limpiar filtros</button>
+      </div>
+
+      <!-- GRID -->
+      <div class="matrix-scroll">
+        <div class="matrix-grid">
+          <!-- Q1: Alta · Estratégica -->
+          <div class="matrix-quadrant q1">
+            <div class="matrix-q-header">
+              <span class="matrix-q-dot"></span>
+              <div>
+                <div class="matrix-q-title">Alta · Estratégica</div>
+                <div class="matrix-q-sub">Alta prioridad · Importante</div>
+              </div>
+              <span class="matrix-q-count" id="mq1-count">0</span>
             </div>
-            <span class="matrix-q-count" id="mq4-count">0</span>
+            <div class="matrix-q-body" id="mq1-body"></div>
           </div>
-          <div class="matrix-q-body" id="mq4-body"></div>
+          <!-- Q2: Alta · Operativa -->
+          <div class="matrix-quadrant q2">
+            <div class="matrix-q-header">
+              <span class="matrix-q-dot"></span>
+              <div>
+                <div class="matrix-q-title">Alta · Operativa</div>
+                <div class="matrix-q-sub">Alta prioridad · No importante</div>
+              </div>
+              <span class="matrix-q-count" id="mq2-count">0</span>
+            </div>
+            <div class="matrix-q-body" id="mq2-body"></div>
+          </div>
+          <!-- Q3: Baja · Estratégica -->
+          <div class="matrix-quadrant q3">
+            <div class="matrix-q-header">
+              <span class="matrix-q-dot"></span>
+              <div>
+                <div class="matrix-q-title">Baja · Estratégica</div>
+                <div class="matrix-q-sub">Baja prioridad · Importante</div>
+              </div>
+              <span class="matrix-q-count" id="mq3-count">0</span>
+            </div>
+            <div class="matrix-q-body" id="mq3-body"></div>
+          </div>
+          <!-- Q4: Baja · Operativa -->
+          <div class="matrix-quadrant q4">
+            <div class="matrix-q-header">
+              <span class="matrix-q-dot"></span>
+              <div>
+                <div class="matrix-q-title">Baja · Operativa</div>
+                <div class="matrix-q-sub">Baja prioridad · No importante</div>
+              </div>
+              <span class="matrix-q-count" id="mq4-count">0</span>
+            </div>
+            <div class="matrix-q-body" id="mq4-body"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1382,16 +1444,129 @@ fTitle.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fDe
 
 // MATRIZ DE EISENHOWER
 let matrixHideCompleted = false;
+let matrixFilterStatus  = 'all';   // 'all' | 'pending' | 'in_progress' | 'done'
+let matrixFilterDate    = null;    // null | 'with_due' | 'overdue'
+let matrixFilterTag     = null;    // null | string
 
 const matrixToggleSwitch = document.getElementById('matrix-toggle-switch');
 const matrixToggleLabel  = document.getElementById('matrix-toggle-label');
+const matrixFilterBtn    = document.getElementById('matrix-filter-btn');
+const matrixFilterBadge  = document.getElementById('matrix-filter-badge');
+const matrixSidebar      = document.getElementById('matrix-sidebar');
+const msbClear           = document.getElementById('msb-clear');
 
+// Toggle sidebar
+matrixFilterBtn.addEventListener('click', () => {
+  const open = matrixSidebar.classList.toggle('open');
+  matrixFilterBtn.classList.toggle('active', open);
+});
+
+// Toggle hide-completed
 matrixToggleSwitch.parentElement.addEventListener('click', () => {
   matrixHideCompleted = !matrixHideCompleted;
   matrixToggleSwitch.className = 'toggle-switch' + (matrixHideCompleted ? ' on' : '');
   matrixToggleLabel.textContent = matrixHideCompleted ? 'Completadas ocultas' : 'Ocultar completadas';
   renderMatrix();
 });
+
+// Status chips
+document.querySelectorAll('.msb-chip[data-mf-status]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    matrixFilterStatus = btn.dataset.mfStatus;
+    document.querySelectorAll('.msb-chip[data-mf-status]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    updateMatrixFilterBadge();
+    renderMatrix();
+  });
+});
+
+// Date chips
+document.querySelectorAll('.msb-chip[data-mf-date]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.mfDate;
+    if (matrixFilterDate === val) {
+      matrixFilterDate = null;
+      btn.classList.remove('active');
+    } else {
+      matrixFilterDate = val;
+      document.querySelectorAll('.msb-chip[data-mf-date]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    updateMatrixFilterBadge();
+    renderMatrix();
+  });
+});
+
+// Clear
+msbClear.addEventListener('click', () => {
+  matrixFilterStatus = 'all';
+  matrixFilterDate   = null;
+  matrixFilterTag    = null;
+  document.querySelectorAll('.msb-chip[data-mf-status]').forEach(b => b.classList.remove('active'));
+  document.querySelector('.msb-chip[data-mf-status="all"]').classList.add('active');
+  document.querySelectorAll('.msb-chip[data-mf-date]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.msb-chip-tag').forEach(b => b.classList.remove('active'));
+  updateMatrixFilterBadge();
+  renderMatrix();
+});
+
+function updateMatrixFilterBadge() {
+  let count = 0;
+  if (matrixFilterStatus !== 'all') count++;
+  if (matrixFilterDate) count++;
+  if (matrixFilterTag)  count++;
+  matrixFilterBadge.textContent = count;
+  matrixFilterBadge.classList.toggle('hidden', count === 0);
+  matrixFilterBtn.classList.toggle('active', matrixSidebar.classList.contains('open') || count > 0);
+  msbClear.classList.toggle('hidden', count === 0);
+}
+
+function renderMatrixTagFilters() {
+  const list = document.getElementById('msb-tags-list');
+  const section = document.getElementById('msb-tags-section');
+  if (!list) return;
+  const tags = getAllTags();
+  list.innerHTML = '';
+  section.classList.toggle('hidden', tags.length === 0);
+  tags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'msb-chip-tag' + (matrixFilterTag === tag ? ' active' : '');
+    btn.textContent = '# ' + tag;
+    btn.title = tag;
+    btn.addEventListener('click', () => {
+      if (matrixFilterTag === tag) {
+        matrixFilterTag = null;
+        btn.classList.remove('active');
+      } else {
+        matrixFilterTag = tag;
+        list.querySelectorAll('.msb-chip-tag').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      updateMatrixFilterBadge();
+      renderMatrix();
+    });
+    list.appendChild(btn);
+  });
+}
+
+function applyMatrixFilters(items) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (matrixFilterStatus !== 'all') {
+    items = items.filter(t => t.status === matrixFilterStatus);
+  }
+  if (matrixHideCompleted) {
+    items = items.filter(t => t.status !== 'done');
+  }
+  if (matrixFilterDate === 'with_due') {
+    items = items.filter(t => !!t.dueDate && t.status !== 'done');
+  } else if (matrixFilterDate === 'overdue') {
+    items = items.filter(t => !!t.dueDate && t.status !== 'done' && new Date(t.dueDate + 'T00:00:00') < today);
+  }
+  if (matrixFilterTag) {
+    items = items.filter(t => (t.tags || []).includes(matrixFilterTag));
+  }
+  return items;
+}
 
 function renderMatrix() {
   // Q1: Alta + Estratégica  |  Q2: Alta + Operativa
@@ -1403,13 +1578,15 @@ function renderMatrix() {
     { id: 'mq4', priority: 'low',  type: 'operative' },
   ];
 
+  renderMatrixTagFilters();
+
   quadrants.forEach(q => {
     const body  = document.getElementById(q.id + '-body');
     const count = document.getElementById(q.id + '-count');
     body.innerHTML = '';
 
     let items = tasks.filter(t => t.priority === q.priority && t.type === q.type);
-    if (matrixHideCompleted) items = items.filter(t => t.status !== 'done');
+    items = applyMatrixFilters(items);
 
     count.textContent = items.length;
 
@@ -1431,13 +1608,11 @@ function renderMatrix() {
       if (aHas && bHas) return a.dueDate.localeCompare(b.dueDate);
       if (aHas && !bHas) return -1;
       if (!aHas && bHas) return 1;
-      // ambas sin fecha: por createdAt
       const aTs = a.createdAt?.seconds ?? 0;
       const bTs = b.createdAt?.seconds ?? 0;
       return aTs - bTs;
     });
 
-    // Mostrar primeras 5; el resto queda dentro del scroll del body
     items.forEach(task => body.appendChild(buildMCard(task)));
   });
 }
