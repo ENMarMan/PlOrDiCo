@@ -275,6 +275,9 @@
     .matrix-sidebar::-webkit-scrollbar { width: 3px; }
     .matrix-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .msb-section { padding: 14px 14px 8px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+    .msb-tags-list { max-height: 124px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+    .msb-tags-list::-webkit-scrollbar { width: 3px; }
+    .msb-tags-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .msb-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 5px; white-space: nowrap; }
     .msb-chip { display: flex; align-items: center; gap: 7px; width: 100%; padding: 6px 9px; border-radius: var(--radius); border: 1px solid transparent; background: transparent; color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; white-space: nowrap; }
     .msb-chip:hover { background: var(--surface-2); color: var(--text); }
@@ -486,7 +489,7 @@
           </div>
           <div class="msb-section" id="lista-tags-section">
             <div class="msb-label">Etiquetas</div>
-            <div id="lista-tags-list"></div>
+            <div id="lista-tags-list" class="msb-tags-list"></div>
           </div>
           <button class="msb-clear hidden" id="lista-clear">✕ Limpiar filtros</button>
         </div>
@@ -546,7 +549,7 @@
         </div>
         <div class="msb-section" id="msb-tags-section">
           <div class="msb-label">Etiquetas</div>
-          <div id="msb-tags-list"></div>
+          <div id="msb-tags-list" class="msb-tags-list"></div>
         </div>
         <button class="msb-clear hidden" id="msb-clear">✕ Limpiar filtros</button>
       </div>
