@@ -356,6 +356,49 @@
     .coming-soon p { font-size: 13px; color: var(--text-faint); max-width: 280px; }
     .coming-soon-tag { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; padding: 3px 11px; border-radius: 20px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-faint); }
 
+    /* PANEL DIVIDIDO (Lista) */
+    .list-split { flex: 1; display: flex; overflow: hidden; }
+    .list-split-left { flex: 1; display: flex; flex-direction: column; overflow: hidden; transition: opacity .2s ease; min-width: 0; }
+    .list-split-left.dimmed { opacity: .55; }
+    .list-split-right { width: 0; overflow: hidden; background: var(--surface); border-left: 0px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; transition: width .25s cubic-bezier(.4,0,.2,1), border-left-width .25s; }
+    .list-split-right.open { width: 420px; border-left-width: 1px; }
+    .split-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .split-panel-title { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); }
+    .split-panel-close { width: 26px; height: 26px; border-radius: var(--radius); background: transparent; border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: var(--tr); flex-shrink: 0; }
+    .split-panel-close:hover { border-color: var(--border-hi); color: var(--text); }
+    .split-panel-body { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .split-panel-body::-webkit-scrollbar { width: 4px; }
+    .split-panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .split-panel-footer { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0; }
+    @media (max-width: 720px) { .list-split-right.open { width: 100%; border-left: none; position: absolute; inset: 0; z-index: 300; } }
+
+    /* MENÚ CONTEXTUAL */
+    .ctx-menu { position: fixed; z-index: 800; background: var(--surface); border: 1px solid var(--border-hi); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,.55); min-width: 200px; padding: 6px 0; animation: ctxIn .12s ease; overflow: visible; }
+    @keyframes ctxIn { from { opacity:0; transform: scale(.96); } to { opacity:1; transform: scale(1); } }
+    .ctx-section { padding: 4px 0; border-bottom: 1px solid var(--border); }
+    .ctx-section:last-child { border-bottom: none; }
+    .ctx-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); padding: 6px 14px 2px; }
+    .ctx-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 14px; background: none; border: none; color: var(--text-dim); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
+    .ctx-item:hover { background: var(--surface-2); color: var(--text); }
+    .ctx-item.active { color: var(--amber); }
+    .ctx-item svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--text-faint); }
+    .ctx-item:hover svg { color: var(--text-dim); }
+    .ctx-item.active svg { color: var(--amber); }
+    .ctx-date-wrap { padding: 6px 14px 8px; }
+    .ctx-date-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 9px; color: var(--text); font-size: 13px; font-family: var(--sans); width: 100%; transition: var(--tr); }
+    .ctx-date-input:focus { outline: none; border-color: var(--amber); }
+    .ctx-tags-wrap { padding: 6px 14px 8px; display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; }
+    .ctx-tags-wrap::-webkit-scrollbar { width: 3px; }
+    .ctx-tags-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .ctx-tag-row { display: flex; align-items: center; gap: 7px; padding: 4px 6px; border-radius: var(--radius); cursor: pointer; transition: var(--tr); font-size: 12px; color: var(--text-dim); }
+    .ctx-tag-row:hover { background: var(--surface-2); color: var(--text); }
+    .ctx-tag-row input[type=checkbox] { accent-color: var(--amber); width: 13px; height: 13px; flex-shrink: 0; pointer-events: none; }
+
+    /* DRAG & DROP MATRIZ */
+    .matrix-q-body.drag-over { background: var(--amber-glow); outline: 2px dashed var(--amber); outline-offset: -4px; border-radius: var(--radius); }
+    .mcard.dragging { opacity: .4; cursor: grabbing; }
+    .mcard { cursor: grab; }
+
     /* UTILS */
     .hidden { display: none !important; }
     .spinner { width: 13px; height: 13px; border: 2px solid var(--border); border-top-color: var(--amber); border-radius: 50%; animation: spin .5s linear infinite; display: inline-block; }
@@ -493,11 +536,33 @@
           </div>
           <button class="msb-clear hidden" id="lista-clear">✕ Limpiar filtros</button>
         </div>
-        <!-- LISTA DE TAREAS -->
-        <div class="task-list-scroll" id="task-list">
-          <div class="empty-state" id="empty-state">
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            <p>No hay tareas todavía.<br/>Tocá <strong>+</strong> para agregar una.</p>
+        <!-- SPLIT: lista + panel derecho -->
+        <div class="list-split" id="list-split">
+          <div class="list-split-left" id="list-split-left">
+            <!-- LISTA DE TAREAS -->
+            <div class="task-list-scroll" id="task-list">
+              <div class="empty-state" id="empty-state">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                <p>No hay tareas todavía.<br/>Tocá <strong>+</strong> para agregar una.</p>
+              </div>
+            </div>
+          </div>
+          <!-- PANEL DERECHO EDICIÓN -->
+          <div class="list-split-right" id="list-split-right">
+            <div class="split-panel-header">
+              <span class="split-panel-title" id="split-panel-title">Nueva tarea</span>
+              <button class="split-panel-close" id="split-panel-close">✕</button>
+            </div>
+            <div class="split-panel-body" id="split-panel-body">
+              <!-- formulario inyectado por JS -->
+            </div>
+            <div class="split-panel-footer" id="split-panel-footer">
+              <button class="btn-danger hidden" id="sp-btn-delete">Eliminar</button>
+              <div style="display:flex;gap:8px;margin-left:auto">
+                <button class="btn-cancel" id="sp-btn-cancel">Cancelar</button>
+                <button class="btn-primary" id="sp-btn-save"><span id="sp-save-label">Guardar</span></button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -516,10 +581,16 @@
         </button>
         <span class="matrix-toolbar-title">Matriz de Eisenhower</span>
       </div>
-      <label class="matrix-toggle-wrap">
-        <div class="toggle-switch" id="matrix-toggle-switch"></div>
-        <span class="matrix-toggle-label" id="matrix-toggle-label">Ocultar completadas</span>
-      </label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="search-wrap">
+          <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="matrix-search-input" placeholder="Buscar…" />
+        </div>
+        <label class="matrix-toggle-wrap">
+          <div class="toggle-switch" id="matrix-toggle-switch"></div>
+          <span class="matrix-toggle-label" id="matrix-toggle-label">Ocultar completadas</span>
+        </label>
+      </div>
     </div>
 
     <div class="matrix-body">
@@ -798,6 +869,12 @@ let searchQuery     = '';
 let dueSortDir      = 'asc';  // 'asc' = más próximas primero / más vencidas primero
 let recurrenceOn    = false;
 let unsubscribe     = null;
+let splitEditingId  = null;   // ID de la tarea abierta en panel dividido
+let splitCurrentTags     = [];
+let splitCurrentChecklist = [];
+let splitSelectedDeps    = new Set();
+let splitRecurrenceOn    = false;
+let matrixSearchQuery    = '';
 
 // DOM
 const screenLogin    = document.getElementById('screen-login');
@@ -1171,7 +1248,8 @@ function buildCard(task) {
     try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
     catch(err) { showToast('Error.', 'err'); }
   });
-  card.addEventListener('click', () => openModal(task));
+  card.addEventListener('click', () => openSplitPanel(task));
+  card.addEventListener('contextmenu', e => { e.preventDefault(); showContextMenu(task, e.clientX, e.clientY, false); });
   return card;
 }
 
@@ -1527,6 +1605,11 @@ function renderListaTagFilters() {
 
 searchInput.addEventListener('input',()=>{searchQuery=searchInput.value.trim();renderList();});
 
+document.getElementById('matrix-search-input').addEventListener('input', e => {
+  matrixSearchQuery = e.target.value.trim();
+  renderMatrix();
+});
+
 document.querySelectorAll('.sort-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     dueSortDir = btn.dataset.dir;
@@ -1534,15 +1617,388 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
   });
 });
 
-fabNew.addEventListener('click',()=>openModal());
-document.getElementById('fab-new-matriz').addEventListener('click',()=>openModal());
-modalClose.addEventListener('click',closeModal);
-btnCancel.addEventListener('click',closeModal);
-btnSave.addEventListener('click',saveTask);
-btnDelete.addEventListener('click',deleteTask);
-modalBackdrop.addEventListener('click',e=>{if(e.target===modalBackdrop)closeModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-fTitle.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fDesc.focus();}});
+// FAB Lista → panel dividido; FAB Matriz → modal
+fabNew.addEventListener('click', () => openSplitPanel(null));
+document.getElementById('fab-new-matriz').addEventListener('click', () => openModal());
+modalClose.addEventListener('click', closeModal);
+btnCancel.addEventListener('click', closeModal);
+btnSave.addEventListener('click', saveTask);
+btnDelete.addEventListener('click', deleteTask);
+modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeSplitPanel(); closeCtxMenu(); }
+});
+fTitle.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fDesc.focus(); } });
+
+
+// ── PANEL DIVIDIDO (Lista) ────────────────────────────────────────────────────
+const splitRight       = document.getElementById('list-split-right');
+const splitLeft        = document.getElementById('list-split-left');
+const splitPanelTitle  = document.getElementById('split-panel-title');
+const splitPanelBody   = document.getElementById('split-panel-body');
+const spBtnDelete      = document.getElementById('sp-btn-delete');
+const spBtnCancel      = document.getElementById('sp-btn-cancel');
+const spBtnSave        = document.getElementById('sp-btn-save');
+const spSaveLabel      = document.getElementById('sp-save-label');
+
+document.getElementById('split-panel-close').addEventListener('click', closeSplitPanel);
+spBtnCancel.addEventListener('click', closeSplitPanel);
+spBtnSave.addEventListener('click', saveSplitTask);
+spBtnDelete.addEventListener('click', deleteSplitTask);
+
+function openSplitPanel(task, focusField) {
+  if (splitRight.classList.contains('open') && splitEditingId === (task ? task.id : null) && !focusField) return;
+  splitEditingId = task ? task.id : null;
+  splitCurrentTags = task ? [...(task.tags || [])] : [];
+  splitCurrentChecklist = task ? (task.checklist || []).map(i => ({...i})) : [];
+  splitSelectedDeps = task ? new Set(task.dependencies || []) : new Set();
+  splitRecurrenceOn = !!(task && task.recurrence && task.recurrence.enabled);
+  splitPanelTitle.textContent = task ? 'Editar tarea' : 'Nueva tarea';
+  spBtnDelete.classList.toggle('hidden', !task);
+  splitPanelBody.innerHTML = buildSplitFormHTML(task);
+  bindSplitFormEvents(task);
+  splitRight.classList.add('open');
+  splitLeft.classList.add('dimmed');
+  if (focusField === 'due') {
+    setTimeout(() => { const el = document.getElementById('sp-f-due'); if (el) { el.focus(); if(el.showPicker) el.showPicker(); } }, 100);
+  } else if (focusField === 'tags') {
+    setTimeout(() => { const el = document.getElementById('sp-tags-input'); if (el) el.focus(); }, 100);
+  } else {
+    setTimeout(() => { const el = document.getElementById('sp-f-title'); if (el) el.focus(); }, 80);
+  }
+}
+
+function closeSplitPanel() {
+  splitRight.classList.remove('open');
+  splitLeft.classList.remove('dimmed');
+  splitEditingId = null;
+}
+
+function buildSplitFormHTML(task) {
+  const rec = task && task.recurrence && task.recurrence.enabled ? task.recurrence : null;
+  const recOn = !!rec;
+  const recType = rec ? (rec.type || 'workdays') : 'workdays';
+  const recInterval = rec ? (rec.interval || 1) : 1;
+  const recEnd = rec ? (rec.endDate || '') : '';
+  const titleVal = task ? task.title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+  const descVal  = task ? (task.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+  return '<div class="form-group"><label class="form-label">Título *</label><input type="text" class="form-input" id="sp-f-title" placeholder="\u00bfQu\u00e9 hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
+    + '<div class="form-group"><label class="form-label">Descripci\u00f3n</label><textarea class="form-textarea" id="sp-f-desc" placeholder="Detalle opcional\u2026">' + descVal + '</textarea></div>'
+    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="sp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="sp-checklist-items"></div></div>'
+    + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="sp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
+    + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
+    + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="sp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="sp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="sp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="sp-toggle-switch"></div><span class="toggle-label" id="sp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
+    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="sp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
+    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
+    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>'
+    + '<div class="form-group"><label class="form-label">Depende de</label><div class="dep-dropdown-wrap" id="sp-dep-dropdown-wrap"><button type="button" class="dep-trigger" id="sp-dep-trigger"><span class="dep-trigger-label" id="sp-dep-trigger-label">Seleccionar tareas\u2026</span><span class="dep-trigger-arrow">\u25bc</span></button><div class="dep-dropdown-panel" id="sp-dep-dropdown-panel"></div></div><div class="dep-selected-pills" id="sp-dep-selected-pills"></div></div>';
+}
+
+function bindSplitFormEvents(task) {
+  const spRecToggle = document.getElementById('sp-recurrence-toggle');
+  const spToggleSwitch = document.getElementById('sp-toggle-switch');
+  const spToggleLabel = document.getElementById('sp-toggle-label');
+  const spRecOptions = document.getElementById('sp-recurrence-options');
+  const spRecIntervalGrp = document.getElementById('sp-rec-interval-group');
+  const spRecType = document.getElementById('sp-f-rec-type');
+  spRecToggle.addEventListener('click', () => {
+    splitRecurrenceOn = !splitRecurrenceOn;
+    spToggleSwitch.className = 'toggle-switch' + (splitRecurrenceOn ? ' on' : '');
+    spToggleLabel.textContent = splitRecurrenceOn ? 'Con recurrencia' : 'Sin recurrencia';
+    spRecOptions.classList.toggle('hidden', !splitRecurrenceOn);
+    if (splitRecurrenceOn) spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily');
+  });
+  spRecType.addEventListener('change', () => { spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily'); });
+  spRenderChecklistUI();
+  document.getElementById('sp-btn-add-check').addEventListener('click', spAddCheckItem);
+  spRenderTagsUI(); spRenderTagSuggestions();
+  const spTagsInput = document.getElementById('sp-tags-input');
+  document.getElementById('sp-tags-wrap').addEventListener('click', () => spTagsInput.focus());
+  spTagsInput.addEventListener('keydown', e => {
+    if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
+      e.preventDefault();
+      const tag = spTagsInput.value.trim().replace(/,/g,'');
+      if (tag && !splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); }
+      spTagsInput.value = '';
+    } else if (e.key==='Backspace' && !spTagsInput.value && splitCurrentTags.length) {
+      splitCurrentTags.pop(); spRenderTagsUI(); spRenderTagSuggestions();
+    }
+  });
+  spRenderDepDropdown(task ? task.id : null);
+  const titleEl = document.getElementById('sp-f-title');
+  if (titleEl) titleEl.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); document.getElementById('sp-f-desc').focus(); } });
+}
+
+function spRenderTagsUI() {
+  const wrap = document.getElementById('sp-tags-wrap'); if (!wrap) return;
+  wrap.querySelectorAll('.tag-pill').forEach(el => el.remove());
+  const inp = document.getElementById('sp-tags-input');
+  splitCurrentTags.forEach(tag => {
+    const pill = document.createElement('span'); pill.className = 'tag-pill';
+    pill.innerHTML = escHtml(tag) + '<button class="tag-remove">\u00d7</button>';
+    pill.querySelector('.tag-remove').addEventListener('click', () => { splitCurrentTags = splitCurrentTags.filter(t => t !== tag); spRenderTagsUI(); spRenderTagSuggestions(); });
+    wrap.insertBefore(pill, inp);
+  });
+}
+
+function spRenderTagSuggestions() {
+  const el = document.getElementById('sp-tag-suggestions'); if (!el) return;
+  el.innerHTML = '';
+  getAllTags().filter(t => !splitCurrentTags.includes(t)).forEach(tag => {
+    const btn = document.createElement('button'); btn.type='button'; btn.className='tag-suggestion'; btn.textContent='+ '+tag;
+    btn.addEventListener('click', () => { if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
+    el.appendChild(btn);
+  });
+}
+
+function spRenderChecklistUI() {
+  const container = document.getElementById('sp-checklist-items'); if (!container) return;
+  container.innerHTML = '';
+  splitCurrentChecklist.forEach((item, idx) => {
+    const row = document.createElement('div'); row.className = 'check-item-row';
+    row.innerHTML = '<div class="check-item-cb' + (item.done?' checked':'') + '"></div><input type="text" class="check-item-input' + (item.done?' done-text':'') + '" placeholder="Describ\u00ed el paso\u2026" value="' + escHtml(item.text) + '" maxlength="120" /><button type="button" class="check-item-del" title="Quitar">\u2715</button>';
+    row.querySelector('.check-item-cb').addEventListener('click', () => { splitCurrentChecklist[idx].done = !splitCurrentChecklist[idx].done; spRenderChecklistUI(); });
+    row.querySelector('.check-item-input').addEventListener('input', e => { splitCurrentChecklist[idx].text = e.target.value; });
+    row.querySelector('.check-item-input').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();spAddCheckItem();} });
+    row.querySelector('.check-item-del').addEventListener('click', () => { splitCurrentChecklist.splice(idx,1); spRenderChecklistUI(); });
+    container.appendChild(row);
+  });
+}
+
+function spAddCheckItem() {
+  splitCurrentChecklist.push({text:'',done:false}); spRenderChecklistUI();
+  const inputs = document.querySelectorAll('#sp-checklist-items .check-item-input');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+function spRenderDepDropdown(excludeId) {
+  const trigger=document.getElementById('sp-dep-trigger'), label=document.getElementById('sp-dep-trigger-label'),
+        panel=document.getElementById('sp-dep-dropdown-panel'), pillsEl=document.getElementById('sp-dep-selected-pills');
+  if (!trigger||!panel||!pillsEl) return;
+  const candidates = tasks.filter(t => t.id !== excludeId);
+  panel.innerHTML = '';
+  if (!candidates.length) {
+    panel.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:var(--text-faint)">No hay otras tareas disponibles.</div>';
+  } else {
+    candidates.forEach(t => {
+      const sel = splitSelectedDeps.has(t.id);
+      const item = document.createElement('div'); item.className = 'dep-item'+(sel?' selected':'');
+      const sk=t.status==='done'?'done':t.status==='in_progress'?'progress':'pending';
+      const st=t.status==='done'?'Completada':t.status==='in_progress'?'En curso':'Pend.';
+      item.innerHTML = '<input type="checkbox"'+(sel?' checked':'')+'><span style="flex:1">'+escHtml(t.title)+'</span><span class="badge badge-'+sk+'" style="font-size:9px">'+st+'</span>';
+      item.addEventListener('click', () => {
+        if (splitSelectedDeps.has(t.id)){splitSelectedDeps.delete(t.id);item.classList.remove('selected');item.querySelector('input').checked=false;}
+        else{splitSelectedDeps.add(t.id);item.classList.add('selected');item.querySelector('input').checked=true;}
+        updLabel(); spRenderDepPills(excludeId);
+      });
+      panel.appendChild(item);
+    });
+  }
+  function updLabel(){const c=splitSelectedDeps.size;label.textContent=c?c+' tarea'+(c>1?'s':'')+' seleccionada'+(c>1?'s':''):'Seleccionar tareas\u2026';}
+  updLabel();
+  trigger.onclick = e => { e.stopPropagation(); const open=panel.classList.contains('open'); panel.classList.toggle('open',!open); trigger.classList.toggle('open',!open); };
+  document.addEventListener('click', function h(e){ if(!trigger.contains(e.target)&&!panel.contains(e.target)){panel.classList.remove('open');trigger.classList.remove('open');document.removeEventListener('click',h);} });
+  spRenderDepPills(excludeId);
+  function spRenderDepPills(exId){
+    pillsEl.innerHTML='';
+    [...splitSelectedDeps].forEach(id=>{
+      const t=tasks.find(x=>x.id===id); if(!t) return;
+      const pill=document.createElement('span'); pill.className='dep-pill';
+      pill.innerHTML=escHtml(t.title)+'<button class="dep-pill-remove" title="Quitar">\u00d7</button>';
+      pill.querySelector('.dep-pill-remove').addEventListener('click',()=>{
+        splitSelectedDeps.delete(id);
+        panel.querySelectorAll('.dep-item').forEach(item=>{ const sp2=item.querySelector('span:nth-child(2)'); if(sp2&&sp2.textContent===t.title){item.classList.remove('selected');item.querySelector('input').checked=false;} });
+        updLabel(); spRenderDepPills(exId);
+      });
+      pillsEl.appendChild(pill);
+    });
+  }
+}
+
+async function saveSplitTask() {
+  const titleEl = document.getElementById('sp-f-title');
+  const title = (titleEl ? titleEl.value : '').trim();
+  if (!title) { if(titleEl) titleEl.focus(); showToast('El t\u00edtulo es obligatorio.', 'err'); return; }
+  spBtnSave.disabled = true; spSaveLabel.innerHTML = '<span class="spinner"></span>';
+  const spRecTypeEl = document.getElementById('sp-f-rec-type');
+  const rec = splitRecurrenceOn ? {
+    enabled:true, type:spRecTypeEl.value,
+    interval: spRecTypeEl.value==='daily' ? (parseInt(document.getElementById('sp-f-rec-interval').value)||1) : null,
+    endDate: document.getElementById('sp-f-rec-end').value || null
+  } : null;
+  const data = {
+    title,
+    description: (document.getElementById('sp-f-desc').value||'').trim(),
+    priority: document.getElementById('sp-f-priority').value,
+    type: document.getElementById('sp-f-type').value,
+    status: document.getElementById('sp-f-status').value,
+    dueDate: document.getElementById('sp-f-due').value || null,
+    recurrence: rec, tags:[...splitCurrentTags], dependencies:[...splitSelectedDeps],
+    checklist: splitCurrentChecklist.filter(i=>i.text.trim()),
+    uid: currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    if (splitEditingId) {
+      await db.collection('tasks').doc(splitEditingId).update(data);
+      showToast('Tarea actualizada.', 'ok');
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      const ref = await db.collection('tasks').add(data);
+      showToast('Tarea creada.', 'ok');
+      splitEditingId = ref.id;
+      spBtnDelete.classList.remove('hidden');
+      splitPanelTitle.textContent = 'Editar tarea';
+    }
+  } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
+  finally { spBtnSave.disabled=false; spSaveLabel.textContent='Guardar'; }
+}
+
+async function deleteSplitTask() {
+  if (!splitEditingId || !confirm('\u00bfEliminar esta tarea? No se puede deshacer.')) return;
+  try { await db.collection('tasks').doc(splitEditingId).delete(); showToast('Eliminada.'); closeSplitPanel(); }
+  catch(e) { showToast('Error.', 'err'); }
+}
+
+// ── MENÚ CONTEXTUAL ────────────────────────────────────────────────────────────
+let ctxMenu = null;
+let ctxTask = null;
+
+function closeCtxMenu() {
+  if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; ctxTask = null; }
+}
+
+function showContextMenu(task, x, y, fromMatrix) {
+  closeCtxMenu();
+  ctxTask = task;
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+  ctxMenu = menu;
+
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const statusMap = {pending:'Pendiente', in_progress:'En curso'};
+  const priorityMap = {high:'Alta', low:'Baja'};
+  const typeMap = {strategic:'Estrat\u00e9gica', operative:'Operativa'};
+
+  const sectionStatus = '<div class="ctx-section"><div class="ctx-label">Estado</div>'
+    + Object.entries(statusMap).map(([s,l]) => '<button class="ctx-item'+(task.status===s?' active':'')+'" data-action="status" data-val="'+s+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/>'+( s==='in_progress'?'<path d="M12 8v4l2 2"/>':''  )+'</svg>'+l+'</button>').join('')
+    + '</div>';
+  const sectionPriority = '<div class="ctx-section"><div class="ctx-label">Prioridad</div>'
+    + Object.entries(priorityMap).map(([p,l]) => '<button class="ctx-item'+(task.priority===p?' active':'')+'" data-action="priority" data-val="'+p+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>'+l+'</button>').join('')
+    + '</div>';
+  const sectionType = '<div class="ctx-section"><div class="ctx-label">Tipo</div>'
+    + Object.entries(typeMap).map(([t,l]) => '<button class="ctx-item'+(task.type===t?' active':'')+'" data-action="type" data-val="'+t+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'+l+'</button>').join('')
+    + '</div>';
+  const sectionDate = '<div class="ctx-section"><div class="ctx-label">Fecha l\u00edmite</div>'
+    + '<div class="ctx-date-wrap"><input type="date" class="ctx-date-input" id="ctx-date-input" value="'+(task.dueDate||'')+'" /></div>'
+    + '<button class="ctx-item" data-action="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Marcar como hoy</button>'
+    + '<button class="ctx-item" data-action="open-due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar fecha completa\u2026</button></div>';
+  const sectionTags = '<div class="ctx-section"><div class="ctx-label">Etiquetas</div><div class="ctx-tags-wrap" id="ctx-tags-wrap"></div>'
+    + '<button class="ctx-item" data-action="open-tags"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Gestionar etiquetas\u2026</button></div>';
+  const sectionDup = '<div class="ctx-section"><button class="ctx-item" data-action="duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Duplicar tarea</button></div>';
+  menu.innerHTML = sectionStatus + sectionPriority + sectionType + sectionDate + sectionTags + sectionDup;
+
+  // Tag checkboxes
+  const tagsWrapEl = menu.querySelector('#ctx-tags-wrap');
+  const allTags = getAllTags();
+  if (allTags.length) {
+    allTags.forEach(tag => {
+      const isOn = (task.tags||[]).includes(tag);
+      const row = document.createElement('div'); row.className='ctx-tag-row';
+      row.innerHTML = '<input type="checkbox"'+(isOn?' checked':'')+'><span>'+esc(tag)+'</span>';
+      row.addEventListener('click', async e => {
+        e.stopPropagation();
+        const cb = row.querySelector('input');
+        const cur = (tasks.find(t=>t.id===task.id)||task).tags||[];
+        let nxt;
+        if (cb.checked) { nxt=cur.filter(t=>t!==tag); cb.checked=false; }
+        else             { nxt=[...cur,tag]; cb.checked=true; }
+        try { await db.collection('tasks').doc(task.id).update({tags:nxt,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); }
+        catch(err){ showToast('Error.','err'); }
+      });
+      tagsWrapEl.appendChild(row);
+    });
+  } else {
+    tagsWrapEl.innerHTML='<div style="padding:2px 6px;font-size:11px;color:var(--text-faint)">Sin etiquetas definidas</div>';
+  }
+
+  document.body.appendChild(menu);
+  const mw=menu.offsetWidth||220, mh=menu.offsetHeight||400;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  let left=x, top=y;
+  if (left+mw>vw-8) left=vw-mw-8;
+  if (top+mh>vh-8)  top=vh-mh-8;
+  if (left<8) left=8; if (top<8) top=8;
+  menu.style.left=left+'px'; menu.style.top=top+'px';
+
+  menu.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-action]'); if (!btn) return;
+    e.stopPropagation();
+    const action=btn.dataset.action, val=btn.dataset.val;
+    const ref=db.collection('tasks').doc(task.id);
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    if (action==='status')   { try{await ref.update({status:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
+    else if (action==='priority') { try{await ref.update({priority:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
+    else if (action==='type')     { try{await ref.update({type:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
+    else if (action==='today') {
+      const d=new Date(); const pad=n=>String(n).padStart(2,'0');
+      const today=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+      try{await ref.update({dueDate:today,updatedAt:ts});closeCtxMenu();showToast('Fecha actualizada.','ok');}catch(err){showToast('Error.','err');}
+    }
+    else if (action==='open-due') { closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'due'); }
+    else if (action==='open-tags'){ closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'tags'); }
+    else if (action==='duplicate') {
+      const orig=tasks.find(t=>t.id===task.id)||task;
+      const copy={...orig,title:orig.title+' (copia)',status:'pending',uid:currentUser.uid,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+      delete copy.id;
+      try{await db.collection('tasks').add(copy);showToast('Tarea duplicada.','ok');closeCtxMenu();}catch(err){showToast('Error.','err');}
+    }
+  });
+
+  const ctxDateInput = menu.querySelector('#ctx-date-input');
+  ctxDateInput.addEventListener('change', async () => {
+    const v=ctxDateInput.value;
+    try{await db.collection('tasks').doc(task.id).update({dueDate:v||null,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});showToast('Fecha actualizada.','ok');}
+    catch(err){showToast('Error.','err');}
+  });
+  ctxDateInput.addEventListener('click', e => e.stopPropagation());
+
+  setTimeout(() => {
+    document.addEventListener('click', function ch(e){ if(!menu.contains(e.target)){closeCtxMenu();document.removeEventListener('click',ch);} });
+    document.addEventListener('contextmenu', function ch2(e){ if(!menu.contains(e.target)){closeCtxMenu();document.removeEventListener('contextmenu',ch2);} });
+  }, 0);
+}
+
+// ── DRAG & DROP MATRIZ ─────────────────────────────────────────────────────────
+let dragTaskId = null;
+function initMatrixDragDrop() {
+  const qmap=[
+    {id:'mq1-body',priority:'high',type:'strategic'},
+    {id:'mq2-body',priority:'high',type:'operative'},
+    {id:'mq3-body',priority:'low', type:'strategic'},
+    {id:'mq4-body',priority:'low', type:'operative'},
+  ];
+  qmap.forEach(q => {
+    const body=document.getElementById(q.id); if(!body) return;
+    body.addEventListener('dragover', e => { e.preventDefault(); if(dragTaskId) body.classList.add('drag-over'); });
+    body.addEventListener('dragleave', e => { if(!body.contains(e.relatedTarget)) body.classList.remove('drag-over'); });
+    body.addEventListener('drop', async e => {
+      e.preventDefault(); body.classList.remove('drag-over');
+      if (!dragTaskId) return;
+      const task=tasks.find(t=>t.id===dragTaskId); if(!task) return;
+      if (task.priority===q.priority && task.type===q.type) return;
+      try{
+        await db.collection('tasks').doc(dragTaskId).update({priority:q.priority,type:q.type,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        showToast('Tarea movida.','ok');
+      }catch(err){showToast('Error.','err');}
+      dragTaskId=null;
+    });
+  });
+}
+initMatrixDragDrop();
 
 // MATRIZ DE EISENHOWER
 let matrixHideCompleted = false;
@@ -1667,6 +2123,14 @@ function applyMatrixFilters(items) {
   if (matrixFilterTag) {
     items = items.filter(t => (t.tags || []).includes(matrixFilterTag));
   }
+  if (matrixSearchQuery) {
+    const q = matrixSearchQuery.toLowerCase();
+    items = items.filter(t =>
+      t.title.toLowerCase().includes(q) ||
+      (t.description||'').toLowerCase().includes(q) ||
+      (t.tags||[]).some(tag => tag.toLowerCase().includes(q))
+    );
+  }
   return items;
 }
 
@@ -1760,6 +2224,14 @@ function buildMCard(task) {
     catch(err) { showToast('Error.', 'err'); }
   });
   card.addEventListener('click', () => openModal(task));
+  card.addEventListener('contextmenu', e => { e.preventDefault(); showContextMenu(task, e.clientX, e.clientY, true); });
+  card.setAttribute('draggable', 'true');
+  card.addEventListener('dragstart', e => {
+    dragTaskId = task.id;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
   return card;
 }
 
