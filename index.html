@@ -360,8 +360,8 @@
     .list-split { flex: 1; display: flex; overflow: hidden; }
     .list-split-left { flex: 1; display: flex; flex-direction: column; overflow: hidden; transition: opacity .2s ease; min-width: 0; }
     .list-split-left.dimmed { opacity: .55; }
-    .list-split-right { width: 0; overflow: hidden; background: var(--surface); border-left: 0px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; transition: width .25s cubic-bezier(.4,0,.2,1), border-left-width .25s; }
-    .list-split-right.open { width: 420px; border-left-width: 1px; }
+    .list-split-right { width: 0; height: 100%; overflow: hidden; background: var(--surface); border-left: 0px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; transition: width .25s cubic-bezier(.4,0,.2,1), border-left-width .25s; }
+    .list-split-right.open { width: 500px; border-left-width: 1px; }
     .split-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .split-panel-title { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); }
     .split-panel-close { width: 26px; height: 26px; border-radius: var(--radius); background: transparent; border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: var(--tr); flex-shrink: 0; }
@@ -1249,7 +1249,7 @@ function buildCard(task) {
     catch(err) { showToast('Error.', 'err'); }
   });
   card.addEventListener('click', () => openSplitPanel(task));
-  card.addEventListener('contextmenu', e => { e.preventDefault(); showContextMenu(task, e.clientX, e.clientY, false); });
+  card.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); showContextMenu(task, e.clientX, e.clientY, false); }, true);
   return card;
 }
 
@@ -1848,9 +1848,7 @@ async function saveSplitTask() {
       data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       const ref = await db.collection('tasks').add(data);
       showToast('Tarea creada.', 'ok');
-      splitEditingId = ref.id;
-      spBtnDelete.classList.remove('hidden');
-      splitPanelTitle.textContent = 'Editar tarea';
+      closeSplitPanel();
     }
   } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
   finally { spBtnSave.disabled=false; spSaveLabel.textContent='Guardar'; }
@@ -2224,7 +2222,7 @@ function buildMCard(task) {
     catch(err) { showToast('Error.', 'err'); }
   });
   card.addEventListener('click', () => openModal(task));
-  card.addEventListener('contextmenu', e => { e.preventDefault(); showContextMenu(task, e.clientX, e.clientY, true); });
+  card.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); showContextMenu(task, e.clientX, e.clientY, true); }, true);
   card.setAttribute('draggable', 'true');
   card.addEventListener('dragstart', e => {
     dragTaskId = task.id;
