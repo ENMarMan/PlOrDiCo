@@ -347,6 +347,70 @@
     .task-checklist-progress { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 10px; color: var(--text-faint); padding: 2px 7px; background: var(--surface-3); border-radius: 3px; }
     .task-checklist-progress.complete { color: var(--green); }
 
+    /* ── RECORDATORIOS ────────────────────────────────────────── */
+    .reminder-stack { position: fixed; bottom: 24px; left: 24px; z-index: 900; display: flex; flex-direction: column-reverse; gap: 10px; max-width: 360px; pointer-events: none; }
+    .reminder-popup { background: var(--surface); border: 1px solid var(--amber); border-radius: var(--radius-lg); box-shadow: 0 6px 28px rgba(0,0,0,.6); padding: 16px 18px 14px; pointer-events: all; animation: reminderIn .22s ease; }
+    @keyframes reminderIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .reminder-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin-bottom: 7px; display: flex; align-items: center; gap: 5px; }
+    .reminder-title { font-size: 14px; font-weight: 600; line-height: 1.35; margin-bottom: 4px; word-break: break-word; }
+    .reminder-desc { font-size: 12px; color: var(--text-dim); line-height: 1.45; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .reminder-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .reminder-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--tr); border: 1px solid; font-family: var(--sans); white-space: nowrap; }
+    .reminder-btn-confirm { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+    .reminder-btn-confirm:hover { filter: brightness(1.2); }
+    .reminder-btn-snooze { background: var(--surface-2); border-color: var(--border-hi); color: var(--text-dim); position: relative; }
+    .reminder-btn-snooze:hover { border-color: var(--amber); color: var(--amber); }
+    .reminder-btn-edit { background: transparent; border-color: var(--border); color: var(--text-faint); }
+    .reminder-btn-edit:hover { border-color: var(--border-hi); color: var(--text); }
+    .snooze-dropdown { position: absolute; bottom: calc(100% + 6px); left: 0; background: var(--surface); border: 1px solid var(--border-hi); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,.45); min-width: 150px; padding: 4px 0; z-index: 10; }
+    .snooze-option { display: block; width: 100%; padding: 7px 14px; background: none; border: none; color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; text-align: left; transition: var(--tr); }
+    .snooze-option:hover { background: var(--surface-2); color: var(--text); }
+    /* Campo recordatorio en formularios */
+    .reminder-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .reminder-fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ── CALENDARIO ───────────────────────────────────────────── */
+    .cal-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
+    .cal-nav { display: flex; align-items: center; gap: 8px; }
+    .cal-nav-btn { width: 30px; height: 30px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
+    .cal-nav-btn:hover { border-color: var(--amber); color: var(--amber); }
+    .cal-month-label { font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text); min-width: 170px; text-align: center; }
+    .cal-today-btn { padding: 5px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); }
+    .cal-today-btn:hover { border-color: var(--amber); color: var(--amber); }
+    .cal-toggle-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .cal-toggle-label { font-size: 12px; color: var(--text-dim); }
+    .cal-scroll { flex: 1; overflow-y: auto; padding: 12px 16px 24px; }
+    .cal-scroll::-webkit-scrollbar { width: 4px; }
+    .cal-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .cal-grid-wrap { min-width: 560px; }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px; }
+    .cal-wd { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); text-align: center; padding: 4px 0; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-cell { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); min-height: 96px; padding: 5px; display: flex; flex-direction: column; gap: 2px; cursor: pointer; transition: border-color var(--tr); }
+    .cal-cell:hover { border-color: var(--border-hi); }
+    .cal-cell.other-month { opacity: .38; }
+    .cal-cell.today { border-color: var(--amber); background: var(--amber-glow2); }
+    .cal-cell.today .cal-day-num { color: var(--amber); }
+    .cal-day-num { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 1px; line-height: 1; flex-shrink: 0; }
+    .cal-task { display: flex; align-items: center; gap: 3px; padding: 2px 4px; border-radius: 3px; font-size: 10px; line-height: 1.3; cursor: pointer; transition: var(--tr); border: 1px solid transparent; position: relative; }
+    .cal-task:hover { filter: brightness(1.12); border-color: var(--border-hi); }
+    .cal-task.t-done { opacity: .5; }
+    .cal-task.t-done .cal-task-title { text-decoration: line-through; }
+    .cal-task.t-overdue { background: var(--red-dim); }
+    .cal-task.t-overdue .cal-task-title { color: var(--red); }
+    .cal-task.t-recurrent { background: var(--surface-3); }
+    .cal-task-accent { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 10px; }
+    .cal-task-check { width: 11px; height: 11px; border-radius: 2px; border: 1.5px solid var(--border-hi); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
+    .cal-task-check:hover { border-color: var(--green); }
+    .cal-task-check.checked { background: var(--green); border-color: var(--green); }
+    .cal-task-check.checked::after { content: '\2713'; font-size: 7px; font-weight: 700; color: var(--bg); }
+    .cal-task-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+    .cal-task-del { width: 11px; height: 11px; border-radius: 2px; background: transparent; border: none; color: var(--text-faint); cursor: pointer; font-size: 9px; display: flex; align-items: center; justify-content: center; transition: var(--tr); flex-shrink: 0; padding: 0; font-family: var(--sans); opacity: 0; line-height: 1; }
+    .cal-task:hover .cal-task-del { opacity: 1; }
+    .cal-task-del:hover { color: var(--red); }
+    .cal-more { font-family: var(--mono); font-size: 9px; color: var(--text-faint); padding: 1px 4px; border-radius: 3px; cursor: default; flex-shrink: 0; }
+    @media (max-width: 680px) { .cal-grid-wrap { min-width: unset; } .cal-cell { min-height: 68px; } }
+
     /* COMING SOON */
     .coming-soon { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 20px; text-align: center; }
     .coming-soon-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--amber); opacity: .7; }
@@ -486,6 +550,9 @@
     </button>
     <button class="nav-tab" data-panel="matriz">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>Matriz
+    </button>
+    <button class="nav-tab" data-panel="calendario">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendario
     </button>
     <button class="nav-tab" data-panel="gantt">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="10" x2="15" y2="10"/><line x1="3" y1="14" x2="18" y2="14"/><line x1="3" y1="18" x2="12" y2="18"/></svg>Gantt
@@ -696,6 +763,28 @@
     <button class="fab" id="fab-new-matriz">+</button>
   </div>
 
+  <!-- PANEL CALENDARIO -->
+  <div id="panel-calendario" class="panel">
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="cal-prev">&#8249;</button>
+        <span class="cal-month-label" id="cal-month-label"></span>
+        <button class="cal-nav-btn" id="cal-next">&#8250;</button>
+        <button class="cal-today-btn" id="cal-today-btn">Hoy</button>
+      </div>
+      <label class="cal-toggle-wrap" id="cal-toggle-wrap">
+        <div class="toggle-switch" id="cal-toggle-switch"></div>
+        <span class="cal-toggle-label" id="cal-toggle-label">Mostrar completadas</span>
+      </label>
+    </div>
+    <div class="cal-scroll">
+      <div class="cal-grid-wrap">
+        <div class="cal-weekdays" id="cal-weekdays"></div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- PANEL GANTT -->
   <div id="panel-gantt" class="panel">
     <div class="coming-soon">
@@ -830,6 +919,27 @@
         <div class="tag-suggestions" id="tag-suggestions"></div>
       </div>
 
+      <!-- RECORDATORIO -->
+      <div class="form-group">
+        <label class="form-label">Recordatorio</label>
+        <div class="reminder-box">
+          <div class="recurrence-toggle" id="reminder-toggle">
+            <div class="toggle-switch" id="reminder-toggle-sw"></div>
+            <span class="toggle-label" id="reminder-toggle-lbl">Sin recordatorio</span>
+          </div>
+          <div class="reminder-fields-row hidden" id="reminder-fields">
+            <div class="form-group">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-input" id="f-reminder-date" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hora (en punto)</label>
+              <select class="form-select" id="f-reminder-hour"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- DEPENDENCIAS -->
       <div class="form-group">
         <label class="form-label">Depende de</label>
@@ -853,6 +963,7 @@
   </div>
 </div>
 
+<div class="reminder-stack" id="reminder-stack"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -877,6 +988,8 @@ let editingId       = null;
 let currentTags     = [];
 let currentChecklist = []; // [{text, done}]
 let selectedDeps    = new Set();
+let reminderOn      = false;   // toggle en modal principal
+let firedReminders  = new Set(); // IDs de tareas con popup ya mostrado en esta sesión
 let activeFilter    = 'all';  // kept for compatibility
 let activeTagFilter = null;   // kept for compatibility
 let searchQuery     = '';
@@ -1021,9 +1134,11 @@ function subscribeToTasks() {
       tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderList();
       renderMatrix();
+      renderCalendar();
       renderTagFilterRow();
       renderTagsPanel();
     }, err => { console.error(err); showToast('Error: ' + err.code, 'err'); });
+  startReminderPolling();
 }
 
 async function saveTask() {
@@ -1037,12 +1152,19 @@ async function saveTask() {
     endDate: fRecEnd.value || null
   } : null;
 
+  const rdDate = document.getElementById('f-reminder-date');
+  const rdHour = document.getElementById('f-reminder-hour');
+  const reminderData = (reminderOn && rdDate && rdHour && rdDate.value && rdHour.value)
+    ? { enabled: true, datetime: rdDate.value + 'T' + rdHour.value + ':00', snoozedUntil: null }
+    : { enabled: false, datetime: null, snoozedUntil: null };
+
   const data = {
     title, description: fDesc.value.trim(),
     priority: fPriority.value, type: fType.value, status: fStatus.value,
     dueDate: fDue.value || null, recurrence: rec,
     tags: [...currentTags], dependencies: [...selectedDeps],
     checklist: currentChecklist.filter(i => i.text.trim()),
+    reminder: reminderData,
     uid: currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -1070,6 +1192,11 @@ async function toggleDone(id, current) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
   const completing = current !== 'done';
+
+  // Cancelar recordatorio si se completa la tarea
+  if (completing && task.reminder && task.reminder.enabled) {
+    removeReminderPopup(id);
+  }
 
   if (completing && task.recurrence && task.recurrence.enabled) {
     // Calcular la fecha de la siguiente ocurrencia
@@ -1350,6 +1477,26 @@ function openModal(task=null) {
   recOptions.classList.toggle('hidden',!recurrenceOn);
   if(rec){fRecType.value=rec.type||'workdays';fRecInterval.value=rec.interval||1;fRecEnd.value=rec.endDate||'';updateRecInterval();}
   else{fRecType.value='workdays';fRecInterval.value=1;fRecEnd.value='';recIntervalGrp.classList.add('hidden');}
+  // Recordatorio
+  populateReminderHourSelect('f-reminder-hour');
+  const rem = task && task.reminder && task.reminder.enabled ? task.reminder : null;
+  reminderOn = !!rem;
+  const remSw  = document.getElementById('reminder-toggle-sw');
+  const remLbl = document.getElementById('reminder-toggle-lbl');
+  const remFields = document.getElementById('reminder-fields');
+  if (remSw) remSw.className = 'toggle-switch' + (reminderOn ? ' on' : '');
+  if (remLbl) remLbl.textContent = reminderOn ? 'Con recordatorio' : 'Sin recordatorio';
+  if (remFields) remFields.classList.toggle('hidden', !reminderOn);
+  if (rem && rem.datetime) {
+    const [datePart, timePart] = rem.datetime.split('T');
+    const rdDate = document.getElementById('f-reminder-date');
+    const rdHour = document.getElementById('f-reminder-hour');
+    if (rdDate) rdDate.value = datePart || '';
+    if (rdHour) rdHour.value = (timePart || '').substring(0,5);
+  } else {
+    const rdDate = document.getElementById('f-reminder-date');
+    if (rdDate) rdDate.value = '';
+  }
   renderTagsUI(); renderTagSuggestions(); renderDepDropdown(task?task.id:null); renderChecklistUI();
   modalBackdrop.classList.add('open'); setTimeout(()=>fTitle.focus(),80);
 }
@@ -1519,6 +1666,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if (tab.dataset.panel === 'etiquetas') renderTagsPanel();
     if (tab.dataset.panel === 'lista') { renderListaTagFilters(); renderList(); }
     if (tab.dataset.panel === 'matriz') renderMatrix();
+    if (tab.dataset.panel === 'calendario') renderCalendar();
   });
 });
 
@@ -1678,6 +1826,8 @@ function openSplitPanel(task, focusField) {
     setTimeout(() => { const el = document.getElementById('sp-f-due'); if (el) { el.focus(); if(el.showPicker) el.showPicker(); } }, 100);
   } else if (focusField === 'tags') {
     setTimeout(() => { const el = document.getElementById('sp-tags-input'); if (el) el.focus(); }, 100);
+  } else if (focusField === 'reminder') {
+    setTimeout(() => { const el = document.getElementById('sp-reminder-date'); if (el) el.focus(); }, 100);
   } else {
     setTimeout(() => { const el = document.getElementById('sp-f-title'); if (el) el.focus(); }, 80);
   }
@@ -1710,42 +1860,8 @@ function buildSplitFormHTML(task) {
     + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
     + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
     + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>'
-    + '<div class="form-group"><label class="form-label">Depende de</label><div class="dep-dropdown-wrap" id="sp-dep-dropdown-wrap"><button type="button" class="dep-trigger" id="sp-dep-trigger"><span class="dep-trigger-label" id="sp-dep-trigger-label">Seleccionar tareas\u2026</span><span class="dep-trigger-arrow">\u25bc</span></button><div class="dep-dropdown-panel" id="sp-dep-dropdown-panel"></div></div><div class="dep-selected-pills" id="sp-dep-selected-pills"></div></div>';
-}
-
-function bindSplitFormEvents(task) {
-  const spRecToggle = document.getElementById('sp-recurrence-toggle');
-  const spToggleSwitch = document.getElementById('sp-toggle-switch');
-  const spToggleLabel = document.getElementById('sp-toggle-label');
-  const spRecOptions = document.getElementById('sp-recurrence-options');
-  const spRecIntervalGrp = document.getElementById('sp-rec-interval-group');
-  const spRecType = document.getElementById('sp-f-rec-type');
-  spRecToggle.addEventListener('click', () => {
-    splitRecurrenceOn = !splitRecurrenceOn;
-    spToggleSwitch.className = 'toggle-switch' + (splitRecurrenceOn ? ' on' : '');
-    spToggleLabel.textContent = splitRecurrenceOn ? 'Con recurrencia' : 'Sin recurrencia';
-    spRecOptions.classList.toggle('hidden', !splitRecurrenceOn);
-    if (splitRecurrenceOn) spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily');
-  });
-  spRecType.addEventListener('change', () => { spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily'); });
-  spRenderChecklistUI();
-  document.getElementById('sp-btn-add-check').addEventListener('click', spAddCheckItem);
-  spRenderTagsUI(); spRenderTagSuggestions();
-  const spTagsInput = document.getElementById('sp-tags-input');
-  document.getElementById('sp-tags-wrap').addEventListener('click', () => spTagsInput.focus());
-  spTagsInput.addEventListener('keydown', e => {
-    if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
-      e.preventDefault();
-      const tag = spTagsInput.value.trim().replace(/,/g,'');
-      if (tag && !splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); }
-      spTagsInput.value = '';
-    } else if (e.key==='Backspace' && !spTagsInput.value && splitCurrentTags.length) {
-      splitCurrentTags.pop(); spRenderTagsUI(); spRenderTagSuggestions();
-    }
-  });
-  spRenderDepDropdown(task ? task.id : null);
-  const titleEl = document.getElementById('sp-f-title');
-  if (titleEl) titleEl.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); document.getElementById('sp-f-desc').focus(); } });
+    + '<div class="form-group"><label class="form-label">Depende de</label><div class="dep-dropdown-wrap" id="sp-dep-dropdown-wrap"><button type="button" class="dep-trigger" id="sp-dep-trigger"><span class="dep-trigger-label" id="sp-dep-trigger-label">Seleccionar tareas\u2026</span><span class="dep-trigger-arrow">\u25bc</span></button><div class="dep-dropdown-panel" id="sp-dep-dropdown-panel"></div></div><div class="dep-selected-pills" id="sp-dep-selected-pills"></div></div>'
+    + buildSplitReminderHTML(task);
 }
 
 function spRenderTagsUI() {
@@ -1854,6 +1970,7 @@ async function saveSplitTask() {
     dueDate: document.getElementById('sp-f-due').value || null,
     recurrence: rec, tags:[...splitCurrentTags], dependencies:[...splitSelectedDeps],
     checklist: splitCurrentChecklist.filter(i=>i.text.trim()),
+    reminder: buildSplitReminderData(),
     uid: currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   try {
@@ -1911,7 +2028,8 @@ function showContextMenu(task, x, y, fromMatrix) {
     + '<button class="ctx-item" data-action="open-due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar fecha completa\u2026</button></div>';
   const sectionTags = '<div class="ctx-section"><div class="ctx-label">Etiquetas</div><div class="ctx-tags-wrap" id="ctx-tags-wrap"></div>'
     + '<button class="ctx-item" data-action="open-tags"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Gestionar etiquetas\u2026</button></div>';
-  const sectionDup = '<div class="ctx-section"><button class="ctx-item" data-action="duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Duplicar tarea</button></div>';
+  const sectionDup = '<div class="ctx-section"><button class="ctx-item" data-action="duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Duplicar tarea</button>'
+    + '<button class="ctx-item" data-action="open-reminder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Recordatorio\u2026</button></div>';
   menu.innerHTML = sectionStatus + sectionPriority + sectionType + sectionDate + sectionTags + sectionDup;
 
   // Tag checkboxes
@@ -1963,6 +2081,7 @@ function showContextMenu(task, x, y, fromMatrix) {
     }
     else if (action==='open-due') { closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'due'); }
     else if (action==='open-tags'){ closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'tags'); }
+    else if (action==='open-reminder'){ closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'reminder'); }
     else if (action==='duplicate') {
       const orig=tasks.find(t=>t.id===task.id)||task;
       const copy={...orig,title:orig.title+' (copia)',status:'pending',uid:currentUser.uid,
@@ -2280,6 +2399,510 @@ newTagInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); saveNewTag(); }
   if (e.key === 'Escape') { newTagForm.classList.add('hidden'); newTagInput.value = ''; }
 });
+
+// ── RECORDATORIOS — MODAL PRINCIPAL ──────────────────────────────────────────
+
+function populateReminderHourSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  if (sel.options.length > 0) return; // ya poblado
+  for (let h = 0; h < 24; h++) {
+    const hh = String(h).padStart(2, '0');
+    const opt = document.createElement('option');
+    opt.value = hh + ':00';
+    opt.textContent = hh + ':00';
+    sel.appendChild(opt);
+  }
+}
+
+(function initReminderToggleModal() {
+  const toggle = document.getElementById('reminder-toggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
+    reminderOn = !reminderOn;
+    const sw  = document.getElementById('reminder-toggle-sw');
+    const lbl = document.getElementById('reminder-toggle-lbl');
+    const fld = document.getElementById('reminder-fields');
+    if (sw)  sw.className  = 'toggle-switch' + (reminderOn ? ' on' : '');
+    if (lbl) lbl.textContent = reminderOn ? 'Con recordatorio' : 'Sin recordatorio';
+    if (fld) fld.classList.toggle('hidden', !reminderOn);
+    if (reminderOn) populateReminderHourSelect('f-reminder-hour');
+  });
+})();
+
+// ── RECORDATORIOS — PANEL DIVIDIDO helpers ────────────────────────────────────
+
+let splitReminderOn = false;
+
+function buildSplitReminderHTML(task) {
+  const rem = task && task.reminder && task.reminder.enabled ? task.reminder : null;
+  const isOn = !!rem;
+  let datePart = '', hourPart = '08:00';
+  if (rem && rem.datetime) {
+    const parts = rem.datetime.split('T');
+    datePart = parts[0] || '';
+    hourPart = (parts[1] || '08:00').substring(0, 5);
+  }
+  // Generar options de horas
+  let hoursOpts = '';
+  for (let h = 0; h < 24; h++) {
+    const hh = String(h).padStart(2, '0') + ':00';
+    hoursOpts += '<option value="' + hh + '"' + (hourPart === hh ? ' selected' : '') + '>' + hh + '</option>';
+  }
+  return '<div class="form-group"><label class="form-label">Recordatorio</label>'
+    + '<div class="reminder-box">'
+    + '<div class="recurrence-toggle" id="sp-reminder-toggle">'
+    + '<div class="toggle-switch' + (isOn ? ' on' : '') + '" id="sp-reminder-toggle-sw"></div>'
+    + '<span class="toggle-label" id="sp-reminder-toggle-lbl">' + (isOn ? 'Con recordatorio' : 'Sin recordatorio') + '</span>'
+    + '</div>'
+    + '<div class="reminder-fields-row' + (isOn ? '' : ' hidden') + '" id="sp-reminder-fields">'
+    + '<div class="form-group"><label class="form-label">Fecha</label>'
+    + '<input type="date" class="form-input" id="sp-reminder-date" value="' + datePart + '" /></div>'
+    + '<div class="form-group"><label class="form-label">Hora (en punto)</label>'
+    + '<select class="form-select" id="sp-reminder-hour">' + hoursOpts + '</select></div>'
+    + '</div></div></div>';
+}
+
+function bindSplitReminderEvents(task) {
+  const rem = task && task.reminder && task.reminder.enabled ? task.reminder : null;
+  splitReminderOn = !!rem;
+  const toggle = document.getElementById('sp-reminder-toggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
+    splitReminderOn = !splitReminderOn;
+    const sw  = document.getElementById('sp-reminder-toggle-sw');
+    const lbl = document.getElementById('sp-reminder-toggle-lbl');
+    const fld = document.getElementById('sp-reminder-fields');
+    if (sw)  sw.className  = 'toggle-switch' + (splitReminderOn ? ' on' : '');
+    if (lbl) lbl.textContent = splitReminderOn ? 'Con recordatorio' : 'Sin recordatorio';
+    if (fld) fld.classList.toggle('hidden', !splitReminderOn);
+  });
+}
+
+function buildSplitReminderData() {
+  const rdDate = document.getElementById('sp-reminder-date');
+  const rdHour = document.getElementById('sp-reminder-hour');
+  if (splitReminderOn && rdDate && rdHour && rdDate.value && rdHour.value) {
+    return { enabled: true, datetime: rdDate.value + 'T' + rdHour.value + ':00', snoozedUntil: null };
+  }
+  return { enabled: false, datetime: null, snoozedUntil: null };
+}
+
+// Llamar bindSplitReminderEvents desde bindSplitFormEvents
+const _origBindSplit = bindSplitFormEvents;
+// (reemplazamos la referencia internamente via patch en bindSplitFormEvents — ver abajo)
+
+// ── RECORDATORIOS — SISTEMA DE POLLING ───────────────────────────────────────
+
+let reminderPollingTimer = null;
+
+function startReminderPolling() {
+  if (reminderPollingTimer) clearInterval(reminderPollingTimer);
+  reminderPollingTimer = setInterval(checkReminders, 60000);
+  checkReminders(); // chequeo inicial inmediato
+}
+
+function checkReminders() {
+  if (!currentUser) return;
+  const now = new Date();
+  const nowISO = now.getFullYear() + '-'
+    + String(now.getMonth()+1).padStart(2,'0') + '-'
+    + String(now.getDate()).padStart(2,'0') + 'T'
+    + String(now.getHours()).padStart(2,'0') + ':00:00';
+
+  tasks.forEach(task => {
+    if (!task.reminder || !task.reminder.enabled) return;
+    if (task.status === 'done') return;
+
+    // Determinar qué datetime usar: snoozedUntil si existe, sino datetime original
+    const effectiveDT = task.reminder.snoozedUntil || task.reminder.datetime;
+    if (!effectiveDT) return;
+
+    // ¿Ya hay popup activo para esta tarea?
+    if (document.getElementById('reminder-popup-' + task.id)) return;
+
+    // Comparar solo fecha+hora en punto (primeros 16 chars: YYYY-MM-DDTHH:MM)
+    if (effectiveDT.substring(0,16) <= nowISO.substring(0,16)) {
+      showReminderPopup(task);
+    }
+  });
+}
+
+function showReminderPopup(task) {
+  const stack = document.getElementById('reminder-stack');
+  if (!stack) return;
+  if (document.getElementById('reminder-popup-' + task.id)) return;
+
+  const popup = document.createElement('div');
+  popup.className = 'reminder-popup';
+  popup.id = 'reminder-popup-' + task.id;
+
+  popup.innerHTML =
+    '<div class="reminder-eyebrow">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>'
+    + 'Recordatorio</div>'
+    + '<div class="reminder-title">' + escHtml(task.title) + '</div>'
+    + (task.description ? '<div class="reminder-desc">' + escHtml(task.description) + '</div>' : '')
+    + '<div class="reminder-actions">'
+    + '<button class="reminder-btn reminder-btn-confirm">&#10003; Confirmar</button>'
+    + '<button class="reminder-btn reminder-btn-snooze">&#9200; Posponer'
+    + '<div class="snooze-dropdown" style="display:none">'
+    + '<button class="snooze-option" data-mins="5">5 minutos</button>'
+    + '<button class="snooze-option" data-mins="15">15 minutos</button>'
+    + '<button class="snooze-option" data-mins="30">30 minutos</button>'
+    + '<button class="snooze-option" data-mins="60">1 hora</button>'
+    + '</div></button>'
+    + '<button class="reminder-btn reminder-btn-edit">&#9998; Modificar</button>'
+    + '</div>';
+
+  stack.appendChild(popup);
+
+  // Confirmar — cancela el recordatorio en Firestore
+  popup.querySelector('.reminder-btn-confirm').addEventListener('click', async () => {
+    try {
+      await db.collection('tasks').doc(task.id).update({
+        'reminder.enabled': false,
+        'reminder.snoozedUntil': null,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e) { /* ignorar */ }
+    popup.remove();
+  });
+
+  // Posponer — toggle dropdown
+  const snoozeBtn = popup.querySelector('.reminder-btn-snooze');
+  const snoozeDD  = popup.querySelector('.snooze-dropdown');
+  snoozeBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = snoozeDD.style.display !== 'none';
+    snoozeDD.style.display = isOpen ? 'none' : 'block';
+  });
+  document.addEventListener('click', function closeDD(e) {
+    if (!snoozeBtn.contains(e.target)) {
+      snoozeDD.style.display = 'none';
+      document.removeEventListener('click', closeDD);
+    }
+  });
+  popup.querySelectorAll('.snooze-option').forEach(opt => {
+    opt.addEventListener('click', async e => {
+      e.stopPropagation();
+      const mins = parseInt(opt.dataset.mins);
+      const snoozed = new Date(Date.now() + mins * 60000);
+      // Redondear al punto en que caiga: si el resultado no es en punto exacto,
+      // forzar al próximo minuto en punto (snoozedUntil se comparará con horas en punto)
+      snoozed.setSeconds(0, 0);
+      const snoozedISO = snoozed.getFullYear() + '-'
+        + String(snoozed.getMonth()+1).padStart(2,'0') + '-'
+        + String(snoozed.getDate()).padStart(2,'0') + 'T'
+        + String(snoozed.getHours()).padStart(2,'0') + ':'
+        + String(snoozed.getMinutes()).padStart(2,'0') + ':00';
+      try {
+        await db.collection('tasks').doc(task.id).update({
+          'reminder.snoozedUntil': snoozedISO,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('Pospuesto ' + (mins < 60 ? mins + ' min.' : '1 hora'), 'ok');
+      } catch(err) { showToast('Error.', 'err'); }
+      popup.remove();
+    });
+  });
+
+  // Modificar — abre el panel/modal enfocado en recordatorio
+  popup.querySelector('.reminder-btn-edit').addEventListener('click', () => {
+    const t2 = tasks.find(t => t.id === task.id) || task;
+    const panelLista = document.getElementById('panel-lista');
+    const panelMatriz = document.getElementById('panel-matriz');
+    if (panelLista && panelLista.classList.contains('active')) {
+      openSplitPanel(t2, 'reminder');
+    } else {
+      openModal(t2);
+    }
+    popup.remove();
+  });
+}
+
+function removeReminderPopup(taskId) {
+  const el = document.getElementById('reminder-popup-' + taskId);
+  if (el) el.remove();
+}
+
+// ── CALENDARIO ────────────────────────────────────────────────────────────────
+
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-based
+let calShowDone = false;
+
+// Calcular todas las fechas en las que cae una tarea recurrente dentro de un rango
+function getRecurrentDatesInRange(task, fromDate, toDate) {
+  const rec = task.recurrence;
+  if (!rec || !rec.enabled || !task.dueDate) return [];
+  const dates = [];
+  const base = new Date(task.dueDate + 'T00:00:00');
+  // Avanzar desde base hasta fromDate
+  let cur = new Date(base);
+  const endDate = rec.endDate ? new Date(rec.endDate + 'T00:00:00') : null;
+  // Avanzar cur hasta que sea >= fromDate, saltando de a un paso a la vez
+  let safety = 0;
+  while (cur < fromDate && safety < 5000) {
+    safety++;
+    cur = stepRecurrence(cur, rec);
+    if (!cur) return dates;
+    if (endDate && cur > endDate) return dates;
+  }
+  while (cur <= toDate && safety < 10000) {
+    safety++;
+    if (endDate && cur > endDate) break;
+    if (cur >= fromDate) {
+      const pad = n => String(n).padStart(2,'0');
+      dates.push(cur.getFullYear() + '-' + pad(cur.getMonth()+1) + '-' + pad(cur.getDate()));
+    }
+    cur = stepRecurrence(cur, rec);
+    if (!cur) break;
+  }
+  return dates;
+}
+
+function stepRecurrence(d, rec) {
+  const next = new Date(d);
+  if (rec.type === 'workdays') {
+    next.setDate(next.getDate() + 1);
+    while (next.getDay() === 0 || next.getDay() === 6) next.setDate(next.getDate() + 1);
+  } else if (rec.type === 'daily') {
+    next.setDate(next.getDate() + (parseInt(rec.interval) || 1));
+  } else if (rec.type === 'weekly') {
+    next.setDate(next.getDate() + 7);
+  } else if (rec.type === 'monthly') {
+    next.setMonth(next.getMonth() + 1);
+  } else if (rec.type === 'yearly') {
+    next.setFullYear(next.getFullYear() + 1);
+  } else {
+    return null;
+  }
+  return next;
+}
+
+function renderCalendar() {
+  const grid   = document.getElementById('cal-grid');
+  const wdRow  = document.getElementById('cal-weekdays');
+  const label  = document.getElementById('cal-month-label');
+  if (!grid) return;
+
+  const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const WD_ES     = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  label.textContent = MONTHS_ES[calMonth] + ' ' + calYear;
+
+  // Encabezados días semana — solo primera vez
+  if (!wdRow.children.length) {
+    WD_ES.forEach(wd => {
+      const d = document.createElement('div'); d.className = 'cal-wd'; d.textContent = wd;
+      wdRow.appendChild(d);
+    });
+  }
+
+  // Primera celda: domingo de la semana que contiene el 1ro del mes
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth + 1, 0);
+  const startCell = new Date(firstDay);
+  startCell.setDate(startCell.getDate() - startCell.getDay());
+
+  // Rango de cálculo para recurrencias: mes actual + siguiente
+  const rangeFrom = new Date(startCell);
+  const rangeTo   = new Date(calYear, calMonth + 2, 0); // fin del mes siguiente
+
+  // Construir mapa fecha→tareas para tareas con dueDate
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dateMap = {}; // 'YYYY-MM-DD' → [{task, isRecurrent}]
+
+  tasks.forEach(task => {
+    if (task.dueDate) {
+      if (!dateMap[task.dueDate]) dateMap[task.dueDate] = [];
+      dateMap[task.dueDate].push({ task, isRecurrent: false });
+    }
+    // Recurrentes: calcular ocurrencias en rango
+    if (task.recurrence && task.recurrence.enabled && task.dueDate) {
+      const recDates = getRecurrentDatesInRange(task, rangeFrom, rangeTo);
+      recDates.forEach(d => {
+        if (d === task.dueDate) return; // la instancia base ya se agregó
+        if (!dateMap[d]) dateMap[d] = [];
+        // Evitar duplicados si ya está como instancia base
+        const already = dateMap[d].some(e => e.task.id === task.id && !e.isRecurrent);
+        if (!already) dateMap[d].push({ task, isRecurrent: true });
+      });
+    }
+  });
+
+  grid.innerHTML = '';
+  const cur = new Date(startCell);
+  // 6 filas × 7 columnas = 42 celdas
+  for (let i = 0; i < 42; i++) {
+    const pad = n => String(n).padStart(2,'0');
+    const dateStr = cur.getFullYear() + '-' + pad(cur.getMonth()+1) + '-' + pad(cur.getDate());
+    const isThisMonth = cur.getMonth() === calMonth;
+    const isToday     = cur.getTime() === today.getTime();
+    const isOtherMonth = !isThisMonth;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell'
+      + (isOtherMonth ? ' other-month' : '')
+      + (isToday      ? ' today'       : '');
+
+    const dayNum = document.createElement('div');
+    dayNum.className = 'cal-day-num';
+    dayNum.textContent = cur.getDate();
+    cell.appendChild(dayNum);
+
+    // Tareas del día
+    const entries = (dateMap[dateStr] || []).filter(e => {
+      if (!calShowDone && e.task.status === 'done') return false;
+      return true;
+    });
+
+    const MAX_VISIBLE = 4;
+    entries.slice(0, MAX_VISIBLE).forEach(({ task, isRecurrent }) => {
+      cell.appendChild(buildCalTask(task, isRecurrent, dateStr, today));
+    });
+    if (entries.length > MAX_VISIBLE) {
+      const more = document.createElement('div');
+      more.className = 'cal-more';
+      more.textContent = '+' + (entries.length - MAX_VISIBLE) + ' más';
+      cell.appendChild(more);
+    }
+
+    // Click en celda vacía → nueva tarea con esa fecha
+    cell.addEventListener('click', e => {
+      if (e.target.closest('.cal-task')) return; // propagado desde tarea
+      openSplitPanel(null);
+      // Pre-rellenar fecha después de que se construya el form
+      setTimeout(() => {
+        const el = document.getElementById('sp-f-due');
+        if (el) { el.value = dateStr; }
+      }, 120);
+    });
+
+    grid.appendChild(cell);
+    cur.setDate(cur.getDate() + 1);
+  }
+}
+
+function buildCalTask(task, isRecurrent, dateStr, today) {
+  const accent = task.priority === 'high'
+    ? (task.type === 'strategic' ? 'var(--red)' : 'var(--orange)')
+    : (task.type === 'strategic' ? 'var(--amber)' : 'var(--border-hi)');
+
+  const dueDateObj = new Date(dateStr + 'T00:00:00');
+  const isOverdue  = task.status !== 'done' && dueDateObj < today;
+  const isDone     = task.status === 'done';
+
+  const el = document.createElement('div');
+  el.className = 'cal-task'
+    + (isDone       ? ' t-done'      : '')
+    + (isOverdue    ? ' t-overdue'   : '')
+    + (isRecurrent  ? ' t-recurrent' : '');
+
+  el.innerHTML =
+    '<div class="cal-task-accent" style="background:' + accent + ';min-height:12px"></div>'
+    + '<div class="cal-task-check' + (isDone ? ' checked' : '') + '"></div>'
+    + '<div class="cal-task-title">' + escHtml(task.title) + '</div>'
+    + '<button class="cal-task-del" title="Eliminar">\u2715</button>';
+
+  // Checkbox toggle
+  el.querySelector('.cal-task-check').addEventListener('click', e => {
+    e.stopPropagation();
+    toggleDone(task.id, task.status);
+  });
+
+  // Botón eliminar
+  el.querySelector('.cal-task-del').addEventListener('click', async e => {
+    e.stopPropagation();
+    if (!confirm('\u00bfEliminar "' + task.title + '"?')) return;
+    try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+    catch(err) { showToast('Error.', 'err'); }
+  });
+
+  // Click en tarjeta → abrir modal/panel
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    const t2 = tasks.find(t => t.id === task.id) || task;
+    // Si panel lista está activo usamos split, si no modal
+    const panelLista = document.getElementById('panel-lista');
+    openModal(t2);
+  });
+
+  // Menú contextual
+  el.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const t2 = tasks.find(t => t.id === task.id) || task;
+    showContextMenu(t2, e.clientX, e.clientY, true);
+  }, true);
+
+  return el;
+}
+
+// Controles del calendario
+document.getElementById('cal-prev').addEventListener('click', () => {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', () => {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+});
+document.getElementById('cal-today-btn').addEventListener('click', () => {
+  const n = new Date();
+  calYear = n.getFullYear(); calMonth = n.getMonth();
+  renderCalendar();
+});
+document.getElementById('cal-toggle-wrap').addEventListener('click', () => {
+  calShowDone = !calShowDone;
+  const sw  = document.getElementById('cal-toggle-switch');
+  const lbl = document.getElementById('cal-toggle-label');
+  sw.className  = 'toggle-switch' + (calShowDone ? ' on' : '');
+  lbl.textContent = calShowDone ? 'Completadas visibles' : 'Mostrar completadas';
+  renderCalendar();
+});
+
+// ── PATCH bindSplitFormEvents para incluir recordatorio ──────────────────────
+
+function bindSplitFormEvents(task) {
+  const spRecToggle = document.getElementById('sp-recurrence-toggle');
+  const spToggleSwitch = document.getElementById('sp-toggle-switch');
+  const spToggleLabel = document.getElementById('sp-toggle-label');
+  const spRecOptions = document.getElementById('sp-recurrence-options');
+  const spRecIntervalGrp = document.getElementById('sp-rec-interval-group');
+  const spRecType = document.getElementById('sp-f-rec-type');
+  spRecToggle.addEventListener('click', () => {
+    splitRecurrenceOn = !splitRecurrenceOn;
+    spToggleSwitch.className = 'toggle-switch' + (splitRecurrenceOn ? ' on' : '');
+    spToggleLabel.textContent = splitRecurrenceOn ? 'Con recurrencia' : 'Sin recurrencia';
+    spRecOptions.classList.toggle('hidden', !splitRecurrenceOn);
+    if (splitRecurrenceOn) spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily');
+  });
+  spRecType.addEventListener('change', () => { spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily'); });
+  spRenderChecklistUI();
+  document.getElementById('sp-btn-add-check').addEventListener('click', spAddCheckItem);
+  spRenderTagsUI(); spRenderTagSuggestions();
+  const spTagsInput = document.getElementById('sp-tags-input');
+  document.getElementById('sp-tags-wrap').addEventListener('click', () => spTagsInput.focus());
+  spTagsInput.addEventListener('keydown', e => {
+    if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
+      e.preventDefault();
+      const tag = spTagsInput.value.trim().replace(/,/g,'');
+      if (tag && !splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); }
+      spTagsInput.value = '';
+    } else if (e.key==='Backspace' && !spTagsInput.value && splitCurrentTags.length) {
+      splitCurrentTags.pop(); spRenderTagsUI(); spRenderTagSuggestions();
+    }
+  });
+  spRenderDepDropdown(task ? task.id : null);
+  const titleEl = document.getElementById('sp-f-title');
+  if (titleEl) titleEl.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); document.getElementById('sp-f-desc').focus(); } });
+  // Recordatorio en panel dividido
+  bindSplitReminderEvents(task);
+}
+
 </script>
 </body>
 </html>
