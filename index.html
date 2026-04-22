@@ -520,6 +520,73 @@
       .search-input:focus { width: 150px; }
       .tags-panel { padding: 16px 14px; }
     }
+  
+    /* ── DIAGRAMA DE GANTT ──────────────────────────────── */
+    .gantt-toolbar { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 20px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap; }
+    .gantt-toolbar-left  { display:flex;align-items:center;gap:8px; }
+    .gantt-toolbar-right { display:flex;align-items:center;gap:10px; }
+    .gantt-nav-btn { width:28px;height:28px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:var(--tr); }
+    .gantt-nav-btn:hover { border-color:var(--amber);color:var(--amber); }
+    .gantt-period-label { font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text);min-width:180px;text-align:center; }
+    .gantt-today-btn { padding:4px 11px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);font-size:12px;font-family:var(--sans);cursor:pointer;transition:var(--tr); }
+    .gantt-today-btn:hover { border-color:var(--amber);color:var(--amber); }
+    .gantt-zoom-btn { padding:4px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);font-size:11px;font-family:var(--sans);cursor:pointer;transition:var(--tr); }
+    .gantt-zoom-btn:hover,.gantt-zoom-btn.active { border-color:var(--amber);color:var(--amber);background:var(--amber-glow); }
+    .gantt-group-btn { padding:4px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);font-size:11px;font-family:var(--sans);cursor:pointer;transition:var(--tr); }
+    .gantt-group-btn:hover,.gantt-group-btn.active { border-color:var(--amber);color:var(--amber);background:var(--amber-glow); }
+
+    .gantt-body   { flex:1;display:flex;overflow:hidden; }
+    .gantt-scroll { flex:1;overflow:auto; }
+    .gantt-scroll::-webkit-scrollbar { width:6px;height:6px; }
+    .gantt-scroll::-webkit-scrollbar-thumb { background:var(--border);border-radius:3px; }
+
+    .gantt-table { border-collapse:collapse;min-width:100%; }
+
+    /* Cabecera de fechas */
+    .gantt-head-month { font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);background:var(--surface);position:sticky;top:0;z-index:30;white-space:nowrap;padding:5px 0 3px;border-bottom:1px solid var(--border);text-align:center; }
+    .gantt-head-day   { font-family:var(--mono);font-size:9px;color:var(--text-faint);background:var(--surface);position:sticky;top:22px;z-index:30;white-space:nowrap;padding:3px 2px 4px;border-bottom:1px solid var(--border);text-align:center;min-width:28px;max-width:28px;width:28px; }
+    .gantt-head-day.today-col { color:var(--amber);font-weight:700; }
+    .gantt-head-day.weekend   { color:var(--text-faint);opacity:.5; }
+
+    /* Columna de tarea (fija a la izquierda) */
+    .gantt-label-col { position:sticky;left:0;z-index:20;background:var(--surface);min-width:200px;max-width:200px;width:200px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .gantt-head-label { font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);background:var(--surface);position:sticky;left:0;top:0;z-index:40;padding:5px 12px 3px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);height:22px;vertical-align:middle; }
+    .gantt-sublabel   { font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);background:var(--surface);position:sticky;left:0;top:22px;z-index:40;padding:3px 12px 4px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);height:24px;vertical-align:middle; }
+
+    /* Filas */
+    .gantt-row { transition:background var(--tr); }
+    .gantt-row:hover td { background:var(--surface-2); }
+    .gantt-row.done-row td { opacity:.5; }
+    .gantt-row.group-row td { background:var(--surface-3);font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint); }
+
+    .gantt-task-cell { padding:6px 12px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;background:var(--surface);overflow:hidden;text-overflow:ellipsis; }
+    .gantt-task-title { font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text); }
+    .gantt-task-title.done-text { text-decoration:line-through;color:var(--text-dim); }
+    .gantt-task-badges { display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap; }
+
+    /* Celdas de día */
+    .gantt-day-cell { border-bottom:1px solid var(--border);border-right:1px solid rgba(39,43,53,.5);min-width:28px;max-width:28px;width:28px;padding:0;position:relative;vertical-align:middle; }
+    .gantt-day-cell.today-col { background:rgba(240,165,0,.06); }
+    .gantt-day-cell.weekend   { background:rgba(255,255,255,.015); }
+
+    /* Barra de Gantt */
+    .gantt-bar-wrap { position:relative;height:26px;width:100%; }
+    .gantt-bar { position:absolute;top:4px;bottom:4px;border-radius:3px;min-width:4px;cursor:pointer;transition:filter var(--tr);display:flex;align-items:center;overflow:hidden; }
+    .gantt-bar:hover { filter:brightness(1.2); }
+    .gantt-bar-label { font-size:9px;font-weight:600;color:rgba(0,0,0,.75);padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none; }
+
+    /* Línea de hoy */
+    .gantt-today-line { position:absolute;top:0;bottom:0;width:2px;background:var(--amber);opacity:.6;pointer-events:none;z-index:10; }
+
+    /* Líneas de dependencia */
+    .gantt-dep-svg { position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:9; }
+    .gantt-dep-path { fill:none;stroke:var(--amber);stroke-width:1.5;stroke-dasharray:4 3;opacity:.55; }
+
+    /* Estado vacío */
+    .gantt-empty { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;text-align:center;color:var(--text-faint); }
+    .gantt-empty svg { opacity:.2; }
+    .gantt-empty p { font-size:13px;line-height:1.6; }
+
   </style>
 </head>
 <body>
@@ -812,11 +879,26 @@
 
   <!-- PANEL GANTT -->
   <div id="panel-gantt" class="panel">
-    <div class="coming-soon">
-      <div class="coming-soon-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="10" x2="15" y2="10"/><line x1="3" y1="14" x2="18" y2="14"/><line x1="3" y1="18" x2="12" y2="18"/></svg></div>
-      <h2>Diagrama de Gantt</h2><p>Línea de tiempo con duración y dependencias de cada tarea.</p>
-      <span class="coming-soon-tag">// fase 5</span>
+    <div class="gantt-toolbar">
+      <div class="gantt-toolbar-left">
+        <button class="gantt-nav-btn" id="gantt-prev">&#8249;</button>
+        <span class="gantt-period-label" id="gantt-period-label"></span>
+        <button class="gantt-nav-btn" id="gantt-next">&#8250;</button>
+        <button class="gantt-today-btn" id="gantt-today-btn">Hoy</button>
+      </div>
+      <div class="gantt-toolbar-right">
+        <div style="display:flex;gap:4px">
+          <button class="gantt-zoom-btn active" data-zoom="month" id="gantt-z-month">Mes</button>
+          <button class="gantt-zoom-btn" data-zoom="quarter" id="gantt-z-quarter">3&nbsp;meses</button>
+        </div>
+        <div style="display:flex;gap:4px;margin-left:6px">
+          <button class="gantt-group-btn active" data-group="none" id="gantt-g-none">Sin agrupar</button>
+          <button class="gantt-group-btn" data-group="priority" id="gantt-g-priority">Prioridad</button>
+          <button class="gantt-group-btn" data-group="type" id="gantt-g-type">Tipo</button>
+        </div>
+      </div>
     </div>
+    <div id="gantt-content" style="flex:1;display:flex;overflow:hidden;"></div>
   </div>
 
   <!-- PANEL FLUJO -->
@@ -1176,6 +1258,7 @@ function subscribeToTasks() {
       renderList();
       renderMatrix();
       renderCalendar();
+      if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
       renderTagFilterRow();
       renderTagsPanel();
     }, err => { console.error(err); showToast('Error: ' + err.code, 'err'); });
@@ -1731,6 +1814,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if (tab.dataset.panel === 'lista') { renderListaTagFilters(); renderList(); }
     if (tab.dataset.panel === 'matriz') renderMatrix();
     if (tab.dataset.panel === 'calendario') renderCalendar();
+    if (tab.dataset.panel === 'gantt') renderGantt();
   });
 });
 
@@ -3016,6 +3100,355 @@ document.getElementById('cal-search-input').addEventListener('input', e => {
   calSearchQuery = e.target.value.trim(); renderCalendar();
 });
 document.getElementById('fab-new-calendario').addEventListener('click', () => openModal(null));
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DIAGRAMA DE GANTT
+// ══════════════════════════════════════════════════════════════════════════════
+let ganttZoom        = 'month';   // 'month' | 'quarter'
+let ganttGroup       = 'none';    // 'none' | 'priority' | 'type'
+let ganttOffsetWeeks = 0;         // semanas de desplazamiento desde hoy
+
+// ── Utilidades de fecha ──────────────────────────────────────────────────────
+function ganttDateStr(d) {
+  const pad = n => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+function ganttAddDays(d, n) {
+  const r = new Date(d); r.setDate(r.getDate() + n); return r;
+}
+function ganttParseDate(s) {
+  if (!s) return null;
+  return new Date(s + 'T00:00:00');
+}
+function ganttDiffDays(a, b) {
+  return Math.round((b - a) / 86400000);
+}
+
+// ── Rango visible ────────────────────────────────────────────────────────────
+function ganttGetRange() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days   = ganttZoom === 'month' ? 35 : 91;
+  // Anclar al lunes de la semana actual + offset
+  const base = new Date(today);
+  base.setDate(base.getDate() - base.getDay() + 1 + ganttOffsetWeeks * 7);
+  const end  = ganttAddDays(base, days - 1);
+  return { start: base, end, days };
+}
+
+// ── Render principal ─────────────────────────────────────────────────────────
+function renderGantt() {
+  const container = document.getElementById('gantt-content');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Actualizar label del período
+  const { start, end, days } = ganttGetRange();
+  const lbl = document.getElementById('gantt-period-label');
+  if (lbl) {
+    const fmt = d => d.toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' });
+    lbl.textContent = fmt(start) + ' – ' + fmt(end);
+  }
+
+  // Filtrar tareas que tienen al menos dueDate (o startDate futuro)
+  const tasksWithDate = tasks.filter(t => t.dueDate);
+  if (!tasksWithDate.length) {
+    container.innerHTML =
+      '<div class="gantt-empty">'
+      + '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+      + '<p>No hay tareas con fecha límite.<br/>Agregá una fecha a tus tareas para verlas aquí.</p>'
+      + '</div>';
+    return;
+  }
+
+  // Agrupar
+  let groups;
+  if (ganttGroup === 'priority') {
+    groups = [
+      { key:'high', label:'Alta prioridad', items: tasksWithDate.filter(t=>t.priority==='high') },
+      { key:'low',  label:'Baja prioridad', items: tasksWithDate.filter(t=>t.priority==='low')  },
+    ].filter(g => g.items.length);
+  } else if (ganttGroup === 'type') {
+    groups = [
+      { key:'strategic', label:'Estratégicas', items: tasksWithDate.filter(t=>t.type==='strategic') },
+      { key:'operative', label:'Operativas',   items: tasksWithDate.filter(t=>t.type==='operative') },
+    ].filter(g => g.items.length);
+  } else {
+    groups = [{ key:'all', label:null, items: tasksWithDate }];
+  }
+
+  // Ordenar dentro de cada grupo por dueDate asc
+  groups.forEach(g => {
+    g.items.sort((a,b) => (a.dueDate||'').localeCompare(b.dueDate||''));
+  });
+
+  // Construir lista plana de filas con índice para dependencias
+  const allRows = [];  // { task, groupLabel, isGroupRow }
+  groups.forEach(g => {
+    if (g.label) allRows.push({ isGroupRow: true, label: g.label, key: g.key });
+    g.items.forEach(t => allRows.push({ isGroupRow: false, task: t }));
+  });
+
+  // Mapa taskId → rowIndex (solo filas de tarea)
+  const rowIndexMap = {};
+  allRows.forEach((r, i) => { if (!r.isGroupRow) rowIndexMap[r.task.id] = i; });
+
+  // ── Construir tabla ──────────────────────────────────────────────────────
+  const CELL_W = 28;      // px por columna-día
+  const ROW_H  = 38;      // px por fila
+  const LABEL_W = 200;    // px columna de tarea
+
+  // Generar array de días del rango
+  const daysCols = [];
+  for (let i = 0; i < days; i++) daysCols.push(ganttAddDays(start, i));
+  const todayStr = ganttDateStr(new Date());
+
+  // Calcular grupos de meses para cabecera
+  const monthSpans = [];
+  let curMonth = null, curSpan = 0, curStart = 0;
+  daysCols.forEach((d, i) => {
+    const mk = d.getFullYear() + '-' + d.getMonth();
+    if (mk !== curMonth) {
+      if (curMonth !== null) monthSpans.push({ label: curMonth, span: curSpan, colStart: curStart });
+      curMonth = mk; curSpan = 0; curStart = i;
+    }
+    curSpan++;
+  });
+  if (curMonth !== null) monthSpans.push({ label: curMonth, span: curSpan, colStart: curStart });
+
+  // Generar HTML de la tabla
+  const scrollDiv = document.createElement('div');
+  scrollDiv.className = 'gantt-scroll';
+
+  // SVG overlay para líneas de dependencia (posicionado sobre la tabla)
+  const svgOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgOverlay.setAttribute('class', 'gantt-dep-svg');
+  svgOverlay.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+  const tableWrap = document.createElement('div');
+  tableWrap.style.cssText = 'position:relative;display:inline-block;min-width:100%';
+
+  const table = document.createElement('table');
+  table.className = 'gantt-table';
+
+  // THEAD: fila 1 = meses, fila 2 = días
+  const thead = document.createElement('thead');
+
+  // Fila de meses
+  const trMonths = document.createElement('tr');
+  // Celda label vacía (esquina)
+  const thLabel = document.createElement('th');
+  thLabel.className = 'gantt-head-label';
+  thLabel.rowSpan = 2;
+  thLabel.textContent = 'Tarea';
+  thLabel.style.width = LABEL_W + 'px';
+  thLabel.style.minWidth = LABEL_W + 'px';
+  trMonths.appendChild(thLabel);
+
+  monthSpans.forEach(ms => {
+    const d = daysCols[ms.colStart];
+    const th = document.createElement('th');
+    th.className = 'gantt-head-month';
+    th.colSpan = ms.span;
+    th.textContent = d.toLocaleDateString('es-AR', { month:'short', year:'numeric' }).toUpperCase();
+    trMonths.appendChild(th);
+  });
+  thead.appendChild(trMonths);
+
+  // Fila de días
+  const trDays = document.createElement('tr');
+  daysCols.forEach(d => {
+    const th = document.createElement('th');
+    const isToday   = ganttDateStr(d) === todayStr;
+    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+    th.className = 'gantt-head-day' + (isToday?' today-col':'') + (isWeekend?' weekend':'');
+    th.textContent = d.getDate();
+    trDays.appendChild(th);
+  });
+  thead.appendChild(trDays);
+  table.appendChild(thead);
+
+  // TBODY
+  const tbody = document.createElement('tbody');
+
+  // Mapa rowIndex → { barLeft, barWidth } para trazar dependencias
+  const barPositions = {};
+
+  allRows.forEach((row, rowIdx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'gantt-row';
+
+    if (row.isGroupRow) {
+      tr.classList.add('group-row');
+      const td = document.createElement('td');
+      td.className = 'gantt-task-cell gantt-label-col';
+      td.colSpan = daysCols.length + 1;
+      td.textContent = row.label;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    const task = row.task;
+    if (task.status === 'done') tr.classList.add('done-row');
+
+    // Celda de nombre
+    const tdLabel = document.createElement('td');
+    tdLabel.className = 'gantt-task-cell gantt-label-col';
+    tdLabel.style.height = ROW_H + 'px';
+    const accent = task.priority==='high'
+      ? (task.type==='strategic' ? 'var(--red)' : 'var(--orange)')
+      : (task.type==='strategic' ? 'var(--amber)' : 'var(--border-hi)');
+    tdLabel.innerHTML =
+      '<div style="display:flex;align-items:center;gap:6px">'
+      + '<div style="width:3px;height:20px;border-radius:2px;flex-shrink:0;background:' + accent + '"></div>'
+      + '<div style="overflow:hidden;min-width:0">'
+      + '<div class="gantt-task-title' + (task.status==='done'?' done-text':'') + '" title="' + escHtml(task.title) + '">' + escHtml(task.title) + '</div>'
+      + '</div></div>';
+    tdLabel.addEventListener('click', () => openModal(task));
+    tr.appendChild(tdLabel);
+
+    // Celdas de días
+    const dueDate  = ganttParseDate(task.dueDate);
+    // Si no hay startDate explícita, asumimos tarea de un día (puntual)
+    const startDate = dueDate;
+    const endDate   = dueDate;
+
+    // Calcular posición dentro del rango visible
+    const startOff = ganttDiffDays(start, startDate);
+    const endOff   = ganttDiffDays(start, endDate);
+    const clampedStart = Math.max(0, startOff);
+    const clampedEnd   = Math.min(days - 1, endOff);
+    const barVisible   = clampedEnd >= 0 && clampedStart < days;
+
+    // Guardar posición para dependencias (centro vertical de la fila)
+    barPositions[task.id] = {
+      colLeft:  clampedStart,
+      colRight: clampedEnd,
+      rowIdx,
+      barLeft:  LABEL_W + clampedStart * CELL_W + CELL_W / 2,
+      barRight: LABEL_W + (clampedEnd + 1) * CELL_W - 2,
+      rowTop:   rowIdx * ROW_H + ROW_H / 2,  // aproximado, se recalcula tras render
+    };
+
+    // Una sola celda que abarca toda la fila de días
+    const tdBar = document.createElement('td');
+    tdBar.colSpan = daysCols.length;
+    tdBar.className = 'gantt-day-cell';
+    tdBar.style.padding = '0';
+    tdBar.style.position = 'relative';
+
+    if (barVisible) {
+      const barWrap = document.createElement('div');
+      barWrap.className = 'gantt-bar-wrap';
+
+      // Hoy línea (si está en rango)
+      const todayOff = ganttDiffDays(start, new Date());
+      if (todayOff >= 0 && todayOff < days) {
+        const todayLine = document.createElement('div');
+        todayLine.className = 'gantt-today-line';
+        todayLine.style.left = (todayOff * CELL_W + CELL_W / 2) + 'px';
+        barWrap.appendChild(todayLine);
+      }
+
+      // Barra
+      const bar = document.createElement('div');
+      bar.className = 'gantt-bar';
+      const barLeft  = clampedStart * CELL_W;
+      const barWidth = (clampedEnd - clampedStart + 1) * CELL_W;
+      bar.style.left       = barLeft + 'px';
+      bar.style.width      = Math.max(barWidth, 6) + 'px';
+      bar.style.background = accent;
+      if (task.status === 'done') bar.style.opacity = '0.5';
+
+      // Etiqueta dentro de la barra (solo si hay espacio)
+      if (barWidth > 30) {
+        const bl = document.createElement('span');
+        bl.className = 'gantt-bar-label';
+        bl.textContent = task.title;
+        bar.appendChild(bl);
+      }
+      bar.title = task.title + (task.dueDate ? ' · ' + task.dueDate : '');
+      bar.addEventListener('click', () => openModal(task));
+
+      barWrap.appendChild(bar);
+      tdBar.appendChild(barWrap);
+    }
+
+    tr.appendChild(tdBar);
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+
+  // ── Dependencias: trazar flechas SVG ──────────────────────────────────────
+  // Recalcular rowTop tras render (cada fila tiene ROW_H px, thead tiene 2 rows de ~22+24px)
+  const THEAD_H = 46;
+  allRows.forEach((row, rowIdx) => {
+    if (row.isGroupRow || !row.task) return;
+    const id = row.task.id;
+    if (barPositions[id]) {
+      barPositions[id].rowTop = THEAD_H + rowIdx * ROW_H + ROW_H / 2;
+    }
+  });
+
+  // Dibujar paths
+  allRows.forEach(row => {
+    if (row.isGroupRow || !row.task) return;
+    const task = row.task;
+    if (!(task.dependencies && task.dependencies.length)) return;
+    const toPos = barPositions[task.id];
+    if (!toPos) return;
+
+    task.dependencies.forEach(depId => {
+      const fromPos = barPositions[depId];
+      if (!fromPos) return;
+      // Flecha de fromPos.barRight → toPos.barLeft
+      const x1 = fromPos.barRight;
+      const y1 = fromPos.rowTop;
+      const x2 = LABEL_W + toPos.colLeft * CELL_W;
+      const y2 = toPos.rowTop;
+      const cx = (x1 + x2) / 2;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('class', 'gantt-dep-path');
+      path.setAttribute('d', `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
+      svgOverlay.appendChild(path);
+    });
+  });
+
+  tableWrap.appendChild(svgOverlay);
+  scrollDiv.appendChild(tableWrap);
+  container.appendChild(scrollDiv);
+}
+
+// ── Controles ────────────────────────────────────────────────────────────────
+document.getElementById('gantt-prev').addEventListener('click', () => {
+  ganttOffsetWeeks -= (ganttZoom === 'month' ? 4 : 13); renderGantt();
+});
+document.getElementById('gantt-next').addEventListener('click', () => {
+  ganttOffsetWeeks += (ganttZoom === 'month' ? 4 : 13); renderGantt();
+});
+document.getElementById('gantt-today-btn').addEventListener('click', () => {
+  ganttOffsetWeeks = 0; renderGantt();
+});
+document.querySelectorAll('.gantt-zoom-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    ganttZoom = btn.dataset.zoom;
+    ganttOffsetWeeks = 0;
+    document.querySelectorAll('.gantt-zoom-btn').forEach(b => b.classList.toggle('active', b === btn));
+    renderGantt();
+  });
+});
+document.querySelectorAll('.gantt-group-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    ganttGroup = btn.dataset.group;
+    document.querySelectorAll('.gantt-group-btn').forEach(b => b.classList.toggle('active', b === btn));
+    renderGantt();
+  });
+});
+
 
 </script>
 </body>
