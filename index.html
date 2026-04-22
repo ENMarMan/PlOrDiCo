@@ -1838,9 +1838,19 @@ function openSplitPanel(task, focusField) {
   if (focusField === 'due') {
     setTimeout(() => { const el = document.getElementById('sp-f-due'); if (el) { el.focus(); if(el.showPicker) el.showPicker(); } }, 100);
   } else if (focusField === 'tags') {
-    setTimeout(() => { const el = document.getElementById('sp-tags-input'); if (el) el.focus(); }, 100);
+    setTimeout(() => {
+      const adv = document.getElementById('sp-adv-body');
+      const tog = document.getElementById('sp-adv-toggle');
+      if (adv && adv.classList.contains('hidden')) { adv.classList.remove('hidden'); if(tog) tog.classList.add('open'); }
+      const el = document.getElementById('sp-tags-input'); if (el) el.focus();
+    }, 100);
   } else if (focusField === 'reminder') {
-    setTimeout(() => { const el = document.getElementById('sp-reminder-date'); if (el) el.scrollIntoView({behavior:'smooth'}); }, 150);
+    setTimeout(() => {
+      const adv = document.getElementById('sp-adv-body');
+      const tog = document.getElementById('sp-adv-toggle');
+      if (adv && adv.classList.contains('hidden')) { adv.classList.remove('hidden'); if(tog) tog.classList.add('open'); }
+      const el = document.getElementById('sp-reminder-date'); if (el) el.scrollIntoView({behavior:'smooth'});
+    }, 150);
   } else {
     setTimeout(() => { const el = document.getElementById('sp-f-title'); if (el) el.focus(); }, 80);
   }
@@ -1861,20 +1871,37 @@ function buildSplitFormHTML(task) {
   const recEnd = rec ? (rec.endDate || '') : '';
   const titleVal = task ? task.title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
   const descVal  = task ? (task.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
-  return '<div class="form-group"><label class="form-label">Título *</label><input type="text" class="form-input" id="sp-f-title" placeholder="\u00bfQu\u00e9 hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
+  const hasAdv = !!(task && (
+    (task.checklist && task.checklist.length) ||
+    (task.recurrence && task.recurrence.enabled) ||
+    (task.tags && task.tags.length) ||
+    (task.reminder && task.reminder.enabled) ||
+    (task.dependencies && task.dependencies.length)
+  ));
+  const advOpen = hasAdv;
+  // Campos básicos
+  let html = '<div class="form-group"><label class="form-label">T\u00edtulo *</label><input type="text" class="form-input" id="sp-f-title" placeholder="\u00bfQu\u00e9 hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
     + '<div class="form-group"><label class="form-label">Descripci\u00f3n</label><textarea class="form-textarea" id="sp-f-desc" placeholder="Detalle opcional\u2026">' + descVal + '</textarea></div>'
-    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="sp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="sp-checklist-items"></div></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="sp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
     + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="sp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="sp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="sp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>';
+  // Botón "Más opciones"
+  html += '<button type="button" class="adv-toggle' + (advOpen?' open has-data':'') + '" id="sp-adv-toggle">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
+    + 'M\u00e1s opciones<span class="adv-toggle-arrow">\u25be</span></button>';
+  // Sección avanzada
+  html += '<div class="adv-body' + (advOpen?'':' hidden') + '" id="sp-adv-body">'
+    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="sp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="sp-checklist-items"></div></div>'
     + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="sp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="sp-toggle-switch"></div><span class="toggle-label" id="sp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
     + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="sp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
     + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
     + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
     + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>'
+    + buildSpReminderHTML(task)
     + '<div class="form-group"><label class="form-label">Depende de</label><div class="dep-dropdown-wrap" id="sp-dep-dropdown-wrap"><button type="button" class="dep-trigger" id="sp-dep-trigger"><span class="dep-trigger-label" id="sp-dep-trigger-label">Seleccionar tareas\u2026</span><span class="dep-trigger-arrow">\u25bc</span></button><div class="dep-dropdown-panel" id="sp-dep-dropdown-panel"></div></div><div class="dep-selected-pills" id="sp-dep-selected-pills"></div></div>'
-    + buildSpReminderHTML(task);
+    + '</div>';
+  return html;
 }
 
 function bindSplitFormEvents(task) {
@@ -1910,6 +1937,16 @@ function bindSplitFormEvents(task) {
   spRenderDepDropdown(task ? task.id : null);
   const titleEl = document.getElementById('sp-f-title');
   if (titleEl) titleEl.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); document.getElementById('sp-f-desc').focus(); } });
+  // Más opciones toggle
+  const spAdvToggle = document.getElementById('sp-adv-toggle');
+  const spAdvBody   = document.getElementById('sp-adv-body');
+  if (spAdvToggle && spAdvBody) {
+    spAdvToggle.addEventListener('click', () => {
+      const isOpen = !spAdvBody.classList.contains('hidden');
+      spAdvBody.classList.toggle('hidden', isOpen);
+      spAdvToggle.classList.toggle('open', !isOpen);
+    });
+  }
   bindSpReminderEvents(task);
 }
 
