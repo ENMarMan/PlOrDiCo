@@ -1854,8 +1854,8 @@ modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) c
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeSplitPanel(); closeCtxMenu(); }
 
-  // Ctrl+Shift+N → nueva tarea (todas las pestañas)
-  if (e.ctrlKey && e.shiftKey && e.key === 'N') {
+  // Ctrl+Shift+A → nueva tarea (todas las pestañas)
+  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
     e.preventDefault();
     const activePanel = document.querySelector('.panel.active');
     const panelId = activePanel ? activePanel.id : '';
@@ -2876,11 +2876,25 @@ function renderCalendar() {
     });
     cell.appendChild(tasksContainer);
 
-    // Click en celda vacía → nuevo modal con fecha prellenada
-    cell.addEventListener('click', e => {
-      if (e.target.closest('.cal-task') || e.target.closest('.cal-day-num') || e.target.closest('.cal-cell-tasks')) return;
+    // Click en número del día → nueva tarea con esa fecha
+    dn.addEventListener('click', e => {
+      e.stopPropagation();
       openModal(null);
       setTimeout(() => { const el = document.getElementById('f-due'); if (el) el.value = dateStr; }, 60);
+    });
+
+    // Click en celda vacía (fuera de tareas y número) → nueva tarea con esa fecha
+    cell.addEventListener('click', e => {
+      if (e.target.closest('.cal-task') || e.target.closest('.cal-day-num')) return;
+      openModal(null);
+      setTimeout(() => { const el = document.getElementById('f-due'); if (el) el.value = dateStr; }, 60);
+    });
+
+    // Clic derecho en la celda (no sobre una tarea) → menú contextual de día
+    cell.addEventListener('contextmenu', e => {
+      if (e.target.closest('.cal-task')) return; // las tareas tienen su propio menú
+      e.preventDefault();
+      showCalDayMenu(dateStr, e.clientX, e.clientY);
     });
 
     grid.appendChild(cell);
@@ -2927,6 +2941,45 @@ function buildCalTask(task, isRecurrent, dateStr, today) {
   }, true);
 
   return el;
+}
+
+// Menú contextual de día del calendario (clic derecho en celda sin tarea)
+function showCalDayMenu(dateStr, x, y) {
+  closeCtxMenu();
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+  ctxMenu = menu;
+
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const label = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  menu.innerHTML =
+    '<div class="ctx-section"><div class="ctx-label">' + label + '</div>'
+    + '<button class="ctx-item" data-action="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nueva tarea para este día</button>'
+    + '</div>';
+
+  // Posición
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const mw = 220, mh = 80;
+  let left = x, top = y;
+  if (left + mw > vw - 8) left = vw - mw - 8;
+  if (top + mh > vh - 8) top = vh - mh - 8;
+  menu.style.left = left + 'px';
+  menu.style.top  = top  + 'px';
+  document.body.appendChild(menu);
+
+  menu.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]'); if (!btn) return;
+    e.stopPropagation();
+    closeCtxMenu();
+    openModal(null);
+    setTimeout(() => { const el = document.getElementById('f-due'); if (el) el.value = dateStr; }, 60);
+  });
+
+  setTimeout(() => {
+    document.addEventListener('click', function ch(e) { if (!menu.contains(e.target)) { closeCtxMenu(); document.removeEventListener('click', ch); } });
+    document.addEventListener('contextmenu', function ch2(e) { if (!menu.contains(e.target)) { closeCtxMenu(); document.removeEventListener('contextmenu', ch2); } });
+  }, 0);
 }
 
 // Controles del calendario
