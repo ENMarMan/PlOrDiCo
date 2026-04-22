@@ -2854,6 +2854,7 @@ function renderCalendar() {
 
     const cell = document.createElement('div');
     cell.className = 'cal-cell' + (!isThisMon ? ' other-month' : '') + (isToday ? ' today' : '');
+    cell.dataset.dateStr = dateStr;
 
     const dn = document.createElement('div');
     dn.className = 'cal-day-num'; dn.textContent = cur.getDate();
@@ -2890,16 +2891,29 @@ function renderCalendar() {
       setTimeout(() => { const el = document.getElementById('f-due'); if (el) el.value = dateStr; }, 60);
     });
 
-    // Clic derecho en la celda (no sobre una tarea) → menú contextual de día
-    cell.addEventListener('contextmenu', e => {
-      if (e.target.closest('.cal-task')) return; // las tareas tienen su propio menú
-      e.preventDefault();
-      showCalDayMenu(dateStr, e.clientX, e.clientY);
-    });
-
     grid.appendChild(cell);
     cur.setDate(cur.getDate() + 1);
   }
+
+  // Clic derecho delegado en el grid completo — evita problemas con overflow del contenedor de tareas
+  grid.addEventListener('contextmenu', e => {
+    // Si es sobre una tarea, dejar que buildCalTask lo maneje
+    if (e.target.closest('.cal-task')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    // Encontrar la celda padre y su fecha
+    const cell = e.target.closest('.cal-cell');
+    if (!cell) return;
+    const dayNum = cell.querySelector('.cal-day-num');
+    if (!dayNum) return;
+    // Reconstruir la fecha a partir del número del día y el mes/año activo
+    const day = parseInt(dayNum.textContent);
+    const pad = n => String(n).padStart(2, '0');
+    // Detectar si es celda del mes anterior, actual o siguiente por la clase other-month
+    // La forma más confiable es leer el dateStr del dataset que guardamos abajo
+    const ds = cell.dataset.dateStr;
+    if (ds) showCalDayMenu(ds, e.clientX, e.clientY);
+  });
 }
 
 function buildCalTask(task, isRecurrent, dateStr, today) {
