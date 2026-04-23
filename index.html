@@ -678,10 +678,12 @@
           <span class="matrix-toggle-label" id="lista-toggle-label">Mostrar completadas</span>
         </label>
       </div>
-      <div class="sort-bar" id="sort-bar">
+      <div class="sort-bar visible" id="sort-bar">
         <span class="sort-bar-label">Ordenar</span>
-        <button class="sort-btn active" id="sort-btn-asc" data-dir="asc">↑ Más vencidas primero</button>
-        <button class="sort-btn" id="sort-btn-desc" data-dir="desc">↓ Más recientes primero</button>
+        <button class="sort-btn active" data-sort="due-asc">↑ Vence más pronto</button>
+        <button class="sort-btn" data-sort="due-desc">↓ Vence más tarde</button>
+        <button class="sort-btn" data-sort="created-asc">↑ Más antiguas</button>
+        <button class="sort-btn" data-sort="created-desc">↓ Más recientes</button>
       </div>
       <div class="list-body">
         <!-- SIDEBAR LISTA -->
@@ -1184,7 +1186,7 @@ let calSearchQuery  = '';
 let activeFilter    = 'all';  // kept for compatibility
 let activeTagFilter = null;   // kept for compatibility
 let searchQuery     = '';
-let dueSortDir      = 'asc';  // 'asc' = más próximas primero / más vencidas primero
+let listaSortMode   = 'due-asc'; // 'due-asc'|'due-desc'|'created-asc'|'created-desc'
 let recurrenceOn    = false;
 let unsubscribe     = null;
 let splitEditingId  = null;   // ID de la tarea abierta en panel dividido
@@ -1416,14 +1418,25 @@ async function toggleDone(id, current) {
     const rec = task.recurrence;
     const shouldCreate = !rec.endDate || (nextDate && nextDate <= rec.endDate);
     if (nextDate && shouldCreate) {
+      // Si está en Gantt, avanzar gantt.startDate el mismo delta que dueDate
+      let newGantt = task.gantt ? {...task.gantt} : null;
+      if (newGantt && newGantt.enabled && newGantt.startDate && task.dueDate) {
+        const oldDue  = new Date(task.dueDate + 'T00:00:00');
+        const nextDue = new Date(nextDate     + 'T00:00:00');
+        const delta   = Math.round((nextDue - oldDue) / 86400000);
+        const oldStart = new Date(newGantt.startDate + 'T00:00:00');
+        const newStart = new Date(oldStart); newStart.setDate(newStart.getDate() + delta);
+        const pad2 = n => String(n).padStart(2,'0');
+        newGantt = { ...newGantt, startDate: newStart.getFullYear()+'-'+pad2(newStart.getMonth()+1)+'-'+pad2(newStart.getDate()) };
+      }
       const newTask = {
         ...task,
         id: undefined,
         status: 'pending',
         dueDate: nextDate,
+        gantt: newGantt,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        // Resetear checklist si existe
         checklist: (task.checklist || []).map(item => ({ ...item, done: false }))
       };
       delete newTask.id;
@@ -1509,45 +1522,33 @@ function getFiltered() {
   return list;
 }
 
+function sortTasksBy(items) {
+  return items.slice().sort((a, b) => {
+    if (listaSortMode === 'created-asc')  return (a.createdAt?.seconds??0)-(b.createdAt?.seconds??0);
+    if (listaSortMode === 'created-desc') return (b.createdAt?.seconds??0)-(a.createdAt?.seconds??0);
+    // due-asc / due-desc: con fecha primero, sin fecha al final por createdAt asc
+    const aHas=!!a.dueDate, bHas=!!b.dueDate;
+    if (aHas&&bHas) { const cmp=a.dueDate.localeCompare(b.dueDate); return listaSortMode==='due-asc'?cmp:-cmp; }
+    if (aHas&&!bHas) return -1;
+    if (!aHas&&bHas) return 1;
+    return (a.createdAt?.seconds??0)-(b.createdAt?.seconds??0);
+  });
+}
+
 function renderList() {
   taskList.querySelectorAll('.task-card,.group-header').forEach(el => el.remove());
-  // Mostrar/ocultar sort-bar
-  const sortBar = document.getElementById('sort-bar');
-  const showSort = listaFilterDate === 'overdue' || listaFilterDate === 'with_due';
-  sortBar.classList.toggle('visible', showSort);
-  if (showSort) {
-    // Actualizar labels según contexto
-    const btnAsc  = document.getElementById('sort-btn-asc');
-    const btnDesc = document.getElementById('sort-btn-desc');
-    if (listaFilterDate === 'overdue') {
-      btnAsc.textContent  = '↑ Más vencidas primero';
-      btnDesc.textContent = '↓ Vencidas más recientes';
-    } else {
-      btnAsc.textContent  = '↑ Próximas a vencer primero';
-      btnDesc.textContent = '↓ Más lejanas primero';
-    }
-    btnAsc.classList.toggle('active',  dueSortDir === 'asc');
-    btnDesc.classList.toggle('active', dueSortDir === 'desc');
-  }
 
   let filtered = getFiltered();
+  if (!filtered.length) { emptyState.classList.remove('hidden'); return; }
+  emptyState.classList.add('hidden');
 
-  // Para overdue y with_due: ordenar por fecha y mostrar lista plana
+  // Filtro de fecha activo: lista plana sin agrupar
   if (listaFilterDate === 'overdue' || listaFilterDate === 'with_due') {
-    filtered = filtered.slice().sort((a, b) => {
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      const cmp = a.dueDate.localeCompare(b.dueDate);
-      return dueSortDir === 'asc' ? cmp : -cmp;
-    });
-    if (!filtered.length) { emptyState.classList.remove('hidden'); return; }
-    emptyState.classList.add('hidden');
-    filtered.forEach(t => taskList.appendChild(buildCard(t)));
+    sortTasksBy(filtered).forEach(t => taskList.appendChild(buildCard(t)));
     return;
   }
 
-  if (!filtered.length) { emptyState.classList.remove('hidden'); return; }
-  emptyState.classList.add('hidden');
+  // Agrupado: En curso → Pendientes → Completadas; dentro de cada grupo aplica el sort
   [
     { key:'in_progress', label:'En curso',    items: filtered.filter(t=>t.status==='in_progress') },
     { key:'pending',     label:'Pendientes',  items: filtered.filter(t=>t.status==='pending') },
@@ -1555,8 +1556,8 @@ function renderList() {
   ].forEach(g => {
     if (!g.items.length) return;
     const h = document.createElement('div'); h.className = 'group-header';
-    h.textContent = `${g.label} · ${g.items.length}`; taskList.appendChild(h);
-    g.items.forEach(t => taskList.appendChild(buildCard(t)));
+    h.textContent = g.label + ' · ' + g.items.length; taskList.appendChild(h);
+    sortTasksBy(g.items).forEach(t => taskList.appendChild(buildCard(t)));
   });
 }
 
@@ -2039,9 +2040,10 @@ document.getElementById('matrix-search-input').addEventListener('input', e => {
   renderMatrix();
 });
 
-document.querySelectorAll('.sort-btn').forEach(btn => {
+document.querySelectorAll('.sort-btn[data-sort]').forEach(btn => {
   btn.addEventListener('click', () => {
-    dueSortDir = btn.dataset.dir;
+    listaSortMode = btn.dataset.sort;
+    document.querySelectorAll('.sort-btn[data-sort]').forEach(b => b.classList.toggle('active', b === btn));
     renderList();
   });
 });
@@ -3380,86 +3382,200 @@ function buildGanttSplitFormHTML(task) {
     (task.dependencies && task.dependencies.length) ||
     (task.gantt && task.gantt.enabled)
   ));
-
-  let html = '<div class="form-group"><label class="form-label">Título *</label><input type="text" class="form-input" id="gsp-f-title" placeholder="¿Qué hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
-    + '<div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="gsp-f-desc" placeholder="Detalle opcional…">' + descVal + '</textarea></div>'
-    + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="gsp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estratégica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
-    + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="gsp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Fecha límite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>';
-
-  // Botón Más opciones
-  html += '<button type="button" class="adv-toggle' + (hasAdv?' open has-data':'') + '" id="gsp-adv-toggle">'
-    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
-    + 'Más opciones<span class="adv-toggle-arrow">▾</span></button>';
-
-  // Sección avanzada
   const gn = task && task.gantt ? task.gantt : null;
   const gnOn = !!(gn && gn.enabled);
   const gnStart = (gn && gn.startDate) ? gn.startDate : '';
   const gnDays  = (gn && gn.days) ? gn.days : 1;
+  const rem = task && task.reminder && task.reminder.enabled ? task.reminder : null;
+  const remOn = !!rem;
+  let remDate='', remHour='08:00';
+  if (rem && rem.datetime) { const p=rem.datetime.split('T'); remDate=p[0]||''; remHour=(p[1]||'').substring(0,5)||'08:00'; }
+  let remHourOpts='';
+  for (let h=0;h<24;h++) { const v=String(h).padStart(2,'0')+':00'; remHourOpts+='<option value="'+v+'"'+(remHour===v?' selected':'')+'>'+v+'</option>'; }
+
+  let html = '<div class="form-group"><label class="form-label">T\u00edtulo *</label><input type="text" class="form-input" id="gsp-f-title" placeholder="\u00bfQu\u00e9 hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
+    + '<div class="form-group"><label class="form-label">Descripci\u00f3n</label><textarea class="form-textarea" id="gsp-f-desc" placeholder="Detalle opcional\u2026">' + descVal + '</textarea></div>'
+    + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="gsp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
+    + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
+    + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="gsp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>';
+
+  html += '<button type="button" class="adv-toggle' + (hasAdv?' open has-data':'') + '" id="gsp-adv-toggle">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
+    + 'M\u00e1s opciones<span class="adv-toggle-arrow">\u25be</span></button>';
 
   html += '<div class="adv-body' + (hasAdv?'':' hidden') + '" id="gsp-adv-body">'
-    // Recurrencia
+    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="gsp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="gsp-checklist-items"></div></div>'
     + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="gsp-toggle-switch"></div><span class="toggle-label" id="gsp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
-    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="gsp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>Días laborales</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N días</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
-    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="gsp-rec-interval-group"><label class="form-label">Cada cuántos días</label><input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
-    + '<div class="form-group"><label class="form-label">Fin de recurrencia</label><input type="date" class="form-input" id="gsp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
-    // Gantt
+    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="gsp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
+    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="gsp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="gsp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
+    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="gsp-tags-wrap"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="gsp-tag-suggestions"></div></div>'
+    + '<div class="form-group"><label class="form-label">Recordatorio</label><div class="reminder-box"><div class="recurrence-toggle" id="gsp-reminder-toggle"><div class="toggle-switch' + (remOn?' on':'') + '" id="gsp-reminder-sw"></div><span class="toggle-label" id="gsp-reminder-lbl">' + (remOn?'Con recordatorio':'Sin recordatorio') + '</span></div>'
+    + '<div class="reminder-fields-row' + (remOn?'':' hidden') + '" id="gsp-reminder-fields"><div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" id="gsp-reminder-date" value="' + remDate + '" /></div><div class="form-group"><label class="form-label">Hora (en punto)</label><select class="form-select" id="gsp-reminder-hour">' + remHourOpts + '</select></div></div></div></div>'
     + '<div class="form-group"><label class="form-label">Diagrama de Gantt</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-gantt-toggle"><div class="toggle-switch' + (gnOn?' on':'') + '" id="gsp-gantt-switch"></div><span class="toggle-label" id="gsp-gantt-label">' + (gnOn?'Incluido en Gantt':'No incluir en Gantt') + '</span></div>'
-    + '<div class="recurrence-options' + (gnOn?'':' hidden') + '" id="gsp-gantt-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Fecha de inicio</label><input type="date" class="form-input" id="gsp-f-gantt-start" value="' + gnStart + '" /></div><div class="form-group"><label class="form-label">Duración (días)</label><input type="number" class="form-input" id="gsp-f-gantt-days" value="' + gnDays + '" min="1" max="365" /></div></div></div></div></div>'
+    + '<div class="recurrence-options' + (gnOn?'':' hidden') + '" id="gsp-gantt-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Fecha de inicio</label><input type="date" class="form-input" id="gsp-f-gantt-start" value="' + gnStart + '" /></div><div class="form-group"><label class="form-label">Duraci\u00f3n (d\u00edas)</label><input type="number" class="form-input" id="gsp-f-gantt-days" value="' + gnDays + '" min="1" max="365" /></div></div></div></div></div>'
+    + '<div class="form-group"><label class="form-label">Depende de</label><div class="dep-dropdown-wrap" id="gsp-dep-dropdown-wrap"><button type="button" class="dep-trigger" id="gsp-dep-trigger"><span class="dep-trigger-label" id="gsp-dep-trigger-label">Seleccionar tareas\u2026</span><span class="dep-trigger-arrow">\u25bc</span></button><div class="dep-dropdown-panel" id="gsp-dep-dropdown-panel"></div></div><div class="dep-selected-pills" id="gsp-dep-selected-pills"></div></div>'
     + '</div>';
 
   return html;
 }
 
 function bindGanttSplitFormEvents(task) {
-  // Recurrencia
-  const gspRecToggle = document.getElementById('gsp-recurrence-toggle');
-  const gspToggleSw  = document.getElementById('gsp-toggle-switch');
-  const gspToggleLbl = document.getElementById('gsp-toggle-label');
-  const gspRecOpts   = document.getElementById('gsp-recurrence-options');
-  const gspRecIntGrp = document.getElementById('gsp-rec-interval-group');
-  const gspRecType   = document.getElementById('gsp-f-rec-type');
-  if (gspRecToggle) {
-    gspRecToggle.addEventListener('click', () => {
-      ganttSplitRecurrenceOn = !ganttSplitRecurrenceOn;
-      gspToggleSw.className = 'toggle-switch' + (ganttSplitRecurrenceOn ? ' on' : '');
-      gspToggleLbl.textContent = ganttSplitRecurrenceOn ? 'Con recurrencia' : 'Sin recurrencia';
-      gspRecOpts.classList.toggle('hidden', !ganttSplitRecurrenceOn);
-      if (ganttSplitRecurrenceOn) gspRecIntGrp.classList.toggle('hidden', gspRecType.value !== 'daily');
-    });
-  }
-  if (gspRecType) gspRecType.addEventListener('change', () => { gspRecIntGrp.classList.toggle('hidden', gspRecType.value !== 'daily'); });
-
-  // Gantt toggle
-  const gspGanttToggle = document.getElementById('gsp-gantt-toggle');
-  const gn = task && task.gantt ? task.gantt : null;
-  ganttSplitGanttOn = !!(gn && gn.enabled);
-  if (gspGanttToggle) {
-    gspGanttToggle.addEventListener('click', () => {
-      ganttSplitGanttOn = !ganttSplitGanttOn;
-      document.getElementById('gsp-gantt-switch').className = 'toggle-switch' + (ganttSplitGanttOn ? ' on' : '');
-      document.getElementById('gsp-gantt-label').textContent = ganttSplitGanttOn ? 'Incluido en Gantt' : 'No incluir en Gantt';
-      document.getElementById('gsp-gantt-options').classList.toggle('hidden', !ganttSplitGanttOn);
-    });
-  }
-
-  // Más opciones toggle
-  const gspAdvToggle = document.getElementById('gsp-adv-toggle');
-  const gspAdvBody   = document.getElementById('gsp-adv-body');
-  if (gspAdvToggle && gspAdvBody) {
-    gspAdvToggle.addEventListener('click', () => {
-      const isOpen = !gspAdvBody.classList.contains('hidden');
-      gspAdvBody.classList.toggle('hidden', isOpen);
-      gspAdvToggle.classList.toggle('open', !isOpen);
-    });
-  }
-
-  // Title enter → desc
   const titleEl = document.getElementById('gsp-f-title');
-  if (titleEl) titleEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('gsp-f-desc').focus(); } });
+  if (titleEl) titleEl.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault(); document.getElementById('gsp-f-desc').focus();} });
+
+  const gspRecToggle=document.getElementById('gsp-recurrence-toggle');
+  const gspToggleSw=document.getElementById('gsp-toggle-switch');
+  const gspToggleLbl=document.getElementById('gsp-toggle-label');
+  const gspRecOpts=document.getElementById('gsp-recurrence-options');
+  const gspRecIntGrp=document.getElementById('gsp-rec-interval-group');
+  const gspRecType=document.getElementById('gsp-f-rec-type');
+  ganttSplitRecurrenceOn = !!(task && task.recurrence && task.recurrence.enabled);
+  if (gspRecToggle) {
+    gspRecToggle.addEventListener('click',()=>{
+      ganttSplitRecurrenceOn=!ganttSplitRecurrenceOn;
+      gspToggleSw.className='toggle-switch'+(ganttSplitRecurrenceOn?' on':'');
+      gspToggleLbl.textContent=ganttSplitRecurrenceOn?'Con recurrencia':'Sin recurrencia';
+      gspRecOpts.classList.toggle('hidden',!ganttSplitRecurrenceOn);
+      if (ganttSplitRecurrenceOn) gspRecIntGrp.classList.toggle('hidden',gspRecType.value!=='daily');
+    });
+  }
+  if (gspRecType) gspRecType.addEventListener('change',()=>{gspRecIntGrp.classList.toggle('hidden',gspRecType.value!=='daily');});
+
+  gspRenderChecklistUI();
+  const gspAddChk=document.getElementById('gsp-btn-add-check');
+  if(gspAddChk) gspAddChk.addEventListener('click',gspAddCheckItem);
+
+  gspRenderTagsUI(); gspRenderTagSuggestions();
+  const gspTagsInput=document.getElementById('gsp-tags-input');
+  const gspTagsWrap=document.getElementById('gsp-tags-wrap');
+  if(gspTagsWrap) gspTagsWrap.addEventListener('click',()=>gspTagsInput&&gspTagsInput.focus());
+  if(gspTagsInput) gspTagsInput.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===',')&&gspTagsInput.value.trim()){
+      e.preventDefault();
+      const tag=gspTagsInput.value.trim().replace(/,/g,'');
+      if(tag&&!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}
+      gspTagsInput.value='';
+    } else if(e.key==='Backspace'&&!gspTagsInput.value&&ganttSplitCurrentTags.length){
+      ganttSplitCurrentTags.pop();gspRenderTagsUI();gspRenderTagSuggestions();
+    }
+  });
+
+  const gspRemTgl=document.getElementById('gsp-reminder-toggle');
+  ganttSplitReminderOn=!!(task&&task.reminder&&task.reminder.enabled);
+  if(gspRemTgl){
+    gspRemTgl.addEventListener('click',()=>{
+      ganttSplitReminderOn=!ganttSplitReminderOn;
+      document.getElementById('gsp-reminder-sw').className='toggle-switch'+(ganttSplitReminderOn?' on':'');
+      document.getElementById('gsp-reminder-lbl').textContent=ganttSplitReminderOn?'Con recordatorio':'Sin recordatorio';
+      document.getElementById('gsp-reminder-fields').classList.toggle('hidden',!ganttSplitReminderOn);
+    });
+  }
+
+  gspRenderDepDropdown(task?task.id:null);
+
+  const gspGanttToggle=document.getElementById('gsp-gantt-toggle');
+  const gn=task&&task.gantt?task.gantt:null;
+  ganttSplitGanttOn=!!(gn&&gn.enabled);
+  if(gspGanttToggle){
+    gspGanttToggle.addEventListener('click',()=>{
+      ganttSplitGanttOn=!ganttSplitGanttOn;
+      document.getElementById('gsp-gantt-switch').className='toggle-switch'+(ganttSplitGanttOn?' on':'');
+      document.getElementById('gsp-gantt-label').textContent=ganttSplitGanttOn?'Incluido en Gantt':'No incluir en Gantt';
+      document.getElementById('gsp-gantt-options').classList.toggle('hidden',!ganttSplitGanttOn);
+    });
+  }
+
+  const gspAdvToggle=document.getElementById('gsp-adv-toggle');
+  const gspAdvBody=document.getElementById('gsp-adv-body');
+  if(gspAdvToggle&&gspAdvBody){
+    gspAdvToggle.addEventListener('click',()=>{
+      const isOpen=!gspAdvBody.classList.contains('hidden');
+      gspAdvBody.classList.toggle('hidden',isOpen);
+      gspAdvToggle.classList.toggle('open',!isOpen);
+    });
+  }
 }
+
+function gspRenderChecklistUI() {
+  const c=document.getElementById('gsp-checklist-items'); if(!c) return;
+  c.innerHTML='';
+  ganttSplitCurrentChecklist.forEach((item,idx)=>{
+    const row=document.createElement('div'); row.className='check-item-row';
+    row.innerHTML='<div class="check-item-cb'+(item.done?' checked':'')+'"></div>'
+      +'<input type="text" class="check-item-input'+(item.done?' done-text':'')+'" placeholder="Describí el paso…" value="'+escHtml(item.text)+'" maxlength="120" />'
+      +'<button type="button" class="check-item-del" title="Quitar">✕</button>';
+    row.querySelector('.check-item-cb').addEventListener('click',()=>{ganttSplitCurrentChecklist[idx].done=!ganttSplitCurrentChecklist[idx].done;gspRenderChecklistUI();});
+    row.querySelector('.check-item-input').addEventListener('input',e=>{ganttSplitCurrentChecklist[idx].text=e.target.value;});
+    row.querySelector('.check-item-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();gspAddCheckItem();}});
+    row.querySelector('.check-item-del').addEventListener('click',()=>{ganttSplitCurrentChecklist.splice(idx,1);gspRenderChecklistUI();});
+    c.appendChild(row);
+  });
+}
+function gspAddCheckItem(){
+  ganttSplitCurrentChecklist.push({text:'',done:false});gspRenderChecklistUI();
+  const c=document.getElementById('gsp-checklist-items');if(c){const ins=c.querySelectorAll('.check-item-input');if(ins.length)ins[ins.length-1].focus();}
+}
+function gspRenderTagsUI(){
+  const wrap=document.getElementById('gsp-tags-wrap');if(!wrap)return;
+  wrap.querySelectorAll('.tag-pill').forEach(el=>el.remove());
+  const inp=document.getElementById('gsp-tags-input');
+  ganttSplitCurrentTags.forEach(tag=>{
+    const pill=document.createElement('span');pill.className='tag-pill';
+    pill.innerHTML=escHtml(tag)+'<button class="tag-remove">×</button>';
+    pill.querySelector('.tag-remove').addEventListener('click',()=>{ganttSplitCurrentTags=ganttSplitCurrentTags.filter(t=>t!==tag);gspRenderTagsUI();gspRenderTagSuggestions();});
+    wrap.insertBefore(pill,inp);
+  });
+}
+function gspRenderTagSuggestions(){
+  const el=document.getElementById('gsp-tag-suggestions');if(!el)return;
+  el.innerHTML='';
+  getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t)).forEach(tag=>{
+    const btn=document.createElement('button');btn.type='button';btn.className='tag-suggestion';btn.textContent='+ '+tag;
+    btn.addEventListener('click',()=>{if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
+    el.appendChild(btn);
+  });
+}
+function gspRenderDepDropdown(excludeId){
+  const trigger=document.getElementById('gsp-dep-trigger'),label=document.getElementById('gsp-dep-trigger-label'),
+        panel=document.getElementById('gsp-dep-dropdown-panel'),pillsEl=document.getElementById('gsp-dep-selected-pills');
+  if(!trigger||!panel||!pillsEl)return;
+  const candidates=tasks.filter(t=>t.id!==excludeId);
+  panel.innerHTML='';
+  if(!candidates.length){panel.innerHTML='<div style="padding:10px 12px;font-size:12px;color:var(--text-faint)">No hay otras tareas.</div>';}
+  else{
+    candidates.forEach(t=>{
+      const sel=ganttSplitSelectedDeps.has(t.id);
+      const item=document.createElement('div');item.className='dep-item'+(sel?' selected':'');
+      const sk=t.status==='done'?'done':t.status==='in_progress'?'progress':'pending';
+      const st=t.status==='done'?'Completada':t.status==='in_progress'?'En curso':'Pend.';
+      item.innerHTML='<input type="checkbox"'+(sel?' checked':'')+'><span style="flex:1">'+escHtml(t.title)+'</span><span class="badge badge-'+sk+'" style="font-size:9px">'+st+'</span>';
+      item.addEventListener('click',()=>{
+        if(ganttSplitSelectedDeps.has(t.id)){ganttSplitSelectedDeps.delete(t.id);item.classList.remove('selected');item.querySelector('input').checked=false;}
+        else{ganttSplitSelectedDeps.add(t.id);item.classList.add('selected');item.querySelector('input').checked=true;}
+        updGspLabel();gspRenderDepPills(excludeId);
+      });
+      panel.appendChild(item);
+    });
+  }
+  function updGspLabel(){const c=ganttSplitSelectedDeps.size;label.textContent=c?c+' tarea'+(c>1?'s':'')+' seleccionada'+(c>1?'s':''):'Seleccionar tareas…';}
+  updGspLabel();
+  trigger.onclick=e=>{e.stopPropagation();const open=panel.classList.contains('open');panel.classList.toggle('open',!open);trigger.classList.toggle('open',!open);};
+  document.addEventListener('click',function h(e){if(!trigger.contains(e.target)&&!panel.contains(e.target)){panel.classList.remove('open');trigger.classList.remove('open');document.removeEventListener('click',h);}});
+  gspRenderDepPills(excludeId);
+  function gspRenderDepPills(exId){
+    pillsEl.innerHTML='';
+    [...ganttSplitSelectedDeps].forEach(id=>{
+      const t=tasks.find(x=>x.id===id);if(!t)return;
+      const pill=document.createElement('span');pill.className='dep-pill';
+      pill.innerHTML=escHtml(t.title)+'<button class="dep-pill-remove" title="Quitar">×</button>';
+      pill.querySelector('.dep-pill-remove').addEventListener('click',()=>{ganttSplitSelectedDeps.delete(id);updGspLabel();gspRenderDepPills(exId);});
+      pillsEl.appendChild(pill);
+    });
+  }
+}
+
 
 async function saveGanttSplitTask() {
   const titleEl = document.getElementById('gsp-f-title');
@@ -3487,6 +3603,11 @@ async function saveGanttSplitTask() {
     gspGanttData = { enabled: true, startDate: gspGStartEl.value, days: gDays };
   }
 
+  const gspRemDateEl=document.getElementById('gsp-reminder-date');
+  const gspRemHourEl=document.getElementById('gsp-reminder-hour');
+  const gspReminderData=(ganttSplitReminderOn&&gspRemDateEl&&gspRemHourEl&&gspRemDateEl.value&&gspRemHourEl.value)
+    ?{enabled:true,datetime:gspRemDateEl.value+'T'+gspRemHourEl.value+':00',snoozedUntil:null}
+    :{enabled:false,datetime:null,snoozedUntil:null};
   const data = {
     title,
     description: (document.getElementById('gsp-f-desc').value||'').trim(),
@@ -3498,7 +3619,7 @@ async function saveGanttSplitTask() {
     tags: [...ganttSplitCurrentTags],
     dependencies: [...ganttSplitSelectedDeps],
     checklist: ganttSplitCurrentChecklist.filter(i=>i.text.trim()),
-    reminder: { enabled: false, datetime: null, snoozedUntil: null },
+    reminder: gspReminderData,
     gantt: gspGanttData,
     uid: currentUser.uid,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -3787,10 +3908,10 @@ function renderGantt() {
 
 // ── Drag horizontal de barras ─────────────────────────────────────────────────
 function ganttBindBarDrag(bar, task, daysCols, rangeStart, CELL_W) {
-  let dragStartX=0, origStartDate='', dragging=false;
+  let dragStartX=0, origStartDate='', dragging=false, movedEnough=false;
   bar.addEventListener('mousedown', e=>{
     if (e.button!==0) return;
-    dragging=true; dragStartX=e.clientX;
+    dragging=true; movedEnough=false; dragStartX=e.clientX;
     origStartDate=task.gantt.startDate;
     bar.classList.add('dragging');
     e.preventDefault();
@@ -3799,13 +3920,18 @@ function ganttBindBarDrag(bar, task, daysCols, rangeStart, CELL_W) {
     if (!dragging) return;
     const dx=e.clientX-dragStartX;
     const daysDelta=Math.round(dx/CELL_W);
-    if (daysDelta===0) return;
+    if (daysDelta!==0) movedEnough=true;
+    if (!movedEnough) return;
     const orig=new Date(origStartDate+'T00:00:00');
     const newStart=ganttAddDays(orig,daysDelta);
     bar.style.left=(ganttDiffDays(rangeStart,newStart)*CELL_W)+'px';
   });
   document.addEventListener('mouseup', async e=>{
-    if (!dragging) return; dragging=false; bar.classList.remove('dragging');
+    if (!dragging) return;
+    dragging=false; bar.classList.remove('dragging');
+    if (!movedEnough) return;
+    // absorber el click siguiente para no abrir el panel
+    bar.addEventListener('click', function absorb(ev){ ev.stopPropagation(); ev.preventDefault(); bar.removeEventListener('click',absorb,true); }, true);
     const dx=e.clientX-dragStartX;
     const daysDelta=Math.round(dx/CELL_W);
     if (daysDelta===0) return;
