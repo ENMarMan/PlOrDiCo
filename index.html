@@ -50,6 +50,7 @@
     input, textarea, select { font-family: var(--sans); }
     .screen { display: none; min-height: 100vh; flex-direction: column; }
     .screen.active { display: flex; }
+    #screen-app { height: 100vh; overflow: hidden; }
 
     /* LOGIN */
     #screen-login { flex-direction: column; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(240,165,0,.07) 0%, transparent 70%); }
@@ -600,8 +601,8 @@
     .flujo-toolbar { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 20px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap; }
     .flujo-toolbar-left { display:flex;align-items:center;gap:10px; }
     .flujo-toolbar-right { display:flex;align-items:center;gap:10px; }
-    .flujo-canvas-wrap { flex:1;position:relative;overflow:hidden; }
-    #flujo-cy { width:100%;height:100%; }
+    .flujo-canvas-wrap { flex:1;position:relative;overflow:hidden;min-height:400px; }
+    #flujo-cy { width:100%;height:100%;min-height:400px; }
     .flujo-hidden-bar { position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-hi);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text-dim);cursor:pointer;transition:var(--tr);z-index:10;white-space:nowrap;display:none; }
     .flujo-hidden-bar:hover { border-color:var(--amber);color:var(--amber); }
     .flujo-hidden-bar.visible { display:block; }
@@ -1978,7 +1979,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if (tab.dataset.panel === 'matriz') renderMatrix();
     if (tab.dataset.panel === 'calendario') renderCalendar();
     if (tab.dataset.panel === 'gantt') renderGantt();
-    if (tab.dataset.panel === 'flujo') setTimeout(renderFlujo, 30);
+    if (tab.dataset.panel === 'flujo') requestAnimationFrame(() => requestAnimationFrame(renderFlujo));
   });
 });
 
@@ -4351,6 +4352,8 @@ function renderFlujo() {
 
   flujoCy.resize();
   flujoCy.fit(undefined, 40);
+  // Segunda pasada por si el primer frame aún no tenía dimensiones
+  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
 
   flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
     if (flujoConnMode) {
@@ -4459,17 +4462,23 @@ document.getElementById('flujo-hidden-bar').addEventListener('click', () => {
 });
 
 document.getElementById('fab-new-flujo').addEventListener('click', () => {
-  openSplitPanel(null);
+  openModal(null);
 });
 
 document.getElementById('fab-new-tag-flujo').addEventListener('click', () => {
-  const nombre = prompt('Nombre de la nueva etiqueta:');
-  if (!nombre || !nombre.trim()) return;
-  const tag = nombre.trim();
-  const allTags = [];
-  tasks.forEach(t => { if (t.tags) t.tags.forEach(tg => { if (!allTags.includes(tg)) allTags.push(tg); }); });
-  if (allTags.includes(tag)) { showToast('Esa etiqueta ya existe.','err'); return; }
-  showToast('"'+tag+'" creada. Asign\u00e1la a una tarea para que aparezca en el diagrama.','ok');
+  openModal(null);
+  requestAnimationFrame(() => {
+    // Expandir sección avanzada si está cerrada
+    const advBody = document.getElementById('modal-adv-body');
+    const advToggle = document.getElementById('modal-adv-toggle');
+    if (advBody && advBody.classList.contains('hidden') && advToggle) {
+      advToggle.click();
+    }
+    setTimeout(() => {
+      const tagInput = document.getElementById('tags-input');
+      if (tagInput) { tagInput.scrollIntoView({behavior:'smooth', block:'center'}); tagInput.focus(); }
+    }, 120);
+  });
 });
 
 
