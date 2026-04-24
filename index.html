@@ -8,6 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
@@ -595,6 +596,24 @@
     .gantt-empty svg { opacity:.2; }
     .gantt-empty p { font-size:13px;line-height:1.6; }
 
+    /* ── PANEL FLUJO ─────────────────────────────────── */
+    .flujo-toolbar { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 20px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap; }
+    .flujo-toolbar-left { display:flex;align-items:center;gap:10px; }
+    .flujo-toolbar-right { display:flex;align-items:center;gap:10px; }
+    .flujo-canvas-wrap { flex:1;position:relative;overflow:hidden; }
+    #flujo-cy { width:100%;height:100%; }
+    .flujo-hidden-bar { position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-hi);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text-dim);cursor:pointer;transition:var(--tr);z-index:10;white-space:nowrap;display:none; }
+    .flujo-hidden-bar:hover { border-color:var(--amber);color:var(--amber); }
+    .flujo-hidden-bar.visible { display:block; }
+    .flujo-legend { position:absolute;top:12px;right:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;display:flex;flex-direction:column;gap:6px;z-index:10; }
+    .flujo-legend-title { font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:2px; }
+    .flujo-legend-row { display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-dim); }
+    .flujo-legend-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+    .flujo-legend-box { width:10px;height:10px;border-radius:2px;flex-shrink:0;border:2px solid; }
+    .flujo-empty { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;text-align:center;color:var(--text-faint); }
+    .flujo-empty svg { opacity:.2; }
+    .flujo-empty p { font-size:13px;line-height:1.6; }
+
   </style>
 </head>
 <body>
@@ -926,10 +945,36 @@
 
   <!-- PANEL FLUJO -->
   <div id="panel-flujo" class="panel">
-    <div class="coming-soon">
-      <div class="coming-soon-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg></div>
-      <h2>Diagrama de Flujo</h2><p>Relaciones y dependencias entre tareas visualizadas como grafo.</p>
-      <span class="coming-soon-tag">// fase 4</span>
+    <div class="flujo-toolbar">
+      <div class="flujo-toolbar-left">
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);">Diagrama de Flujo</span>
+      </div>
+      <div class="flujo-toolbar-right">
+        <div class="search-wrap">
+          <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="flujo-search-input" placeholder="Buscar…" />
+        </div>
+        <label class="matrix-toggle-wrap" id="flujo-toggle-wrap">
+          <div class="toggle-switch" id="flujo-toggle-switch"></div>
+          <span class="matrix-toggle-label" id="flujo-toggle-label">Mostrar completadas</span>
+        </label>
+      </div>
+    </div>
+    <div class="flujo-canvas-wrap">
+      <div id="flujo-cy"></div>
+      <div class="flujo-legend" id="flujo-legend">
+        <div class="flujo-legend-title">Referencia</div>
+        <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--red)"></span>Alta prioridad</div>
+        <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--blue)"></span>Baja prioridad</div>
+        <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber)"></span>Estratégica</div>
+        <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
+        <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
+      </div>
+      <button class="flujo-hidden-bar" id="flujo-hidden-bar"></button>
+      <div class="flujo-empty" id="flujo-empty" style="display:none;">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
+        <p>No hay tareas para mostrar.<br/>Creá tareas o ajustá los filtros.</p>
+      </div>
     </div>
   </div>
 
@@ -4100,6 +4145,350 @@ function showGanttContextMenu(task, x, y) {
 
 // Eliminar también handlers gantt-duration/gantt-start del menú genérico (showContextMenu)
 // que ya no se usa desde Gantt — no hace falta borrarlos, simplemente no se invocan desde Gantt
+
+
+// ══════════════════════════════════════════════════════════════
+// PANEL FLUJO — Diagrama de grafo con Cytoscape.js
+// ══════════════════════════════════════════════════════════════
+
+let flujoHideDone = true;
+let flujoSearch   = '';
+let flujoHidden   = new Set(); // IDs de instancias de nodo ocultas (formato: "taskId::labelId")
+let flujoCy       = null;
+
+// ── Colores de nodos según prioridad y estado ─────────────────
+function flujoNodeColor(task) {
+  if (task.status === 'done') return '#2a3a2e';
+  return task.priority === 'high' ? '#3d1515' : '#162a40';
+}
+function flujoNodeBorderColor(task) {
+  if (task.status === 'done') return '#3eb87a44';
+  if (task.priority === 'high') return '#e05555';
+  return '#4a90d9';
+}
+function flujoNodeTextColor(task) {
+  if (task.status === 'done') return '#3eb87a88';
+  return '#e6e8f0';
+}
+function flujoRootColor() { return '#6b4800'; }
+function flujoRootBorderColor() { return '#f0a500'; }
+
+// ── Construcción de elementos para Cytoscape ──────────────────
+function buildFlujoElements(taskList, search, hideDone, hiddenSet) {
+  const elements = [];
+
+  // Filtro de búsqueda
+  const q = search.trim().toLowerCase();
+  let filtered = taskList.filter(t => {
+    if (hideDone && t.status === 'done') return false;
+    if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // Recopilar todas las etiquetas presentes
+  const labelSet = new Set();
+  filtered.forEach(t => {
+    if (t.tags && t.tags.length > 0) {
+      t.tags.forEach(tag => labelSet.add(tag));
+    } else {
+      labelSet.add('__sin_etiqueta__');
+    }
+  });
+
+  // Nodos raíz (uno por etiqueta)
+  labelSet.forEach(label => {
+    const rootId = 'root::' + label;
+    elements.push({
+      data: {
+        id: rootId,
+        label: label === '__sin_etiqueta__' ? 'Sin etiqueta' : label,
+        nodeType: 'root'
+      }
+    });
+  });
+
+  // Nodos tarea (una instancia por etiqueta que la contiene)
+  filtered.forEach(task => {
+    const labels = (task.tags && task.tags.length > 0) ? task.tags : ['__sin_etiqueta__'];
+    labels.forEach(label => {
+      const nodeId = task.id + '::' + label;
+      if (hiddenSet.has(nodeId)) return; // oculto por el usuario
+
+      elements.push({
+        data: {
+          id: nodeId,
+          label: task.title,
+          taskId: task.id,
+          labelKey: label,
+          status: task.status,
+          priority: task.priority,
+          type: task.type,
+          nodeType: 'task',
+          parent: undefined // no usamos compound nodes, solo aristas
+        }
+      });
+
+      // Arista raíz → tarea
+      elements.push({
+        data: {
+          id: 'e-root-' + nodeId,
+          source: 'root::' + label,
+          target: nodeId,
+          edgeType: 'root'
+        }
+      });
+    });
+  });
+
+  // Aristas de dependencia (solo dentro del mismo árbol)
+  filtered.forEach(task => {
+    if (!task.dependencies || task.dependencies.length === 0) return;
+    const labels = (task.tags && task.tags.length > 0) ? task.tags : ['__sin_etiqueta__'];
+    labels.forEach(label => {
+      const targetNodeId = task.id + '::' + label;
+      if (hiddenSet.has(targetNodeId)) return;
+
+      task.dependencies.forEach(depId => {
+        const depTask = taskList.find(t => t.id === depId);
+        if (!depTask) return;
+        // Solo si la tarea dependencia también existe bajo esta misma etiqueta
+        const depLabels = (depTask.tags && depTask.tags.length > 0) ? depTask.tags : ['__sin_etiqueta__'];
+        if (!depLabels.includes(label)) return;
+        const sourceNodeId = depId + '::' + label;
+        if (hiddenSet.has(sourceNodeId)) return;
+
+        elements.push({
+          data: {
+            id: 'e-dep-' + sourceNodeId + '->' + targetNodeId,
+            source: sourceNodeId,
+            target: targetNodeId,
+            edgeType: 'dep'
+          }
+        });
+      });
+    });
+  });
+
+  return elements;
+}
+
+// ── Estilo Cytoscape (paleta PlOrDiCo) ───────────────────────
+function flujoStylesheet() {
+  return [
+    {
+      selector: 'node[nodeType="root"]',
+      style: {
+        'background-color': flujoRootColor(),
+        'border-color': flujoRootBorderColor(),
+        'border-width': 2,
+        'color': '#f0a500',
+        'label': 'data(label)',
+        'font-family': 'Space Mono, monospace',
+        'font-size': 11,
+        'font-weight': 700,
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'width': 'label',
+        'height': 'label',
+        'padding': '10px',
+        'shape': 'round-rectangle',
+        'text-wrap': 'wrap',
+        'text-max-width': 120
+      }
+    },
+    {
+      selector: 'node[nodeType="task"]',
+      style: {
+        'background-color': 'data(bgColor)',
+        'border-color': 'data(borderColor)',
+        'border-width': 2,
+        'border-style': 'data(borderStyle)',
+        'color': 'data(textColor)',
+        'label': 'data(label)',
+        'font-family': 'DM Sans, sans-serif',
+        'font-size': 11,
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'width': 'label',
+        'height': 'label',
+        'padding': '9px',
+        'shape': 'round-rectangle',
+        'text-wrap': 'wrap',
+        'text-max-width': 140,
+        'opacity': 1
+      }
+    },
+    {
+      selector: 'node[nodeType="task"][status="done"]',
+      style: { 'opacity': 0.5 }
+    },
+    {
+      selector: 'edge[edgeType="root"]',
+      style: {
+        'line-color': '#272b35',
+        'width': 1.5,
+        'target-arrow-color': '#272b35',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier',
+        'arrow-scale': 0.8
+      }
+    },
+    {
+      selector: 'edge[edgeType="dep"]',
+      style: {
+        'line-color': '#f0a500',
+        'line-style': 'dashed',
+        'line-dash-pattern': [6, 3],
+        'width': 1.5,
+        'target-arrow-color': '#f0a500',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier',
+        'arrow-scale': 0.8,
+        'opacity': 0.7
+      }
+    },
+    {
+      selector: 'node:selected',
+      style: {
+        'border-color': '#f0a500',
+        'border-width': 3
+      }
+    }
+  ];
+}
+
+// ── Renderizado principal ─────────────────────────────────────
+function renderFlujo() {
+  const container = document.getElementById('flujo-cy');
+  const emptyDiv  = document.getElementById('flujo-empty');
+  const hiddenBar = document.getElementById('flujo-hidden-bar');
+
+  // Preparar datos de nodos con colores calculados
+  const taskList = tasks.slice(); // copia del array global
+
+  // Destruir instancia previa
+  if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
+
+  const elements = buildFlujoElements(taskList, flujoSearch, flujoHideDone, flujoHidden);
+
+  // Inyectar colores en nodos tarea (Cytoscape no evalúa funciones en style, hay que mapearlos a data)
+  elements.forEach(el => {
+    if (el.data && el.data.nodeType === 'task') {
+      const task = taskList.find(t => t.id === el.data.taskId);
+      if (task) {
+        el.data.bgColor      = flujoNodeColor(task);
+        el.data.borderColor  = flujoNodeBorderColor(task);
+        el.data.textColor    = flujoNodeTextColor(task);
+        el.data.borderStyle  = task.type === 'strategic' ? 'solid' : 'dashed';
+      }
+    }
+  });
+
+  const taskNodes = elements.filter(el => el.data && el.data.nodeType === 'task');
+
+  if (taskNodes.length === 0) {
+    container.style.display = 'none';
+    emptyDiv.style.display  = 'flex';
+    hiddenBar.classList.remove('visible');
+    return;
+  }
+  container.style.display = 'block';
+  emptyDiv.style.display  = 'none';
+
+  flujoCy = cytoscape({
+    container,
+    elements,
+    style: flujoStylesheet(),
+    layout: {
+      name: 'breadthfirst',
+      directed: true,
+      padding: 30,
+      spacingFactor: 1.4,
+      avoidOverlap: true
+    },
+    userZoomingEnabled: true,
+    userPanningEnabled: true,
+    minZoom: 0.2,
+    maxZoom: 3
+  });
+
+  // Botón "×" en cada nodo tarea para ocultarlo
+  flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
+    const node   = evt.target;
+    const nodeId = node.data('id');
+    // Click simple: info; doble click o con modificador: ocultar
+    // Usamos un timer para distinguir simple vs doble
+    if (node._tapTimer) {
+      clearTimeout(node._tapTimer);
+      node._tapTimer = null;
+      // doble tap = ocultar
+      flujoHidden.add(nodeId);
+      renderFlujo();
+      updateFlujoHiddenBar();
+    } else {
+      node._tapTimer = setTimeout(() => {
+        node._tapTimer = null;
+        // simple tap: resaltar (ya lo hace Cytoscape por defecto con :selected)
+      }, 300);
+    }
+  });
+
+  // Tap en nodo raíz: nada especial
+  flujoCy.on('tap', 'node[nodeType="root"]', function() {});
+
+  // Actualizar barra de ocultos
+  updateFlujoHiddenBar();
+}
+
+function updateFlujoHiddenBar() {
+  const bar = document.getElementById('flujo-hidden-bar');
+  if (!bar) return;
+  if (flujoHidden.size === 0) {
+    bar.classList.remove('visible');
+  } else {
+    bar.classList.add('visible');
+    bar.textContent = flujoHidden.size === 1
+      ? '1 tarea oculta — tap para restaurar'
+      : flujoHidden.size + ' tareas ocultas — tap para restaurar';
+  }
+}
+
+// ── Inicialización del panel ──────────────────────────────────
+document.getElementById('flujo-toggle-switch').addEventListener('click', () => {
+  flujoHideDone = !flujoHideDone;
+  document.getElementById('flujo-toggle-switch').className = 'toggle-switch' + (!flujoHideDone ? ' on' : '');
+  document.getElementById('flujo-toggle-label').textContent = !flujoHideDone ? 'Ocultar completadas' : 'Mostrar completadas';
+  renderFlujo();
+});
+
+document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
+  document.getElementById('flujo-toggle-switch').click();
+});
+
+document.getElementById('flujo-search-input').addEventListener('input', e => {
+  flujoSearch = e.target.value;
+  renderFlujo();
+});
+
+document.getElementById('flujo-hidden-bar').addEventListener('click', () => {
+  flujoHidden.clear();
+  renderFlujo();
+  updateFlujoHiddenBar();
+});
+
+// Renderizar al cambiar a la pestaña Flujo
+// (se engancha en el sistema de tabs existente via el listener de nav-tab)
+// El listener de tabs ya llama renderFlujo() cuando data-panel="flujo" si lo agregamos aquí:
+(function patchTabListener() {
+  const tabs = document.querySelectorAll('.nav-tab');
+  tabs.forEach(tab => {
+    if (tab.dataset.panel === 'flujo') {
+      tab.addEventListener('click', () => {
+        setTimeout(renderFlujo, 50); // pequeño delay para que el panel sea visible antes de renderizar
+      });
+    }
+  });
+})();
 
 </script>
 </body>
