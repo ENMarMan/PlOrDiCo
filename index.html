@@ -603,7 +603,7 @@
     .flujo-toolbar-right { display:flex;align-items:center;gap:10px; }
     .flujo-canvas-wrap { flex:1;position:relative;overflow:hidden;min-height:400px; }
     #flujo-cy { width:100%;height:100%;min-height:400px; }
-    .flujo-hidden-bar { position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-hi);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text-dim);cursor:pointer;transition:var(--tr);z-index:10;white-space:nowrap;display:none; }
+    .flujo-hidden-bar { position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-hi);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text-dim);cursor:pointer;transition:var(--tr);z-index:100;white-space:nowrap;display:none;pointer-events:all; }
     .flujo-hidden-bar:hover { border-color:var(--amber);color:var(--amber); }
     .flujo-hidden-bar.visible { display:block; }
     .flujo-legend { position:absolute;top:12px;right:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;display:flex;flex-direction:column;gap:6px;z-index:10; }
@@ -955,14 +955,14 @@
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="flujo-search-input" placeholder="Buscar…" />
         </div>
-        <label class="matrix-toggle-wrap" id="flujo-nolabel-wrap">
+        <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none">
           <div class="toggle-switch" id="flujo-nolabel-switch"></div>
           <span class="matrix-toggle-label" id="flujo-nolabel-label">Sin etiqueta</span>
-        </label>
-        <label class="matrix-toggle-wrap" id="flujo-toggle-wrap">
+        </div>
+        <div class="matrix-toggle-wrap" id="flujo-toggle-wrap" style="cursor:pointer;user-select:none">
           <div class="toggle-switch" id="flujo-toggle-switch"></div>
           <span class="matrix-toggle-label" id="flujo-toggle-label">Mostrar completadas</span>
-        </label>
+        </div>
       </div>
     </div>
     <div class="flujo-canvas-wrap">
@@ -1021,6 +1021,45 @@
     <div style="display:flex;gap:8px;margin-left:auto">
       <button class="btn-cancel" id="gsp-btn-cancel">Cancelar</button>
       <button class="btn-primary" id="gsp-btn-save"><span id="gsp-save-label">Guardar</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FLUJO: CREAR TAREA CONECTADA -->
+<div class="modal-backdrop" id="flujo-conn-modal-backdrop" style="display:none;z-index:600">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title" id="flujo-conn-modal-title">Nueva tarea conectada</span>
+      <button class="modal-close" id="flujo-conn-modal-close">✕</button>
+    </div>
+    <div class="modal-body" style="gap:12px">
+      <div style="font-size:12px;color:var(--text-dim);padding:6px 10px;background:var(--surface-2);border-radius:var(--radius);border-left:3px solid var(--amber)">
+        Dependencia desde: <strong id="flujo-conn-src-label" style="color:var(--amber)"></strong>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Título *</label>
+        <input type="text" class="form-input" id="flujo-conn-title" placeholder="¿Qué hay que hacer?" maxlength="120" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Prioridad</label>
+          <select class="form-select" id="flujo-conn-priority">
+            <option value="high">Alta</option>
+            <option value="low">Baja</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="flujo-conn-type">
+            <option value="strategic">Estratégica</option>
+            <option value="operative">Operativa</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="flujo-conn-cancel">Cancelar</button>
+      <button class="btn-primary" id="flujo-conn-save">Crear y conectar</button>
     </div>
   </div>
 </div>
@@ -1384,6 +1423,7 @@ function subscribeToTasks() {
       renderMatrix();
       renderCalendar();
       if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
+      if (document.querySelector('.nav-tab[data-panel="flujo"].active')) renderFlujo();
       renderTagFilterRow();
       renderTagsPanel();
     }, err => { console.error(err); showToast('Error: ' + err.code, 'err'); });
@@ -4187,6 +4227,7 @@ let flujoCy        = null;
 let flujoConnMode  = false;
 let flujoConnSrc   = null;
 let flujoShowNoLabel = false;  // ocultar tareas sin etiqueta por defecto
+let flujoConnPendingSrc = null; // tarea origen pendiente al abrir modal de conexión
 
 function flujoNodeBg(task) {
   if (task.status === 'done') return '#1a2e1f';
@@ -4245,7 +4286,30 @@ function showFlujoPopover(task, renderedPos) {
     try { await db.collection('tasks').doc(task.id).delete(); closeFlujoPopover(); showToast('Tarea eliminada.','ok'); } catch(err) { showToast('Error.','err'); }
   });
 
-  pop.append(chk, eyeBtn, delBtn);
+  const editBtn = document.createElement('button');
+  editBtn.title = 'Editar tarea';
+  editBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+  editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  editBtn.addEventListener('mouseenter', () => { editBtn.style.color='var(--amber)'; editBtn.style.borderColor='var(--amber)'; });
+  editBtn.addEventListener('mouseleave', () => { editBtn.style.color='var(--text-dim)'; editBtn.style.borderColor='var(--border)'; });
+  editBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    closeFlujoPopover();
+    openModal(task);
+  });
+
+  const tagBtn = document.createElement('button');
+  tagBtn.title = 'Cambiar etiquetas';
+  tagBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;';
+  tagBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
+  tagBtn.addEventListener('mouseenter', () => { tagBtn.style.color='var(--amber)'; tagBtn.style.borderColor='var(--amber)'; });
+  tagBtn.addEventListener('mouseleave', () => { tagBtn.style.color='var(--text-dim)'; tagBtn.style.borderColor='var(--border)'; });
+  tagBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    showFlujoTagDropdown(task, tagBtn);
+  });
+
+  pop.append(chk, editBtn, tagBtn, eyeBtn, delBtn);
   document.body.appendChild(pop);
   flujoPopover = pop;
 
@@ -4262,6 +4326,95 @@ function showFlujoPopover(task, renderedPos) {
   setTimeout(() => {
     document.addEventListener('click', function _c(e) {
       if (!pop.contains(e.target)) { closeFlujoPopover(); document.removeEventListener('click',_c); }
+    });
+  }, 0);
+}
+
+function showFlujoTagDropdown(task, anchorEl) {
+  // Cerrar cualquier dropdown previo
+  const prev = document.getElementById('flujo-tag-dropdown');
+  if (prev) { prev.remove(); if (prev._task === task.id) return; }
+
+  const allTags = getAllTags();
+  const currentTaskTags = new Set(task.tags || []);
+
+  const dd = document.createElement('div');
+  dd.id = '_flujo-tag-dropdown';
+  dd._task = task.id;
+  dd.style.cssText = 'position:fixed;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius);box-shadow:var(--shadow);z-index:910;min-width:160px;max-width:220px;padding:6px 0;';
+
+  if (allTags.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:8px 14px;font-size:12px;color:var(--text-faint);';
+    empty.textContent = 'No hay etiquetas creadas';
+    dd.appendChild(empty);
+  } else {
+    allTags.forEach(tag => {
+      const row = document.createElement('button');
+      const active = currentTaskTags.has(tag);
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:7px 14px;background:none;border:none;color:var(--text);font-size:13px;cursor:pointer;text-align:left;transition:background .1s;';
+      row.innerHTML = '<span style="width:14px;height:14px;border-radius:3px;border:1.5px solid '+(active?'var(--amber)':'var(--border-hi)')+';background:'+(active?'var(--amber)':'transparent')+';display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+(active?'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</span>'
+        + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(tag)+'</span>';
+      row.addEventListener('mouseenter', () => row.style.background = 'var(--surface-2)');
+      row.addEventListener('mouseleave', () => row.style.background = 'none');
+      row.addEventListener('click', async e => {
+        e.stopPropagation();
+        const newTags = active
+          ? (task.tags || []).filter(t => t !== tag)
+          : [...(task.tags || []), tag];
+        dd.remove();
+        try {
+          await db.collection('tasks').doc(task.id).update({ tags: newTags, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+          showToast(active ? 'Etiqueta quitada.' : 'Etiqueta asignada.', 'ok');
+        } catch(err) { showToast('Error.', 'err'); }
+      });
+      dd.appendChild(row);
+    });
+    // Separador + nueva etiqueta
+    const sep = document.createElement('div');
+    sep.style.cssText = 'height:1px;background:var(--border);margin:4px 0;';
+    dd.appendChild(sep);
+    const newTagBtn = document.createElement('button');
+    newTagBtn.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:7px 14px;background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;text-align:left;';
+    newTagBtn.textContent = '＋ Nueva etiqueta…';
+    newTagBtn.addEventListener('mouseenter', () => newTagBtn.style.background = 'var(--surface-2)');
+    newTagBtn.addEventListener('mouseleave', () => newTagBtn.style.background = 'none');
+    newTagBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      dd.remove();
+      closeFlujoPopover();
+      openModal(task);
+      // Abrir sección avanzada después de que se abra el modal
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const advBody = document.getElementById('modal-adv-body');
+          const advToggle = document.getElementById('modal-adv-toggle');
+          if (advBody && advBody.classList.contains('hidden') && advToggle) advToggle.click();
+          setTimeout(() => {
+            const tagInput = document.getElementById('tags-input');
+            if (tagInput) { tagInput.scrollIntoView({ behavior:'smooth', block:'center' }); tagInput.focus(); }
+          }, 120);
+        }, 80);
+      });
+    });
+    dd.appendChild(newTagBtn);
+  }
+
+  document.body.appendChild(dd);
+
+  // Posicionar debajo del ancla
+  const rect = anchorEl.getBoundingClientRect();
+  const ddW = 180;
+  let left = rect.left;
+  let top  = rect.bottom + 4;
+  if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
+  if (top + 200 > window.innerHeight - 8) top = rect.top - 200;
+  dd.style.left = left + 'px';
+  dd.style.top  = top + 'px';
+
+  setTimeout(() => {
+    document.addEventListener('click', function _c(e) {
+      if (!dd.contains(e.target)) { dd.remove(); document.removeEventListener('click', _c); }
     });
   }, 0);
 }
@@ -4388,6 +4541,33 @@ function renderFlujo() {
     minZoom: 0.15, maxZoom: 3
   });
 
+  // Restaurar posiciones guardadas (si existen)
+  try {
+    const saved = localStorage.getItem('plordico_flujo_positions');
+    if (saved) {
+      const positions = JSON.parse(saved);
+      let restored = 0;
+      flujoCy.nodes().forEach(node => {
+        if (positions[node.id()]) {
+          node.position(positions[node.id()]);
+          restored++;
+        }
+      });
+      if (restored > 0) {
+        flujoCy.fit(undefined, 40);
+      }
+    }
+  } catch(e) { /* silencioso */ }
+
+  // Guardar posiciones al soltar un nodo
+  flujoCy.on('free', 'node', function() {
+    try {
+      const positions = {};
+      flujoCy.nodes().forEach(node => { positions[node.id()] = node.position(); });
+      localStorage.setItem('plordico_flujo_positions', JSON.stringify(positions));
+    } catch(e) { /* silencioso */ }
+  });
+
   flujoCy.resize();
   flujoCy.fit(undefined, 40);
   // Segunda pasada por si el primer frame aún no tenía dimensiones
@@ -4441,25 +4621,7 @@ function renderFlujo() {
       if (src) {
         const srcTaskId = src.data('taskId');
         const srcTask   = tasks.find(t => t.id === srcTaskId);
-        // Abrir modal de nueva tarea con dependencia y contexto pre-cargados
-        openModal(null);
-        // Pre-cargar dependencia al origen
-        selectedDeps = new Set([srcTaskId]);
-        if (srcTask) {
-          // Heredar prioridad, tipo y etiquetas
-          if (typeof fPriority !== 'undefined') fPriority.value = srcTask.priority || 'low';
-          if (typeof fType !== 'undefined')     fType.value     = srcTask.type     || 'operative';
-          currentTags = [...(srcTask.tags || [])];
-          renderTagsUI();
-        }
-        // Abrir sección avanzada para que se vea la dependencia
-        const modalAdvBody   = document.getElementById('modal-adv-body');
-        const modalAdvToggle = document.getElementById('modal-adv-toggle');
-        if (modalAdvBody && modalAdvBody.classList.contains('hidden') && modalAdvToggle) {
-          modalAdvToggle.click();
-        }
-        renderDepDropdown(null);
-        showToast('Modal abierto. La dependencia ya está pre-cargada.', 'ok');
+        openFlujoConnModal(srcTask);
       }
     }
   });
@@ -4474,6 +4636,63 @@ function renderFlujo() {
 
   updateFlujoHiddenBar();
 }
+
+function openFlujoConnModal(srcTask) {
+  flujoConnPendingSrc = srcTask || null;
+  const backdrop = document.getElementById('flujo-conn-modal-backdrop');
+  const titleEl  = document.getElementById('flujo-conn-modal-title');
+  const srcLabel = document.getElementById('flujo-conn-src-label');
+  const titleInp = document.getElementById('flujo-conn-title');
+  const prioSel  = document.getElementById('flujo-conn-priority');
+  const typeSel  = document.getElementById('flujo-conn-type');
+  srcLabel.textContent = srcTask ? srcTask.title : '';
+  titleInp.value = '';
+  prioSel.value  = srcTask ? (srcTask.priority || 'low') : 'low';
+  typeSel.value  = srcTask ? (srcTask.type || 'operative') : 'operative';
+  backdrop.style.display = 'flex';
+  requestAnimationFrame(() => titleInp.focus());
+}
+
+function closeFlujoConnModal() {
+  document.getElementById('flujo-conn-modal-backdrop').style.display = 'none';
+  flujoConnPendingSrc = null;
+}
+
+document.getElementById('flujo-conn-modal-close').addEventListener('click', closeFlujoConnModal);
+document.getElementById('flujo-conn-cancel').addEventListener('click', closeFlujoConnModal);
+document.getElementById('flujo-conn-modal-backdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('flujo-conn-modal-backdrop')) closeFlujoConnModal();
+});
+document.getElementById('flujo-conn-title').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('flujo-conn-save').click(); }
+  if (e.key === 'Escape') closeFlujoConnModal();
+});
+document.getElementById('flujo-conn-save').addEventListener('click', async () => {
+  const titleInp = document.getElementById('flujo-conn-title');
+  const nombre   = titleInp.value.trim();
+  if (!nombre) { titleInp.focus(); showToast('El título es obligatorio.','err'); return; }
+  const srcTask = flujoConnPendingSrc;
+  const srcId   = srcTask ? srcTask.id : null;
+  const prioSel = document.getElementById('flujo-conn-priority');
+  const typeSel = document.getElementById('flujo-conn-type');
+  const newTask = {
+    title: nombre, description: '',
+    priority: prioSel.value,
+    type: typeSel.value,
+    status: 'pending', dueDate: null,
+    tags: srcTask ? (srcTask.tags || []) : [],
+    dependencies: srcId ? [srcId] : [],
+    checklist: [], recurrence: { enabled: false }, reminder: { enabled: false }, gantt: { enabled: false },
+    uid: currentUser.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  closeFlujoConnModal();
+  try {
+    await db.collection('tasks').add(newTask);
+    showToast('Tarea creada y conectada.', 'ok');
+  } catch(err) { showToast('Error al crear tarea.', 'err'); }
+});
 
 function updateFlujoHiddenBar() {
   const bar = document.getElementById('flujo-hidden-bar');
