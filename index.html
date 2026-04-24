@@ -955,6 +955,10 @@
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="flujo-search-input" placeholder="Buscar…" />
         </div>
+        <label class="matrix-toggle-wrap" id="flujo-nolabel-wrap">
+          <div class="toggle-switch" id="flujo-nolabel-switch"></div>
+          <span class="matrix-toggle-label" id="flujo-nolabel-label">Sin etiqueta</span>
+        </label>
         <label class="matrix-toggle-wrap" id="flujo-toggle-wrap">
           <div class="toggle-switch" id="flujo-toggle-switch"></div>
           <span class="matrix-toggle-label" id="flujo-toggle-label">Mostrar completadas</span>
@@ -1979,7 +1983,24 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if (tab.dataset.panel === 'matriz') renderMatrix();
     if (tab.dataset.panel === 'calendario') renderCalendar();
     if (tab.dataset.panel === 'gantt') renderGantt();
-    if (tab.dataset.panel === 'flujo') requestAnimationFrame(() => requestAnimationFrame(renderFlujo));
+    if (tab.dataset.panel === 'flujo') {
+      // Esperar a que el contenedor tenga dimensiones reales antes de renderizar
+      const cy = document.getElementById('flujo-cy');
+      if (cy.offsetHeight > 0) {
+        renderFlujo();
+      } else {
+        const ro = new ResizeObserver((entries, obs) => {
+          for (const entry of entries) {
+            if (entry.contentRect.height > 0) {
+              obs.disconnect();
+              renderFlujo();
+              break;
+            }
+          }
+        });
+        ro.observe(cy);
+      }
+    }
   });
 });
 
@@ -4165,6 +4186,7 @@ let flujoHidden    = new Set();
 let flujoCy        = null;
 let flujoConnMode  = false;
 let flujoConnSrc   = null;
+let flujoShowNoLabel = false;  // ocultar tareas sin etiqueta por defecto
 
 function flujoNodeBg(task) {
   if (task.status === 'done') return '#1a2e1f';
@@ -4244,11 +4266,12 @@ function showFlujoPopover(task, renderedPos) {
   }, 0);
 }
 
-function buildFlujoElements(taskList, search, hideDone, hiddenSet) {
+function buildFlujoElements(taskList, search, hideDone, hiddenSet, showNoLabel) {
   const els = [];
   const q = search.trim().toLowerCase();
   const visible = taskList.filter(t => {
     if (hideDone && t.status === 'done') return false;
+    if (!showNoLabel && (!t.tags || t.tags.length === 0)) return false;
     if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
     return true;
   });
@@ -4328,7 +4351,7 @@ function renderFlujo() {
   closeFlujoPopover();
   if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
 
-  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoHidden);
+  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoHidden, flujoShowNoLabel);
   const taskNodes = elements.filter(el => el.data && el.data.nodeType === 'task');
 
   if (taskNodes.length === 0) {
@@ -4339,6 +4362,21 @@ function renderFlujo() {
   }
   container.style.display = 'block';
   emptyDiv.style.display  = 'none';
+
+  // Si el contenedor aún no tiene dimensiones, esperar al siguiente frame con tamaño real
+  if (container.offsetHeight === 0) {
+    const ro = new ResizeObserver((entries, obs) => {
+      for (const entry of entries) {
+        if (entry.contentRect.height > 0) {
+          obs.disconnect();
+          renderFlujo();
+          break;
+        }
+      }
+    });
+    ro.observe(container);
+    return;
+  }
 
   flujoCy = cytoscape({
     container,
@@ -4443,6 +4481,12 @@ function updateFlujoHiddenBar() {
   bar.classList.add('visible');
   bar.textContent = flujoHidden.size === 1 ? '1 tarea oculta \u2014 tocar para restaurar' : flujoHidden.size+' tareas ocultas \u2014 tocar para restaurar';
 }
+
+document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
+  flujoShowNoLabel = !flujoShowNoLabel;
+  document.getElementById('flujo-nolabel-switch').className = 'toggle-switch' + (flujoShowNoLabel ? ' on' : '');
+  renderFlujo();
+});
 
 document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
   flujoHideDone = !flujoHideDone;
