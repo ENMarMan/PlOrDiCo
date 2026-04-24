@@ -603,9 +603,6 @@
     .flujo-toolbar-right { display:flex;align-items:center;gap:10px; }
     .flujo-canvas-wrap { flex:1;position:relative;overflow:hidden;min-height:400px; }
     #flujo-cy { width:100%;height:100%;min-height:400px; }
-    .flujo-hidden-bar { position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-hi);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text-dim);cursor:pointer;transition:var(--tr);z-index:100;white-space:nowrap;display:none;pointer-events:all; }
-    .flujo-hidden-bar:hover { border-color:var(--amber);color:var(--amber); }
-    .flujo-hidden-bar.visible { display:block; }
     .flujo-legend { position:absolute;top:12px;right:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;display:flex;flex-direction:column;gap:6px;z-index:10; }
     .flujo-legend-title { font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:2px; }
     .flujo-legend-row { display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-dim); }
@@ -957,7 +954,7 @@
         </div>
         <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none">
           <div class="toggle-switch" id="flujo-nolabel-switch"></div>
-          <span class="matrix-toggle-label" id="flujo-nolabel-label">Sin etiqueta</span>
+          <span class="matrix-toggle-label" id="flujo-nolabel-label">Mostrar sin etiqueta</span>
         </div>
         <div class="matrix-toggle-wrap" id="flujo-toggle-wrap" style="cursor:pointer;user-select:none">
           <div class="toggle-switch" id="flujo-toggle-switch"></div>
@@ -975,7 +972,6 @@
         <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
         <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
       </div>
-      <button class="flujo-hidden-bar" id="flujo-hidden-bar"></button>
       <div class="flujo-empty" id="flujo-empty" style="display:none;">
         <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
         <p>No hay tareas para mostrar.<br/>Creá tareas o ajustá los filtros.</p>
@@ -4222,12 +4218,11 @@ function showGanttContextMenu(task, x, y) {
 
 let flujoHideDone  = true;
 let flujoSearch    = '';
-let flujoHidden    = new Set();
 let flujoCy        = null;
 let flujoConnMode  = false;
 let flujoConnSrc   = null;
-let flujoShowNoLabel = false;  // ocultar tareas sin etiqueta por defecto
-let flujoConnPendingSrc = null; // tarea origen pendiente al abrir modal de conexión
+let flujoShowNoLabel = false;
+let flujoConnPendingSrc = null;
 
 function flujoNodeBg(task) {
   if (task.status === 'done') return '#1a2e1f';
@@ -4262,19 +4257,7 @@ function showFlujoPopover(task, renderedPos) {
     try { await db.collection('tasks').doc(task.id).update({status:newStatus, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); closeFlujoPopover(); } catch(err) { showToast('Error.','err'); }
   });
 
-  const eyeBtn = document.createElement('button');
-  eyeBtn.title = 'Ocultar del diagrama';
-  eyeBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
-  eyeBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
-  eyeBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    if (flujoCy) { flujoCy.nodes('[taskId="'+task.id+'"]').forEach(n => flujoHidden.add(n.id())); }
-    closeFlujoPopover();
-    renderFlujo();
-    updateFlujoHiddenBar();
-  });
-
-  const delBtn = document.createElement('button');
+  pop.append(chk, editBtn, tagBtn, delBtn);
   delBtn.title = 'Eliminar tarea';
   delBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
   delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
@@ -4309,7 +4292,6 @@ function showFlujoPopover(task, renderedPos) {
     showFlujoTagDropdown(task, tagBtn);
   });
 
-  pop.append(chk, editBtn, tagBtn, eyeBtn, delBtn);
   document.body.appendChild(pop);
   flujoPopover = pop;
 
@@ -4419,7 +4401,7 @@ function showFlujoTagDropdown(task, anchorEl) {
   }, 0);
 }
 
-function buildFlujoElements(taskList, search, hideDone, hiddenSet, showNoLabel) {
+function buildFlujoElements(taskList, search, hideDone, showNoLabel) {
   const els = [];
   const q = search.trim().toLowerCase();
   const visible = taskList.filter(t => {
@@ -4440,7 +4422,6 @@ function buildFlujoElements(taskList, search, hideDone, hiddenSet, showNoLabel) 
     const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
     lbls.forEach(lbl => {
       const nid = t.id+'::'+lbl;
-      if (hiddenSet.has(nid)) return;
       els.push({ data: { id:nid, taskId:t.id, labelKey:lbl, label:t.title, status:t.status, priority:t.priority, type:t.type, nodeType:'task', bgColor:flujoNodeBg(t), borderColor:flujoNodeBorder(t), textColor:flujoNodeText(t), borderStyle:t.type==='strategic'?'solid':'dashed' }});
       els.push({ data: { id:'e-r-'+nid, source:'root::'+lbl, target:nid, edgeType:'root' }});
     });
@@ -4450,14 +4431,12 @@ function buildFlujoElements(taskList, search, hideDone, hiddenSet, showNoLabel) 
     const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
     lbls.forEach(lbl => {
       const tgt = t.id+'::'+lbl;
-      if (hiddenSet.has(tgt)) return;
       t.dependencies.forEach(depId => {
         const depTask = taskList.find(x => x.id === depId);
         if (!depTask) return;
         const depLbls = (depTask.tags && depTask.tags.length > 0) ? depTask.tags : ['__none__'];
         if (!depLbls.includes(lbl)) return;
         const src = depId+'::'+lbl;
-        if (hiddenSet.has(src)) return;
         els.push({ data: { id:'e-d-'+src+'->'+tgt, source:src, target:tgt, edgeType:'dep' }});
       });
     });
@@ -4504,13 +4483,12 @@ function renderFlujo() {
   closeFlujoPopover();
   if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
 
-  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoHidden, flujoShowNoLabel);
+  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoShowNoLabel);
   const taskNodes = elements.filter(el => el.data && el.data.nodeType === 'task');
 
   if (taskNodes.length === 0) {
     container.style.display = 'none';
     emptyDiv.style.display  = 'flex';
-    updateFlujoHiddenBar();
     return;
   }
   container.style.display = 'block';
@@ -4617,11 +4595,12 @@ function renderFlujo() {
     closeFlujoPopover();
     if (flujoConnMode) {
       const src = flujoConnSrc;
+      const srcTaskId = src ? src.data('taskId') : null;
+      const srcTask   = srcTaskId ? tasks.find(t => t.id === srcTaskId) : null;
       exitConnMode();
-      if (src) {
-        const srcTaskId = src.data('taskId');
-        const srcTask   = tasks.find(t => t.id === srcTaskId);
-        openFlujoConnModal(srcTask);
+      if (srcTask) {
+        // setTimeout para salir del stack del evento antes de mostrar el modal
+        setTimeout(() => openFlujoConnModal(srcTask), 0);
       }
     }
   });
@@ -4634,7 +4613,6 @@ function renderFlujo() {
   };
   document.addEventListener('keydown', escFlujo);
 
-  updateFlujoHiddenBar();
 }
 
 function openFlujoConnModal(srcTask) {
@@ -4661,6 +4639,7 @@ function closeFlujoConnModal() {
 document.getElementById('flujo-conn-modal-close').addEventListener('click', closeFlujoConnModal);
 document.getElementById('flujo-conn-cancel').addEventListener('click', closeFlujoConnModal);
 document.getElementById('flujo-conn-modal-backdrop').addEventListener('click', e => {
+  e.stopPropagation();
   if (e.target === document.getElementById('flujo-conn-modal-backdrop')) closeFlujoConnModal();
 });
 document.getElementById('flujo-conn-title').addEventListener('keydown', e => {
@@ -4694,17 +4673,11 @@ document.getElementById('flujo-conn-save').addEventListener('click', async () =>
   } catch(err) { showToast('Error al crear tarea.', 'err'); }
 });
 
-function updateFlujoHiddenBar() {
-  const bar = document.getElementById('flujo-hidden-bar');
-  if (!bar) return;
-  if (flujoHidden.size === 0) { bar.classList.remove('visible'); return; }
-  bar.classList.add('visible');
-  bar.textContent = flujoHidden.size === 1 ? '1 tarea oculta \u2014 tocar para restaurar' : flujoHidden.size+' tareas ocultas \u2014 tocar para restaurar';
-}
 
 document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
   flujoShowNoLabel = !flujoShowNoLabel;
   document.getElementById('flujo-nolabel-switch').className = 'toggle-switch' + (flujoShowNoLabel ? ' on' : '');
+  document.getElementById('flujo-nolabel-label').textContent = flujoShowNoLabel ? 'Ocultar sin etiqueta' : 'Mostrar sin etiqueta';
   renderFlujo();
 });
 
@@ -4717,11 +4690,6 @@ document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
 
 document.getElementById('flujo-search-input').addEventListener('input', e => {
   flujoSearch = e.target.value;
-  renderFlujo();
-});
-
-document.getElementById('flujo-hidden-bar').addEventListener('click', () => {
-  flujoHidden.clear();
   renderFlujo();
 });
 
