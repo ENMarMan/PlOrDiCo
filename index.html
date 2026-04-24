@@ -4441,24 +4441,25 @@ function renderFlujo() {
       if (src) {
         const srcTaskId = src.data('taskId');
         const srcTask   = tasks.find(t => t.id === srcTaskId);
-        const nombre = prompt('Nueva tarea conectada desde "' + (srcTask ? srcTask.title : '') + '":\n');
-        if (nombre && nombre.trim()) {
-          const newTask = {
-            title: nombre.trim(), description:'',
-            priority: srcTask ? srcTask.priority : 'low',
-            type: srcTask ? srcTask.type : 'operative',
-            status:'pending', dueDate:null,
-            tags: srcTask ? (srcTask.tags||[]) : [],
-            dependencies:[srcTaskId],
-            checklist:[], recurrence:{enabled:false}, reminder:{enabled:false}, gantt:{enabled:false},
-            uid: currentUser.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          };
-          db.collection('tasks').add(newTask)
-            .then(() => showToast('Tarea creada y conectada.','ok'))
-            .catch(() => showToast('Error.','err'));
+        // Abrir modal de nueva tarea con dependencia y contexto pre-cargados
+        openModal(null);
+        // Pre-cargar dependencia al origen
+        selectedDeps = new Set([srcTaskId]);
+        if (srcTask) {
+          // Heredar prioridad, tipo y etiquetas
+          if (typeof fPriority !== 'undefined') fPriority.value = srcTask.priority || 'low';
+          if (typeof fType !== 'undefined')     fType.value     = srcTask.type     || 'operative';
+          currentTags = [...(srcTask.tags || [])];
+          renderTagsUI();
         }
+        // Abrir sección avanzada para que se vea la dependencia
+        const modalAdvBody   = document.getElementById('modal-adv-body');
+        const modalAdvToggle = document.getElementById('modal-adv-toggle');
+        if (modalAdvBody && modalAdvBody.classList.contains('hidden') && modalAdvToggle) {
+          modalAdvToggle.click();
+        }
+        renderDepDropdown(null);
+        showToast('Modal abierto. La dependencia ya está pre-cargada.', 'ok');
       }
     }
   });
