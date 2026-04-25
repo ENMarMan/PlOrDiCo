@@ -954,7 +954,7 @@
         </div>
         <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none">
           <div class="toggle-switch" id="flujo-nolabel-switch"></div>
-          <span class="matrix-toggle-label" id="flujo-nolabel-label">Mostrar sin etiqueta</span>
+          <span class="matrix-toggle-label" id="flujo-nolabel-label">Sin etiqueta</span>
         </div>
         <div class="matrix-toggle-wrap" id="flujo-toggle-wrap" style="cursor:pointer;user-select:none">
           <div class="toggle-switch" id="flujo-toggle-switch"></div>
@@ -976,6 +976,11 @@
         <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
         <p>No hay tareas para mostrar.<br/>Creá tareas o ajustá los filtros.</p>
       </div>
+    </div>
+    <!-- Panel tareas sin etiqueta -->
+    <div id="flujo-nolabel-panel" style="display:none;border-top:1px solid var(--border);background:var(--surface-2);padding:10px 16px;max-height:220px;overflow-y:auto;flex-shrink:0;">
+      <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">Tareas sin etiqueta</div>
+      <div id="flujo-nolabel-list" style="display:flex;flex-direction:column;gap:4px;"></div>
     </div>
     <!-- FAB nueva tarea -->
     <button class="fab" id="fab-new-flujo" style="right:84px;" title="Nueva tarea">+</button>
@@ -1017,45 +1022,6 @@
     <div style="display:flex;gap:8px;margin-left:auto">
       <button class="btn-cancel" id="gsp-btn-cancel">Cancelar</button>
       <button class="btn-primary" id="gsp-btn-save"><span id="gsp-save-label">Guardar</span></button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL FLUJO: CREAR TAREA CONECTADA -->
-<div class="modal-backdrop" id="flujo-conn-modal-backdrop" style="display:none;z-index:600">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-header">
-      <span class="modal-title" id="flujo-conn-modal-title">Nueva tarea conectada</span>
-      <button class="modal-close" id="flujo-conn-modal-close">✕</button>
-    </div>
-    <div class="modal-body" style="gap:12px">
-      <div style="font-size:12px;color:var(--text-dim);padding:6px 10px;background:var(--surface-2);border-radius:var(--radius);border-left:3px solid var(--amber)">
-        Dependencia desde: <strong id="flujo-conn-src-label" style="color:var(--amber)"></strong>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Título *</label>
-        <input type="text" class="form-input" id="flujo-conn-title" placeholder="¿Qué hay que hacer?" maxlength="120" />
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Prioridad</label>
-          <select class="form-select" id="flujo-conn-priority">
-            <option value="high">Alta</option>
-            <option value="low">Baja</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tipo</label>
-          <select class="form-select" id="flujo-conn-type">
-            <option value="strategic">Estratégica</option>
-            <option value="operative">Operativa</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" id="flujo-conn-cancel">Cancelar</button>
-      <button class="btn-primary" id="flujo-conn-save">Crear y conectar</button>
     </div>
   </div>
 </div>
@@ -1419,7 +1385,7 @@ function subscribeToTasks() {
       renderMatrix();
       renderCalendar();
       if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
-      if (document.querySelector('.nav-tab[data-panel="flujo"].active')) renderFlujo();
+      if (document.querySelector('.nav-tab[data-panel="flujo"].active')) { renderFlujo(); renderFlujoNoLabelPanel(); }
       renderTagFilterRow();
       renderTagsPanel();
     }, err => { console.error(err); showToast('Error: ' + err.code, 'err'); });
@@ -1762,8 +1728,8 @@ function renderTagsPanel() {
 }
 
 // MODAL
-function openModal(task=null) {
-  editingId=task?task.id:null; currentTags=task?[...(task.tags||[])]:[];
+function openModal(task=null, prefillTags=null) {
+  editingId=task?task.id:null; currentTags=task?[...(task.tags||[])]:(prefillTags||[]);
   currentChecklist = task ? (task.checklist || []).map(i => ({...i})) : [];
   selectedDeps=task?new Set(task.dependencies||[]):new Set();
   modalTitle.textContent=task?'Editar tarea':'Nueva tarea';
@@ -4222,7 +4188,6 @@ let flujoCy        = null;
 let flujoConnMode  = false;
 let flujoConnSrc   = null;
 let flujoShowNoLabel = false;
-let flujoConnPendingSrc = null;
 
 function flujoNodeBg(task) {
   if (task.status === 'done') return '#1a2e1f';
@@ -4247,6 +4212,7 @@ function showFlujoPopover(task, renderedPos) {
   pop.style.cssText = 'position:fixed;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;align-items:center;gap:4px;padding:5px 8px;z-index:900;pointer-events:all';
   const isDone = task.status === 'done';
 
+  // Botón completar
   const chk = document.createElement('button');
   chk.title = isDone ? 'Marcar pendiente' : 'Marcar completada';
   chk.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1.5px solid '+(isDone?'var(--green)':'var(--border-hi)')+';background:'+(isDone?'var(--green)':'transparent')+';color:var(--bg);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans)';
@@ -4257,18 +4223,7 @@ function showFlujoPopover(task, renderedPos) {
     try { await db.collection('tasks').doc(task.id).update({status:newStatus, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); closeFlujoPopover(); } catch(err) { showToast('Error.','err'); }
   });
 
-  pop.append(chk, editBtn, tagBtn, delBtn);
-  delBtn.title = 'Eliminar tarea';
-  delBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
-  delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
-  delBtn.addEventListener('mouseenter', () => { delBtn.style.color='var(--red)'; delBtn.style.borderColor='var(--red)'; });
-  delBtn.addEventListener('mouseleave', () => { delBtn.style.color='var(--text-dim)'; delBtn.style.borderColor='var(--border)'; });
-  delBtn.addEventListener('click', async e => {
-    e.stopPropagation();
-    if (!confirm('Eliminar "'+task.title+'"?')) return;
-    try { await db.collection('tasks').doc(task.id).delete(); closeFlujoPopover(); showToast('Tarea eliminada.','ok'); } catch(err) { showToast('Error.','err'); }
-  });
-
+  // Botón editar
   const editBtn = document.createElement('button');
   editBtn.title = 'Editar tarea';
   editBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
@@ -4281,6 +4236,7 @@ function showFlujoPopover(task, renderedPos) {
     openModal(task);
   });
 
+  // Botón etiquetas
   const tagBtn = document.createElement('button');
   tagBtn.title = 'Cambiar etiquetas';
   tagBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;';
@@ -4292,6 +4248,20 @@ function showFlujoPopover(task, renderedPos) {
     showFlujoTagDropdown(task, tagBtn);
   });
 
+  // Botón eliminar
+  const delBtn = document.createElement('button');
+  delBtn.title = 'Eliminar tarea';
+  delBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+  delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+  delBtn.addEventListener('mouseenter', () => { delBtn.style.color='var(--red)'; delBtn.style.borderColor='var(--red)'; });
+  delBtn.addEventListener('mouseleave', () => { delBtn.style.color='var(--text-dim)'; delBtn.style.borderColor='var(--border)'; });
+  delBtn.addEventListener('click', async e => {
+    e.stopPropagation();
+    if (!confirm('Eliminar "'+task.title+'"?')) return;
+    try { await db.collection('tasks').doc(task.id).delete(); closeFlujoPopover(); showToast('Tarea eliminada.','ok'); } catch(err) { showToast('Error.','err'); }
+  });
+
+  pop.append(chk, editBtn, tagBtn, delBtn);
   document.body.appendChild(pop);
   flujoPopover = pop;
 
@@ -4590,19 +4560,18 @@ function renderFlujo() {
     enterConnMode(evt.target);
   });
 
+  // Tap en nodo raíz → nueva tarea con esa etiqueta preseleccionada
+  flujoCy.on('tap', 'node[nodeType="root"]', function(evt) {
+    const lbl = evt.target.data('label');
+    const tag = (lbl === 'Sin etiqueta') ? null : lbl;
+    // Abre el modal de nueva tarea con la etiqueta pre-rellenada
+    openModal(null, tag ? [tag] : []);
+  });
+
   flujoCy.on('tap', function(evt) {
     if (evt.target !== flujoCy) return;
     closeFlujoPopover();
-    if (flujoConnMode) {
-      const src = flujoConnSrc;
-      const srcTaskId = src ? src.data('taskId') : null;
-      const srcTask   = srcTaskId ? tasks.find(t => t.id === srcTaskId) : null;
-      exitConnMode();
-      if (srcTask) {
-        // setTimeout para salir del stack del evento antes de mostrar el modal
-        setTimeout(() => openFlujoConnModal(srcTask), 0);
-      }
-    }
+    if (flujoConnMode) exitConnMode();
   });
 
   const escFlujo = function(e) {
@@ -4615,71 +4584,75 @@ function renderFlujo() {
 
 }
 
-function openFlujoConnModal(srcTask) {
-  flujoConnPendingSrc = srcTask || null;
-  const backdrop = document.getElementById('flujo-conn-modal-backdrop');
-  const titleEl  = document.getElementById('flujo-conn-modal-title');
-  const srcLabel = document.getElementById('flujo-conn-src-label');
-  const titleInp = document.getElementById('flujo-conn-title');
-  const prioSel  = document.getElementById('flujo-conn-priority');
-  const typeSel  = document.getElementById('flujo-conn-type');
-  srcLabel.textContent = srcTask ? srcTask.title : '';
-  titleInp.value = '';
-  prioSel.value  = srcTask ? (srcTask.priority || 'low') : 'low';
-  typeSel.value  = srcTask ? (srcTask.type || 'operative') : 'operative';
-  backdrop.style.display = 'flex';
-  requestAnimationFrame(() => titleInp.focus());
-}
-
-function closeFlujoConnModal() {
-  document.getElementById('flujo-conn-modal-backdrop').style.display = 'none';
-  flujoConnPendingSrc = null;
-}
-
-document.getElementById('flujo-conn-modal-close').addEventListener('click', closeFlujoConnModal);
-document.getElementById('flujo-conn-cancel').addEventListener('click', closeFlujoConnModal);
-document.getElementById('flujo-conn-modal-backdrop').addEventListener('click', e => {
-  e.stopPropagation();
-  if (e.target === document.getElementById('flujo-conn-modal-backdrop')) closeFlujoConnModal();
-});
-document.getElementById('flujo-conn-title').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('flujo-conn-save').click(); }
-  if (e.key === 'Escape') closeFlujoConnModal();
-});
-document.getElementById('flujo-conn-save').addEventListener('click', async () => {
-  const titleInp = document.getElementById('flujo-conn-title');
-  const nombre   = titleInp.value.trim();
-  if (!nombre) { titleInp.focus(); showToast('El título es obligatorio.','err'); return; }
-  const srcTask = flujoConnPendingSrc;
-  const srcId   = srcTask ? srcTask.id : null;
-  const prioSel = document.getElementById('flujo-conn-priority');
-  const typeSel = document.getElementById('flujo-conn-type');
-  const newTask = {
-    title: nombre, description: '',
-    priority: prioSel.value,
-    type: typeSel.value,
-    status: 'pending', dueDate: null,
-    tags: srcTask ? (srcTask.tags || []) : [],
-    dependencies: srcId ? [srcId] : [],
-    checklist: [], recurrence: { enabled: false }, reminder: { enabled: false }, gantt: { enabled: false },
-    uid: currentUser.uid,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  closeFlujoConnModal();
-  try {
-    await db.collection('tasks').add(newTask);
-    showToast('Tarea creada y conectada.', 'ok');
-  } catch(err) { showToast('Error al crear tarea.', 'err'); }
-});
-
-
 document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
   flujoShowNoLabel = !flujoShowNoLabel;
   document.getElementById('flujo-nolabel-switch').className = 'toggle-switch' + (flujoShowNoLabel ? ' on' : '');
-  document.getElementById('flujo-nolabel-label').textContent = flujoShowNoLabel ? 'Ocultar sin etiqueta' : 'Mostrar sin etiqueta';
-  renderFlujo();
+  renderFlujoNoLabelPanel();
 });
+
+function renderFlujoNoLabelPanel() {
+  const panel = document.getElementById('flujo-nolabel-panel');
+  const list  = document.getElementById('flujo-nolabel-list');
+  if (!panel || !list) return;
+
+  if (!flujoShowNoLabel) { panel.style.display = 'none'; return; }
+
+  // Tareas sin etiqueta, respetando el filtro hideDone y búsqueda
+  const q = flujoSearch.trim().toLowerCase();
+  const unlabeled = tasks.filter(t => {
+    if (!t.tags || t.tags.length === 0) {
+      if (flujoHideDone && t.status === 'done') return false;
+      if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
+      return true;
+    }
+    return false;
+  });
+
+  list.innerHTML = '';
+  if (unlabeled.length === 0) {
+    list.innerHTML = '<span style="font-size:13px;color:var(--text-faint);">No hay tareas sin etiqueta' + (flujoHideDone ? ' pendientes' : '') + '.</span>';
+  } else {
+    unlabeled.forEach(t => {
+      const row = document.createElement('div');
+      const isDone = t.status === 'done';
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:border-color .15s;';
+      row.addEventListener('mouseenter', () => row.style.borderColor = 'var(--border-hi)');
+      row.addEventListener('mouseleave', () => row.style.borderColor = 'var(--border)');
+
+      // Checkbox
+      const chk = document.createElement('div');
+      chk.style.cssText = 'width:16px;height:16px;border-radius:3px;border:1.5px solid '+(isDone?'var(--green)':'var(--border-hi)')+';background:'+(isDone?'var(--green)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+      chk.innerHTML = isDone ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+      chk.addEventListener('click', async e => {
+        e.stopPropagation();
+        const newStatus = isDone ? 'pending' : 'done';
+        await db.collection('tasks').doc(t.id).update({ status: newStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => showToast('Error.','err'));
+      });
+
+      // Título
+      const title = document.createElement('span');
+      title.style.cssText = 'flex:1;font-size:13px;color:var(--text);' + (isDone ? 'text-decoration:line-through;color:var(--text-faint);' : '');
+      title.textContent = t.title;
+
+      // Prioridad pill
+      const pill = document.createElement('span');
+      pill.style.cssText = 'font-size:10px;padding:2px 6px;border-radius:10px;flex-shrink:0;background:'+(t.priority==='high'?'rgba(229,57,53,.18)':'rgba(66,133,244,.18)')+';color:'+(t.priority==='high'?'var(--red)':'var(--blue)')+';';
+      pill.textContent = t.priority === 'high' ? 'Alta' : 'Baja';
+
+      // Botón editar
+      const editBtn = document.createElement('button');
+      editBtn.title = 'Editar';
+      editBtn.style.cssText = 'width:20px;height:20px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:3px;';
+      editBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+      editBtn.addEventListener('click', e => { e.stopPropagation(); openModal(t); });
+
+      row.append(chk, title, pill, editBtn);
+      row.addEventListener('click', () => openModal(t));
+      list.appendChild(row);
+    });
+  }
+  panel.style.display = 'block';
+}
 
 document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
   flujoHideDone = !flujoHideDone;
