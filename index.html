@@ -648,6 +648,10 @@
       <span class="tl-lo">Pl</span><span class="tl-or">Or</span><span class="tl-lo">Di</span><span class="tl-or">Co</span>
     </div>
     <div class="topbar-right">
+      <span id="conn-indicator" title="Estado de conexión" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);padding:4px 8px;border-radius:10px;border:1px solid var(--border);">
+        <span id="conn-dot" style="width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;"></span>
+        <span id="conn-label">Online</span>
+      </span>
       <button class="btn-ghost" id="btn-export" title="Exportar todas las tareas a JSON">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Exportar
@@ -1229,7 +1233,145 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
-db.enablePersistence({ synchronizeTabs: true }).catch(() => {/* ya activo en otra pestaña, silencioso */});
+
+// ── SISTEMA OFFLINE ───────────────────────────────────────────────────────────
+// Cola de operaciones pendientes guardada en localStorage
+const OFFLINE_QUEUE_KEY = 'plordico_offline_queue';
+
+function isOnline() { return navigator.onLine; }
+
+function queueGet() {
+  try { return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); } catch { return []; }
+}
+function queueSave(q) {
+  try { localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(q)); } catch {}
+}
+function queueAdd(op) {
+  const q = queueGet();
+  q.push({ ...op, queuedAt: Date.now() });
+  queueSave(q);
+}
+
+// Wrapper add: si hay conexión escribe directo; si no, encola y devuelve ID temporal
+async function fsAdd(collection, data) {
+  if (isOnline()) {
+    return db.collection(collection).add(data);
+  }
+  // Offline: guardar localmente con ID temporal y mostrar en UI inmediatamente
+  const tempId = 'offline_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  const localDoc = {
+    ...data,
+    id: tempId,
+    createdAt: { _isOffline: true, iso: new Date().toISOString() },
+    updatedAt: { _isOffline: true, iso: new Date().toISOString() },
+    _offline: true
+  };
+  queueAdd({ type: 'add', collection, data, tempId });
+  // Inyectar en el array local para que aparezca en pantalla ahora
+  tasks.push(localDoc);
+  renderList(); renderMatrix(); renderCalendar();
+  if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
+  if (document.querySelector('.nav-tab[data-panel="flujo"].active')) renderFlujo();
+  return { id: tempId };
+}
+
+// Wrapper update: si hay conexión escribe directo; si no, encola
+async function fsUpdate(collection, docId, data) {
+  if (isOnline()) {
+    return db.collection(collection).doc(docId).update(data);
+  }
+  if (docId.startsWith('offline_')) {
+    // Actualizar el doc temporal en memoria
+    const idx = tasks.findIndex(t => t.id === docId);
+    if (idx !== -1) { tasks[idx] = { ...tasks[idx], ...data, updatedAt: { _isOffline: true, iso: new Date().toISOString() } }; }
+    // Actualizar también en la cola
+    const q = queueGet().map(op => op.tempId === docId ? { ...op, data: { ...op.data, ...data } } : op);
+    queueSave(q);
+  } else {
+    queueAdd({ type: 'update', collection, docId, data });
+    const idx = tasks.findIndex(t => t.id === docId);
+    if (idx !== -1) { tasks[idx] = { ...tasks[idx], ...data }; }
+  }
+  renderList(); renderMatrix(); renderCalendar();
+  if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
+  if (document.querySelector('.nav-tab[data-panel="flujo"].active')) renderFlujo();
+}
+
+// Wrapper delete: si hay conexión escribe directo; si no, encola
+async function fsDelete(collection, docId) {
+  if (isOnline()) {
+    return db.collection(collection).doc(docId).delete();
+  }
+  if (!docId.startsWith('offline_')) {
+    queueAdd({ type: 'delete', collection, docId });
+  }
+  // Quitar de memoria inmediatamente
+  const idx = tasks.findIndex(t => t.id === docId);
+  if (idx !== -1) tasks.splice(idx, 1);
+  renderList(); renderMatrix(); renderCalendar();
+  if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
+  if (document.querySelector('.nav-tab[data-panel="flujo"].active')) renderFlujo();
+}
+
+// Sincronizar cola al volver online
+async function syncOfflineQueue() {
+  const q = queueGet();
+  if (!q.length) return;
+  showToast(`Sincronizando ${q.length} operación(es) offline…`, 'ok');
+  const remaining = [];
+  for (const op of q) {
+    try {
+      // Limpiar campos offline antes de enviar
+      const cleanData = { ...op.data };
+      delete cleanData._offline;
+      delete cleanData.id;
+      if (cleanData.createdAt && cleanData.createdAt._isOffline)
+        cleanData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      if (cleanData.updatedAt && cleanData.updatedAt._isOffline)
+        cleanData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+      if (op.type === 'add') {
+        await db.collection(op.collection).add(cleanData);
+        // Quitar el doc temporal — Firestore listener traerá el real
+        const idx = tasks.findIndex(t => t.id === op.tempId);
+        if (idx !== -1) tasks.splice(idx, 1);
+      } else if (op.type === 'update') {
+        await db.collection(op.collection).doc(op.docId).update(op.data);
+      } else if (op.type === 'delete') {
+        await db.collection(op.collection).doc(op.docId).delete();
+      }
+    } catch(e) {
+      remaining.push(op); // si falla, vuelve a la cola
+    }
+  }
+  queueSave(remaining);
+  if (!remaining.length) showToast('Todo sincronizado ✓', 'ok');
+  else showToast(`${remaining.length} operación(es) no pudieron sincronizarse.`, 'err');
+}
+
+// Indicador visual de conexión
+function updateConnIndicator() {
+  const dot   = document.getElementById('conn-dot');
+  const label = document.getElementById('conn-label');
+  const ind   = document.getElementById('conn-indicator');
+  if (!dot) return;
+  const online = isOnline();
+  const q = queueGet();
+  if (online) {
+    dot.style.background   = 'var(--green)';
+    label.textContent      = q.length ? `Online · ${q.length} pend.` : 'Online';
+    ind.style.borderColor  = 'var(--border)';
+  } else {
+    dot.style.background   = '#e55353';
+    label.textContent      = q.length ? `Offline · ${q.length} en cola` : 'Offline';
+    ind.style.borderColor  = '#e55353';
+  }
+}
+
+window.addEventListener('online',  () => { updateConnIndicator(); syncOfflineQueue(); });
+window.addEventListener('offline', () => { updateConnIndicator(); showToast('Sin conexión — los cambios se guardarán localmente.', 'err'); });
+// Actualizar indicador periódicamente (la cola puede cambiar)
+setInterval(updateConnIndicator, 3000);
 
 // STATE
 let currentUser     = null;
@@ -1552,12 +1694,12 @@ async function saveTask() {
 
   try {
     if (editingId) {
-      await db.collection('tasks').doc(editingId).update(data);
-      showToast('Tarea actualizada.', 'ok');
+      await fsUpdate('tasks', editingId, data);
+      showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     } else {
       data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('tasks').add(data);
-      showToast('Tarea creada.', 'ok');
+      await fsAdd('tasks', data);
+      showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     }
     closeModal();
   } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
@@ -1566,7 +1708,7 @@ async function saveTask() {
 
 async function deleteTask() {
   if (!editingId || !confirm('¿Eliminar esta tarea? No se puede deshacer.')) return;
-  try { await db.collection('tasks').doc(editingId).delete(); showToast('Eliminada.'); closeModal(); }
+  try { await fsDelete('tasks', editingId); showToast('Eliminada.'); closeModal(); }
   catch(e) { showToast('Error.', 'err'); }
 }
 
@@ -2586,13 +2728,13 @@ async function saveSplitTask() {
   };
   try {
     if (splitEditingId) {
-      await db.collection('tasks').doc(splitEditingId).update(data);
-      showToast('Tarea actualizada.', 'ok');
+      await fsUpdate('tasks', splitEditingId, data);
+      showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
       closeSplitPanel();
     } else {
       data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('tasks').add(data);
-      showToast('Tarea creada.', 'ok');
+      await fsAdd('tasks', data);
+      showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
       closeSplitPanel();
     }
   } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
@@ -2601,7 +2743,7 @@ async function saveSplitTask() {
 
 async function deleteSplitTask() {
   if (!splitEditingId || !confirm('\u00bfEliminar esta tarea? No se puede deshacer.')) return;
-  try { await db.collection('tasks').doc(splitEditingId).delete(); showToast('Eliminada.'); closeSplitPanel(); }
+  try { await fsDelete('tasks', splitEditingId); showToast('Eliminada.'); closeSplitPanel(); }
   catch(e) { showToast('Error.', 'err'); }
 }
 
@@ -3818,12 +3960,12 @@ async function saveGanttSplitTask() {
 
   try {
     if (ganttSplitEditingId) {
-      await db.collection('tasks').doc(ganttSplitEditingId).update(data);
-      showToast('Tarea actualizada.', 'ok');
+      await fsUpdate('tasks', ganttSplitEditingId, data);
+      showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     } else {
       data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('tasks').add(data);
-      showToast('Tarea creada.', 'ok');
+      await fsAdd('tasks', data);
+      showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     }
     closeGanttSplitPanel();
   } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
@@ -3832,7 +3974,7 @@ async function saveGanttSplitTask() {
 
 async function deleteGanttSplitTask() {
   if (!ganttSplitEditingId || !confirm('¿Eliminar esta tarea? No se puede deshacer.')) return;
-  try { await db.collection('tasks').doc(ganttSplitEditingId).delete(); showToast('Eliminada.'); closeGanttSplitPanel(); }
+  try { await fsDelete('tasks', ganttSplitEditingId); showToast('Eliminada.'); closeGanttSplitPanel(); }
   catch(e) { showToast('Error.', 'err'); }
 }
 
