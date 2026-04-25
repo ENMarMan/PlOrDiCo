@@ -648,6 +648,15 @@
       <span class="tl-lo">Pl</span><span class="tl-or">Or</span><span class="tl-lo">Di</span><span class="tl-or">Co</span>
     </div>
     <div class="topbar-right">
+      <button class="btn-ghost" id="btn-export" title="Exportar todas las tareas a JSON">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar
+      </button>
+      <button class="btn-ghost" id="btn-import" title="Importar tareas desde JSON">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
+        Importar
+      </button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" />
       <img id="user-avatar" class="avatar" src="" alt="" />
       <span id="user-name" class="user-name"></span>
       <button class="btn-ghost" id="btn-signout">Salir</button>
@@ -1220,6 +1229,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
+db.enablePersistence({ synchronizeTabs: true }).catch(() => {/* ya activo en otra pestaña, silencioso */});
 
 // STATE
 let currentUser     = null;
@@ -1367,6 +1377,111 @@ btnSignIn.addEventListener('click', () => {
       }
     });
 });
+// ── EXPORTAR ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-export').addEventListener('click', () => {
+  if (!tasks.length) { showToast('No hay tareas para exportar.', 'err'); return; }
+
+  // Limpiamos los campos de servidor antes de serializar
+  const exportData = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    tasks: tasks.map(t => {
+      const clean = { ...t };
+      // Convertir Timestamps de Firestore a strings ISO legibles
+      if (clean.createdAt && typeof clean.createdAt.toDate === 'function')
+        clean.createdAt = clean.createdAt.toDate().toISOString();
+      if (clean.updatedAt && typeof clean.updatedAt.toDate === 'function')
+        clean.updatedAt = clean.updatedAt.toDate().toISOString();
+      return clean;
+    })
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `plordico-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`${tasks.length} tareas exportadas.`, 'ok');
+});
+
+// ── IMPORTAR ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-import').addEventListener('click', () => {
+  document.getElementById('import-file-input').value = ''; // reset por si el mismo archivo
+  document.getElementById('import-file-input').click();
+});
+
+document.getElementById('import-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  let parsed;
+  try {
+    const text = await file.text();
+    parsed = JSON.parse(text);
+  } catch {
+    showToast('El archivo no es un JSON válido.', 'err');
+    return;
+  }
+
+  // Aceptar tanto el formato con envelope {version, tasks} como un array directo
+  const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.tasks) ? parsed.tasks : null);
+  if (!incoming || incoming.length === 0) {
+    showToast('No se encontraron tareas en el archivo.', 'err');
+    return;
+  }
+
+  // Campos obligatorios mínimos
+  const valid = incoming.filter(t => t && typeof t.title === 'string' && t.title.trim());
+  if (!valid.length) {
+    showToast('Ninguna tarea tiene título válido.', 'err');
+    return;
+  }
+
+  const ya = tasks.map(t => t.title.trim().toLowerCase());
+  const nuevas = valid.filter(t => !ya.includes(t.title.trim().toLowerCase()));
+  const duplicadas = valid.length - nuevas.length;
+
+  if (!nuevas.length) {
+    showToast(`Todas las tareas ya existen (${duplicadas} duplicadas omitidas).`, 'err');
+    return;
+  }
+
+  const confirmar = confirm(
+    `Se importarán ${nuevas.length} tarea(s) nuevas` +
+    (duplicadas ? ` (${duplicadas} duplicada(s) omitida(s))` : '') +
+    `.\n\n¿Continuar?`
+  );
+  if (!confirmar) return;
+
+  const camposPermitidos = ['title','description','priority','type','status','dueDate',
+    'tags','dependencies','checklist','recurrence','reminder','gantt'];
+
+  let ok = 0, err = 0;
+  for (const t of nuevas) {
+    const doc = { uid: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    camposPermitidos.forEach(k => { if (t[k] !== undefined) doc[k] = t[k]; });
+    // Sanear campos con valores por defecto si faltan
+    doc.title       = (doc.title || '').trim();
+    doc.priority    = ['high','low'].includes(doc.priority) ? doc.priority : 'low';
+    doc.type        = ['strategic','operative'].includes(doc.type) ? doc.type : 'operative';
+    doc.status      = ['pending','in_progress','done'].includes(doc.status) ? doc.status : 'pending';
+    doc.tags        = Array.isArray(doc.tags) ? doc.tags : [];
+    doc.dependencies= Array.isArray(doc.dependencies) ? [] : []; // IDs foráneos no sirven
+    doc.checklist   = Array.isArray(doc.checklist) ? doc.checklist : [];
+    if (!doc.recurrence || typeof doc.recurrence !== 'object') doc.recurrence = { enabled: false };
+    if (!doc.reminder   || typeof doc.reminder   !== 'object') doc.reminder   = { enabled: false };
+    if (!doc.gantt      || typeof doc.gantt      !== 'object') doc.gantt      = { enabled: false };
+    try { await db.collection('tasks').add(doc); ok++; }
+    catch { err++; }
+  }
+  showToast(`Importación completada: ${ok} tarea(s) agregada(s)${err ? `, ${err} con error` : ''}.`, ok ? 'ok' : 'err');
+});
+
 btnSignOut.addEventListener('click', () => auth.signOut());
 
 // FIRESTORE
