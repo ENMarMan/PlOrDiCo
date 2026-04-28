@@ -106,21 +106,10 @@
     .sort-btn:hover { border-color: var(--border-hi); color: var(--text); }
     .sort-btn.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
     .search-wrap { position: relative; }
-    .search-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 28px 6px 30px; color: var(--text); font-size: 13px; width: 170px; transition: var(--tr); }
+    .search-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px 6px 30px; color: var(--text); font-size: 13px; width: 170px; transition: var(--tr); }
     .search-input:focus { outline: none; border-color: var(--amber); width: 210px; }
     .search-input::placeholder { color: var(--text-faint); }
     .search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; }
-    .search-clear { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px; display: none; border-radius: 50%; transition: var(--tr); }
-    .search-clear:hover { color: var(--text); background: var(--surface-3); }
-    .search-clear.visible { display: flex; align-items: center; justify-content: center; }
-    .sort-btn-today { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; transition: var(--tr); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); margin-left: 4px; }
-    .sort-btn-today:hover { border-color: var(--amber); color: var(--amber); }
-    .sort-btn-today.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
-    .flujo-tag-filter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .flujo-tag-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; cursor: pointer; transition: var(--tr); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
-    .flujo-tag-chip:hover { border-color: var(--border-hi); color: var(--text); }
-    .flujo-tag-chip.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
-    .flujo-tag-chip-clear { background: var(--surface-3); border-color: var(--border-hi); color: var(--text-dim); font-size: 10px; }
     .task-list-scroll { flex: 1; overflow-y: auto; padding: 14px 20px 80px; min-width: 0; }
     .task-list-scroll::-webkit-scrollbar { width: 4px; }
     .task-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -267,7 +256,9 @@
     .card-btn-delete { width: 24px; height: 24px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-faint); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
     .card-btn-delete:hover { border-color: var(--red-dim); color: var(--red); background: var(--red-glow); }
     /* Tag suggestions en modal */
-    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .tag-suggestions { display:none; flex-wrap:wrap; gap:4px; margin-top:4px; padding:6px 8px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); max-height:90px; overflow-y:auto; }
+    .tag-suggestions.open { display:flex; }
+    .tags-input-wrap:focus-within ~ .tag-suggestions { display:flex; }
     .tag-suggestion { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface-3); border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer; transition: var(--tr); }
     .tag-suggestion:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
 
@@ -480,26 +471,26 @@
     @media (max-width: 720px) { .list-split-right.open { width: 100%; top: 94px; } }
 
     /* MENÚ CONTEXTUAL */
-    .ctx-menu { position: fixed; z-index: 800; background: var(--surface); border: 1px solid var(--border-hi); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,.55); min-width: 188px; max-width: 220px; padding: 4px 0; animation: ctxIn .12s ease; overflow: visible; }
+    .ctx-menu { position: fixed; z-index: 800; background: var(--surface); border: 1px solid var(--border-hi); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,.55); min-width: 200px; padding: 6px 0; animation: ctxIn .12s ease; overflow: visible; }
     @keyframes ctxIn { from { opacity:0; transform: scale(.96); } to { opacity:1; transform: scale(1); } }
-    .ctx-section { padding: 2px 0; border-bottom: 1px solid var(--border); }
+    .ctx-section { padding: 4px 0; border-bottom: 1px solid var(--border); }
     .ctx-section:last-child { border-bottom: none; }
-    .ctx-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); padding: 4px 12px 2px; }
-    .ctx-item { display: flex; align-items: center; gap: 7px; width: 100%; padding: 5px 12px; background: none; border: none; color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
+    .ctx-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); padding: 6px 14px 2px; }
+    .ctx-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 14px; background: none; border: none; color: var(--text-dim); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
     .ctx-item:hover { background: var(--surface-2); color: var(--text); }
     .ctx-item.active { color: var(--amber); }
-    .ctx-item svg { width: 12px; height: 12px; flex-shrink: 0; color: var(--text-faint); }
+    .ctx-item svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--text-faint); }
     .ctx-item:hover svg { color: var(--text-dim); }
     .ctx-item.active svg { color: var(--amber); }
-    .ctx-date-wrap { padding: 4px 12px 5px; }
-    .ctx-date-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 8px; color: var(--text); font-size: 12px; font-family: var(--sans); width: 100%; transition: var(--tr); }
+    .ctx-date-wrap { padding: 6px 14px 8px; }
+    .ctx-date-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 9px; color: var(--text); font-size: 13px; font-family: var(--sans); width: 100%; transition: var(--tr); }
     .ctx-date-input:focus { outline: none; border-color: var(--amber); }
-    .ctx-tags-wrap { padding: 4px 12px 6px; display: flex; flex-direction: column; gap: 2px; max-height: 84px; overflow-y: auto; }
+    .ctx-tags-wrap { padding: 6px 14px 8px; display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; }
     .ctx-tags-wrap::-webkit-scrollbar { width: 3px; }
     .ctx-tags-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .ctx-tag-row { display: flex; align-items: center; gap: 6px; padding: 3px 5px; border-radius: var(--radius); cursor: pointer; transition: var(--tr); font-size: 11px; color: var(--text-dim); }
+    .ctx-tag-row { display: flex; align-items: center; gap: 7px; padding: 4px 6px; border-radius: var(--radius); cursor: pointer; transition: var(--tr); font-size: 12px; color: var(--text-dim); }
     .ctx-tag-row:hover { background: var(--surface-2); color: var(--text); }
-    .ctx-tag-row input[type=checkbox] { accent-color: var(--amber); width: 12px; height: 12px; flex-shrink: 0; pointer-events: none; }
+    .ctx-tag-row input[type=checkbox] { accent-color: var(--amber); width: 13px; height: 13px; flex-shrink: 0; pointer-events: none; }
 
     /* BOTÓN MÁS OPCIONES (modal y split panel) */
     .adv-toggle { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
@@ -710,17 +701,14 @@
             <span class="matrix-filter-badge hidden" id="lista-filter-badge">0</span>
           </button>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
-          <div class="search-wrap">
-            <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-input" id="search-input" placeholder="Buscar…" />
-            <button class="search-clear" id="search-input-clear" title="Limpiar">✕</button>
-          </div>
-          <label class="matrix-toggle-wrap" id="lista-toggle-wrap">
-            <div class="toggle-switch" id="lista-toggle-switch"></div>
-            <span class="matrix-toggle-label" id="lista-toggle-label">Mostrar completadas</span>
-          </label>
+        <div class="search-wrap">
+          <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Buscar…" />
         </div>
+        <label class="matrix-toggle-wrap" id="lista-toggle-wrap">
+          <div class="toggle-switch" id="lista-toggle-switch"></div>
+          <span class="matrix-toggle-label" id="lista-toggle-label">Mostrar completadas</span>
+        </label>
       </div>
       <div class="sort-bar visible" id="sort-bar">
         <span class="sort-bar-label">Ordenar</span>
@@ -728,7 +716,6 @@
         <button class="sort-btn" data-sort="due-desc">↓ Vence más tarde</button>
         <button class="sort-btn" data-sort="created-asc">↑ Más antiguas</button>
         <button class="sort-btn" data-sort="created-desc">↓ Más recientes</button>
-        <button class="sort-btn-today" id="filter-today-btn">📅 Hoy</button>
       </div>
       <div class="list-body">
         <!-- SIDEBAR LISTA -->
@@ -784,7 +771,6 @@
             <div class="split-panel-footer" id="split-panel-footer">
               <button class="btn-danger hidden" id="sp-btn-delete">Eliminar</button>
               <div style="display:flex;gap:8px;margin-left:auto">
-                <button class="btn-ghost hidden" id="sp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
                 <button class="btn-cancel" id="sp-btn-cancel">Cancelar</button>
                 <button class="btn-primary" id="sp-btn-save"><span id="sp-save-label">Guardar</span></button>
               </div>
@@ -811,7 +797,6 @@
         <div class="search-wrap">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="matrix-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="matrix-search-input-clear" title="Limpiar">✕</button>
         </div>
         <label class="matrix-toggle-wrap">
           <div class="toggle-switch" id="matrix-toggle-switch"></div>
@@ -922,7 +907,6 @@
         <div class="search-wrap">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="cal-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="cal-search-input-clear" title="Limpiar">✕</button>
         </div>
         <label class="cal-toggle-wrap" id="cal-toggle-wrap">
           <div class="toggle-switch" id="cal-toggle-switch"></div>
@@ -961,7 +945,6 @@
         <div class="search-wrap" style="margin-left:6px">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="gantt-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="gantt-search-input-clear" title="Limpiar">✕</button>
         </div>
         <label class="matrix-toggle-wrap" id="gantt-toggle-wrap">
           <div class="toggle-switch" id="gantt-toggle-switch"></div>
@@ -978,7 +961,11 @@
     <div class="flujo-toolbar">
       <div class="flujo-toolbar-left">
         <span style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);">Diagrama de Flujo</span>
-        <div class="flujo-tag-filter" id="flujo-tag-filter"></div>
+        <button class="matrix-filter-btn" id="flujo-filter-btn" title="Filtrar por etiquetas">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Etiquetas
+          <span class="matrix-filter-badge hidden" id="flujo-filter-badge">0</span>
+        </button>
       </div>
       <div class="flujo-toolbar-right">
         <div class="search-wrap">
@@ -996,6 +983,15 @@
         </div>
       </div>
     </div>
+    <!-- Dropdown filtro etiquetas -->
+    <div id="flujo-filter-dropdown" style="display:none;position:absolute;top:44px;left:20px;z-index:300;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:10px 14px;min-width:220px;max-width:280px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px;">Filtrar por etiqueta</div>
+      <div id="flujo-filter-tag-list" style="display:flex;flex-direction:column;gap:3px;max-height:220px;overflow-y:auto;margin-bottom:8px;"></div>
+      <div style="display:flex;gap:6px;border-top:1px solid var(--border);padding-top:8px;">
+        <button class="btn-ghost" id="flujo-filter-all" style="flex:1;font-size:11px;padding:4px 8px;">Todas</button>
+        <button class="btn-ghost" id="flujo-filter-none-btn" style="flex:1;font-size:11px;padding:4px 8px;">Limpiar</button>
+      </div>
+    </div>
     <div class="flujo-canvas-wrap">
       <div id="flujo-cy"></div>
       <div class="flujo-legend" id="flujo-legend">
@@ -1005,6 +1001,7 @@
         <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber)"></span>Estratégica</div>
         <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
         <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
+        <div class="flujo-legend-row"><span style="font-size:11px;line-height:1;">🔗</span>Con dependencias</div>
       </div>
       <div class="flujo-empty" id="flujo-empty" style="display:none;">
         <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
@@ -1054,7 +1051,6 @@
   <div class="split-panel-footer" id="gantt-split-footer">
     <button class="btn-danger hidden" id="gsp-btn-delete">Eliminar</button>
     <div style="display:flex;gap:8px;margin-left:auto">
-      <button class="btn-ghost hidden" id="gsp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
       <button class="btn-cancel" id="gsp-btn-cancel">Cancelar</button>
       <button class="btn-primary" id="gsp-btn-save"><span id="gsp-save-label">Guardar</span></button>
     </div>
@@ -1110,7 +1106,25 @@
         </div>
       </div>
 
-      <!-- RECURRENCIA (básico) -->
+      <!-- BOTÓN MÁS OPCIONES -->
+      <button type="button" class="adv-toggle" id="modal-adv-toggle">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        Más opciones<span class="adv-toggle-arrow">▾</span>
+      </button>
+
+      <!-- SECCIÓN AVANZADA -->
+      <div class="adv-body hidden" id="modal-adv-body">
+
+        <!-- CHECKLIST -->
+        <div class="form-group">
+          <div class="checklist-header">
+            <label class="form-label" style="margin:0">Checklist <span class="form-hint">— pasos de la tarea</span></label>
+            <button type="button" class="btn-add-check" id="btn-add-check-item">＋ Paso</button>
+          </div>
+          <div class="checklist-items" id="checklist-items"></div>
+        </div>
+
+        <!-- RECURRENCIA -->
         <div class="form-group">
           <label class="form-label">Recurrencia</label>
           <div class="recurrence-box">
@@ -1143,31 +1157,13 @@
           </div>
         </div>
 
-        <!-- ETIQUETAS (básico) -->
+        <!-- ETIQUETAS -->
         <div class="form-group">
           <label class="form-label">Etiquetas <span class="form-hint">— Enter o coma para agregar</span></label>
           <div class="tags-input-wrap" id="tags-wrap">
             <input type="text" class="tags-text-input" id="tags-input" placeholder="ej: urgente, cliente…" maxlength="30" />
           </div>
           <div class="tag-suggestions" id="tag-suggestions"></div>
-        </div>
-
-      <!-- BOTÓN MÁS OPCIONES -->
-      <button type="button" class="adv-toggle" id="modal-adv-toggle">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
-        Más opciones<span class="adv-toggle-arrow">▾</span>
-      </button>
-
-      <!-- SECCIÓN AVANZADA -->
-      <div class="adv-body hidden" id="modal-adv-body">
-
-        <!-- CHECKLIST -->
-        <div class="form-group">
-          <div class="checklist-header">
-            <label class="form-label" style="margin:0">Checklist <span class="form-hint">— pasos de la tarea</span></label>
-            <button type="button" class="btn-add-check" id="btn-add-check-item">＋ Paso</button>
-          </div>
-          <div class="checklist-items" id="checklist-items"></div>
         </div>
 
         <!-- RECORDATORIO -->
@@ -1232,7 +1228,6 @@
     <div class="modal-footer">
       <button class="btn-danger hidden" id="btn-delete">Eliminar</button>
       <div style="display:flex;gap:8px;margin-left:auto">
-        <button class="btn-ghost hidden" id="btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
         <button class="btn-cancel" id="btn-cancel">Cancelar</button>
         <button class="btn-primary" id="btn-save"><span id="save-label">Guardar</span></button>
       </div>
@@ -1418,7 +1413,6 @@ let calSearchQuery  = '';
 let activeFilter    = 'all';  // kept for compatibility
 let activeTagFilter = null;   // kept for compatibility
 let searchQuery     = '';
-let filterToday     = false;
 let listaSortMode   = 'due-asc'; // 'due-asc'|'due-desc'|'created-asc'|'created-desc'
 let recurrenceOn    = false;
 let unsubscribe     = null;
@@ -1666,7 +1660,7 @@ function subscribeToTasks() {
       renderMatrix();
       renderCalendar();
       if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
-      if (document.querySelector('.nav-tab[data-panel="flujo"].active')) { renderFlujoTagFilter(); renderFlujo(); renderFlujoNoLabelPanel(); }
+      if (document.querySelector('.nav-tab[data-panel="flujo"].active')) { renderFlujo(); renderFlujoNoLabelPanel(); }
       renderTagFilterRow();
       renderTagsPanel();
     }, err => { console.error(err); showToast('Error: ' + err.code, 'err'); });
@@ -1796,50 +1790,6 @@ async function toggleDone(id, current) {
   }
 }
 
-async function skipTask(id) {
-  const task = tasks.find(t => t.id === id);
-  if (!task) return;
-  if (!task.recurrence || !task.recurrence.enabled) {
-    showToast('Esta tarea no tiene recurrencia.', 'err'); return;
-  }
-  const nextDate = calcNextRecDate(task);
-  const rec = task.recurrence;
-  const shouldCreate = !rec.endDate || (nextDate && nextDate <= rec.endDate);
-  if (!nextDate || !shouldCreate) {
-    showToast('No hay siguiente ocurrencia (fin de recurrencia alcanzado).', 'err'); return;
-  }
-  const batch = db.batch();
-  // Eliminar la tarea actual (en vez de marcarla como completada)
-  batch.delete(db.collection('tasks').doc(id));
-  // Crear la siguiente tarea
-  let newGantt = task.gantt ? {...task.gantt} : null;
-  if (newGantt && newGantt.enabled && newGantt.startDate && task.dueDate) {
-    const oldDue  = new Date(task.dueDate + 'T00:00:00');
-    const nextDue = new Date(nextDate     + 'T00:00:00');
-    const delta   = Math.round((nextDue - oldDue) / 86400000);
-    const oldStart = new Date(newGantt.startDate + 'T00:00:00');
-    const newStart = new Date(oldStart); newStart.setDate(newStart.getDate() + delta);
-    const pad2 = n => String(n).padStart(2,'0');
-    newGantt = { ...newGantt, startDate: newStart.getFullYear()+'-'+pad2(newStart.getMonth()+1)+'-'+pad2(newStart.getDate()) };
-  }
-  const newTask = {
-    ...task,
-    id: undefined,
-    status: 'pending',
-    dueDate: nextDate,
-    gantt: newGantt,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    checklist: (task.checklist || []).map(item => ({ ...item, done: false }))
-  };
-  delete newTask.id;
-  batch.set(db.collection('tasks').doc(), newTask);
-  try {
-    await batch.commit();
-    showToast('Tarea saltada · próxima creada para ' + nextDate, 'ok');
-  } catch(e) { showToast('Error al saltar tarea.', 'err'); }
-}
-
 function calcNextRecDate(task) {
   const rec = task.recurrence;
   if (!rec || !rec.enabled) return null;
@@ -1893,11 +1843,6 @@ function getFiltered() {
   }
   if (listaFilterTag) {
     list = list.filter(t => (t.tags||[]).includes(listaFilterTag));
-  }
-  if (filterToday) {
-    const pad = n => String(n).padStart(2,'0');
-    const todayStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
-    list = list.filter(t => t.dueDate === todayStr);
   }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -2064,8 +2009,6 @@ function openModal(task=null, prefillTags=null) {
   selectedDeps=task?new Set(task.dependencies||[]):new Set();
   modalTitle.textContent=task?'Editar tarea':'Nueva tarea';
   btnDelete.classList.toggle('hidden',!task);
-  const btnSkipTask = document.getElementById('btn-skip-task');
-  if (btnSkipTask) btnSkipTask.classList.toggle('hidden', !(task && task.recurrence && task.recurrence.enabled && task.dueDate));
   fTitle.value=task?task.title:''; fDesc.value=task?(task.description||''):'';
   fPriority.value=task?task.priority:'high'; fType.value=task?task.type:'operative';
   fStatus.value=task?task.status:'pending'; fDue.value=task&&task.dueDate?task.dueDate:'';
@@ -2167,10 +2110,12 @@ function renderTagSuggestions() {
   if (!suggestionsEl) return;
   const existing = getAllTags().filter(t => !currentTags.includes(t));
   suggestionsEl.innerHTML = '';
+  if (existing.length === 0) return;
   existing.forEach(tag => {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'tag-suggestion'; btn.textContent = '+ ' + tag;
-    btn.addEventListener('click', () => {
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault(); // evita que el input pierda el foco
       if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); renderTagSuggestions(); }
     });
     suggestionsEl.appendChild(btn);
@@ -2304,6 +2249,12 @@ tagsInput.addEventListener('keydown',e=>{
     if(tag&&!currentTags.includes(tag)){currentTags.push(tag);renderTagsUI();renderTagSuggestions();} tagsInput.value='';
   } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();renderTagSuggestions();}
 });
+tagsInput.addEventListener('focus', () => {
+  const el = document.getElementById('tag-suggestions'); if (el) el.classList.add('open');
+});
+tagsInput.addEventListener('blur', () => {
+  setTimeout(() => { const el = document.getElementById('tag-suggestions'); if (el) el.classList.remove('open'); }, 150);
+});
 tagsWrap.addEventListener('click',()=>tagsInput.focus());
 
 document.querySelectorAll('.nav-tab').forEach(tab=>{
@@ -2318,7 +2269,6 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if (tab.dataset.panel === 'calendario') renderCalendar();
     if (tab.dataset.panel === 'gantt') renderGantt();
     if (tab.dataset.panel === 'flujo') {
-      renderFlujoTagFilter();
       // Esperar a que el contenedor tenga dimensiones reales antes de renderizar
       const cy = document.getElementById('flujo-cy');
       if (cy.offsetHeight > 0) {
@@ -2434,23 +2384,7 @@ function renderListaTagFilters() {
   });
 }
 
-searchInput.addEventListener('input',()=>{
-  searchQuery=searchInput.value.trim();
-  document.getElementById('search-input-clear').classList.toggle('visible', !!searchQuery);
-  renderList();
-});
-document.getElementById('search-input-clear').addEventListener('click',()=>{
-  searchInput.value=''; searchQuery='';
-  document.getElementById('search-input-clear').classList.remove('visible');
-  renderList();
-});
-
-// Botón "Hoy" en lista
-document.getElementById('filter-today-btn').addEventListener('click', () => {
-  filterToday = !filterToday;
-  document.getElementById('filter-today-btn').classList.toggle('active', filterToday);
-  renderList();
-});
+searchInput.addEventListener('input',()=>{searchQuery=searchInput.value.trim();renderList();});
 
 // Toggle completadas Lista
 document.getElementById('lista-toggle-wrap').addEventListener('click', () => {
@@ -2462,12 +2396,6 @@ document.getElementById('lista-toggle-wrap').addEventListener('click', () => {
 
 document.getElementById('matrix-search-input').addEventListener('input', e => {
   matrixSearchQuery = e.target.value.trim();
-  document.getElementById('matrix-search-input-clear').classList.toggle('visible', !!matrixSearchQuery);
-  renderMatrix();
-});
-document.getElementById('matrix-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('matrix-search-input'); inp.value=''; matrixSearchQuery='';
-  document.getElementById('matrix-search-input-clear').classList.remove('visible');
   renderMatrix();
 });
 
@@ -2486,11 +2414,6 @@ modalClose.addEventListener('click', closeModal);
 btnCancel.addEventListener('click', closeModal);
 btnSave.addEventListener('click', saveTask);
 btnDelete.addEventListener('click', deleteTask);
-document.getElementById('btn-skip-task').addEventListener('click', async () => {
-  if (!editingId) return;
-  closeModal();
-  await skipTask(editingId);
-});
 modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeSplitPanel(); closeGanttSplitPanel(); closeCtxMenu(); }
@@ -2540,11 +2463,6 @@ document.getElementById('split-panel-close').addEventListener('click', closeSpli
 spBtnCancel.addEventListener('click', closeSplitPanel);
 spBtnSave.addEventListener('click', saveSplitTask);
 spBtnDelete.addEventListener('click', deleteSplitTask);
-document.getElementById('sp-btn-skip-task').addEventListener('click', async () => {
-  if (!splitEditingId) return;
-  closeSplitPanel();
-  await skipTask(splitEditingId);
-});
 
 function openSplitPanel(task, focusField) {
   if (splitRight.classList.contains('open') && splitEditingId === (task ? task.id : null) && !focusField) return;
@@ -2555,8 +2473,6 @@ function openSplitPanel(task, focusField) {
   splitRecurrenceOn = !!(task && task.recurrence && task.recurrence.enabled);
   splitPanelTitle.textContent = task ? 'Editar tarea' : 'Nueva tarea';
   spBtnDelete.classList.toggle('hidden', !task);
-  const spBtnSkip = document.getElementById('sp-btn-skip-task');
-  if (spBtnSkip) spBtnSkip.classList.toggle('hidden', !(task && task.recurrence && task.recurrence.enabled && task.dueDate));
   splitPanelBody.innerHTML = buildSplitFormHTML(task);
   bindSplitFormEvents(task);
   splitRight.classList.add('open');
@@ -2605,24 +2521,14 @@ function buildSplitFormHTML(task) {
     (task.reminder && task.reminder.enabled) ||
     (task.dependencies && task.dependencies.length)
   ));
+  const advOpen = hasAdv;
   // Campos básicos
   let html = '<div class="form-group"><label class="form-label">T\u00edtulo *</label><input type="text" class="form-input" id="sp-f-title" placeholder="\u00bfQu\u00e9 hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
     + '<div class="form-group"><label class="form-label">Descripci\u00f3n</label><textarea class="form-textarea" id="sp-f-desc" placeholder="Detalle opcional\u2026">' + descVal + '</textarea></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="sp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
     + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="sp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="sp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>'
-    + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="sp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="sp-toggle-switch"></div><span class="toggle-label" id="sp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
-    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="sp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
-    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
-    + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
-    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>';
-  const advHasData = !!(task && (
-    (task.checklist && task.checklist.length) ||
-    (task.reminder && task.reminder.enabled) ||
-    (task.dependencies && task.dependencies.length)
-  ));
-  const advOpen = advHasData;
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="sp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>';
   // Botón "Más opciones"
   html += '<button type="button" class="adv-toggle' + (advOpen?' open has-data':'') + '" id="sp-adv-toggle">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
@@ -2630,6 +2536,11 @@ function buildSplitFormHTML(task) {
   // Sección avanzada
   html += '<div class="adv-body' + (advOpen?'':' hidden') + '" id="sp-adv-body">'
     + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="sp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="sp-checklist-items"></div></div>'
+    + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="sp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="sp-toggle-switch"></div><span class="toggle-label" id="sp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
+    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="sp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
+    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
+    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>'
     + buildSpReminderHTML(task)
     + buildSpGanttHTML(task)
     + '<div class="form-group"><label class="form-label">Depende de</label><div class="dep-dropdown-wrap" id="sp-dep-dropdown-wrap"><button type="button" class="dep-trigger" id="sp-dep-trigger"><span class="dep-trigger-label" id="sp-dep-trigger-label">Seleccionar tareas\u2026</span><span class="dep-trigger-arrow">\u25bc</span></button><div class="dep-dropdown-panel" id="sp-dep-dropdown-panel"></div></div><div class="dep-selected-pills" id="sp-dep-selected-pills"></div></div>'
@@ -2690,6 +2601,8 @@ function bindSplitFormEvents(task) {
   spRenderTagsUI(); spRenderTagSuggestions();
   const spTagsInput = document.getElementById('sp-tags-input');
   document.getElementById('sp-tags-wrap').addEventListener('click', () => spTagsInput.focus());
+  spTagsInput.addEventListener('focus', () => { const el=document.getElementById('sp-tag-suggestions'); if(el) el.classList.add('open'); });
+  spTagsInput.addEventListener('blur',  () => { setTimeout(()=>{ const el=document.getElementById('sp-tag-suggestions'); if(el) el.classList.remove('open'); },150); });
   spTagsInput.addEventListener('keydown', e => {
     if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
       e.preventDefault();
@@ -2734,7 +2647,10 @@ function spRenderTagSuggestions() {
   el.innerHTML = '';
   getAllTags().filter(t => !splitCurrentTags.includes(t)).forEach(tag => {
     const btn = document.createElement('button'); btn.type='button'; btn.className='tag-suggestion'; btn.textContent='+ '+tag;
-    btn.addEventListener('click', () => { if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault();
+      if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); }
+    });
     el.appendChild(btn);
   });
 }
@@ -2898,9 +2814,7 @@ function showContextMenu(task, x, y, fromMatrix) {
   const sectionTags = '<div class="ctx-section"><div class="ctx-label">Etiquetas</div><div class="ctx-tags-wrap" id="ctx-tags-wrap"></div>'
     + '<button class="ctx-item" data-action="open-tags"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Gestionar etiquetas\u2026</button></div>';
   const sectionDup = '<div class="ctx-section"><button class="ctx-item" data-action="duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Duplicar tarea</button>'
-    + '<button class="ctx-item" data-action="open-reminder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Recordatorio\u2026</button>'
-    + (task.recurrence && task.recurrence.enabled && task.dueDate ? '<button class="ctx-item" data-action="skip-task"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>Saltar tarea</button>' : '')
-    + '</div>';
+    + '<button class="ctx-item" data-action="open-reminder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Recordatorio\u2026</button></div>';
   menu.innerHTML = sectionStatus + sectionPriority + sectionType + sectionDate + sectionTags + sectionDup;
 
   // Tag checkboxes
@@ -2953,7 +2867,6 @@ function showContextMenu(task, x, y, fromMatrix) {
     else if (action==='open-due') { closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'due'); }
     else if (action==='open-tags'){ closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'tags'); }
     else if (action==='open-reminder'){ closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'reminder'); }
-    else if (action==='skip-task') { closeCtxMenu(); await skipTask(task.id); }
     else if (action==='duplicate') {
       const orig=tasks.find(t=>t.id===task.id)||task;
       const copy={...orig,title:orig.title+' (copia)',status:'pending',uid:currentUser.uid,
@@ -3766,14 +3679,7 @@ document.getElementById('cal-toggle-wrap').addEventListener('click', () => {
   renderCalendar();
 });
 document.getElementById('cal-search-input').addEventListener('input', e => {
-  calSearchQuery = e.target.value.trim();
-  document.getElementById('cal-search-input-clear').classList.toggle('visible', !!calSearchQuery);
-  renderCalendar();
-});
-document.getElementById('cal-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('cal-search-input'); inp.value=''; calSearchQuery='';
-  document.getElementById('cal-search-input-clear').classList.remove('visible');
-  renderCalendar();
+  calSearchQuery = e.target.value.trim(); renderCalendar();
 });
 document.getElementById('fab-new-calendario').addEventListener('click', () => openModal(null));
 
@@ -3799,11 +3705,6 @@ document.getElementById('gantt-split-close').addEventListener('click', closeGant
 gspBtnCancel.addEventListener('click', closeGanttSplitPanel);
 gspBtnSave.addEventListener('click', saveGanttSplitTask);
 gspBtnDelete.addEventListener('click', deleteGanttSplitTask);
-document.getElementById('gsp-btn-skip-task').addEventListener('click', async () => {
-  if (!ganttSplitEditingId) return;
-  closeGanttSplitPanel();
-  await skipTask(ganttSplitEditingId);
-});
 
 function openGanttSplitPanel(task) {
   if (ganttSplitRight.classList.contains('open') && ganttSplitEditingId === (task ? task.id : null)) return;
@@ -3814,8 +3715,6 @@ function openGanttSplitPanel(task) {
   ganttSplitRecurrenceOn     = !!(task && task.recurrence && task.recurrence.enabled);
   ganttSplitTitle.textContent = task ? 'Editar tarea' : 'Nueva tarea';
   gspBtnDelete.classList.toggle('hidden', !task);
-  const gspBtnSkip = document.getElementById('gsp-btn-skip-task');
-  if (gspBtnSkip) gspBtnSkip.classList.toggle('hidden', !(task && task.recurrence && task.recurrence.enabled && task.dueDate));
   // Reutilizamos buildSplitFormHTML/bindSplitFormEvents pero apuntando a variables ganttSplit*
   // Para simplificar, usamos el mismo HTML y bind, intercambiando los prefijos en runtime
   ganttSplitBody.innerHTML = buildGanttSplitFormHTML(task);
@@ -3863,25 +3762,19 @@ function buildGanttSplitFormHTML(task) {
     + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="gsp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
     + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="gsp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>';
+
+  html += '<button type="button" class="adv-toggle' + (hasAdv?' open has-data':'') + '" id="gsp-adv-toggle">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
+    + 'M\u00e1s opciones<span class="adv-toggle-arrow">\u25be</span></button>';
+
+  html += '<div class="adv-body' + (hasAdv?'':' hidden') + '" id="gsp-adv-body">'
+    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="gsp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="gsp-checklist-items"></div></div>'
     + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="gsp-toggle-switch"></div><span class="toggle-label" id="gsp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
     + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="gsp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
     + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="gsp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
     + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="gsp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
-    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="gsp-tags-wrap"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="gsp-tag-suggestions"></div></div>';
-
-  const advHasData = !!(task && (
-    (task.checklist && task.checklist.length) ||
-    (task.reminder && task.reminder.enabled) ||
-    (task.dependencies && task.dependencies.length) ||
-    (task.gantt && task.gantt.enabled)
-  ));
-  html += '<button type="button" class="adv-toggle' + (advHasData?' open has-data':'') + '" id="gsp-adv-toggle">'
-    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
-    + 'M\u00e1s opciones<span class="adv-toggle-arrow">\u25be</span></button>';
-
-  html += '<div class="adv-body' + (advHasData?'':' hidden') + '" id="gsp-adv-body">'
-    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="gsp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="gsp-checklist-items"></div></div>'
+    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="gsp-tags-wrap"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="gsp-tag-suggestions"></div></div>'
     + '<div class="form-group"><label class="form-label">Recordatorio</label><div class="reminder-box"><div class="recurrence-toggle" id="gsp-reminder-toggle"><div class="toggle-switch' + (remOn?' on':'') + '" id="gsp-reminder-sw"></div><span class="toggle-label" id="gsp-reminder-lbl">' + (remOn?'Con recordatorio':'Sin recordatorio') + '</span></div>'
     + '<div class="reminder-fields-row' + (remOn?'':' hidden') + '" id="gsp-reminder-fields"><div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" id="gsp-reminder-date" value="' + remDate + '" /></div><div class="form-group"><label class="form-label">Hora (en punto)</label><select class="form-select" id="gsp-reminder-hour">' + remHourOpts + '</select></div></div></div></div>'
     + '<div class="form-group"><label class="form-label">Diagrama de Gantt</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-gantt-toggle"><div class="toggle-switch' + (gnOn?' on':'') + '" id="gsp-gantt-switch"></div><span class="toggle-label" id="gsp-gantt-label">' + (gnOn?'Incluido en Gantt':'No incluir en Gantt') + '</span></div>'
@@ -3922,7 +3815,10 @@ function bindGanttSplitFormEvents(task) {
   const gspTagsInput=document.getElementById('gsp-tags-input');
   const gspTagsWrap=document.getElementById('gsp-tags-wrap');
   if(gspTagsWrap) gspTagsWrap.addEventListener('click',()=>gspTagsInput&&gspTagsInput.focus());
-  if(gspTagsInput) gspTagsInput.addEventListener('keydown',e=>{
+  if(gspTagsInput) {
+    gspTagsInput.addEventListener('focus',()=>{ const el=document.getElementById('gsp-tag-suggestions');if(el)el.classList.add('open'); });
+    gspTagsInput.addEventListener('blur', ()=>{ setTimeout(()=>{ const el=document.getElementById('gsp-tag-suggestions');if(el)el.classList.remove('open'); },150); });
+    gspTagsInput.addEventListener('keydown',e=>{
     if((e.key==='Enter'||e.key===',')&&gspTagsInput.value.trim()){
       e.preventDefault();
       const tag=gspTagsInput.value.trim().replace(/,/g,'');
@@ -3931,7 +3827,8 @@ function bindGanttSplitFormEvents(task) {
     } else if(e.key==='Backspace'&&!gspTagsInput.value&&ganttSplitCurrentTags.length){
       ganttSplitCurrentTags.pop();gspRenderTagsUI();gspRenderTagSuggestions();
     }
-  });
+    });
+  }
 
   const gspRemTgl=document.getElementById('gsp-reminder-toggle');
   ganttSplitReminderOn=!!(task&&task.reminder&&task.reminder.enabled);
@@ -4004,7 +3901,7 @@ function gspRenderTagSuggestions(){
   el.innerHTML='';
   getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t)).forEach(tag=>{
     const btn=document.createElement('button');btn.type='button';btn.className='tag-suggestion';btn.textContent='+ '+tag;
-    btn.addEventListener('click',()=>{if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
+    btn.addEventListener('mousedown',e=>{e.preventDefault();if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
     el.appendChild(btn);
   });
 }
@@ -4449,14 +4346,7 @@ document.querySelectorAll('.gantt-group-btn').forEach(btn=>{
   });
 });
 document.getElementById('gantt-search-input').addEventListener('input',e=>{
-  ganttSearchQuery=e.target.value.trim();
-  document.getElementById('gantt-search-input-clear').classList.toggle('visible', !!ganttSearchQuery);
-  renderGantt();
-});
-document.getElementById('gantt-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('gantt-search-input'); inp.value=''; ganttSearchQuery='';
-  document.getElementById('gantt-search-input-clear').classList.remove('visible');
-  renderGantt();
+  ganttSearchQuery=e.target.value.trim(); renderGantt();
 });
 document.getElementById('gantt-toggle-wrap').addEventListener('click',()=>{
   ganttHideDone=!ganttHideDone;
@@ -4584,14 +4474,15 @@ function showGanttContextMenu(task, x, y) {
 // PANEL FLUJO
 // ══════════════════════════════════════════════════════════════
 
-let flujoHideDone  = true;
-let flujoSearch    = '';
-let flujoCy        = null;
-let flujoConnMode  = false;
-let flujoConnSrc   = null;
+let flujoHideDone    = true;
+let flujoSearch      = '';
+let flujoCy          = null;
+let flujoConnMode    = false;
+let flujoConnSrc     = null;
 let flujoShowNoLabel = false;
-let flujoTagFilter  = []; // array de etiquetas seleccionadas; vacío = todas
+let flujoTagFilter   = []; // vacío = todas las etiquetas
 
+// ── Color helpers ────────────────────────────────────────────
 function flujoNodeBg(task) {
   if (task.status === 'done') return '#1a2e1f';
   return task.priority === 'high' ? '#2a1212' : '#122030';
@@ -4604,6 +4495,7 @@ function flujoNodeText(task) {
   return task.status === 'done' ? '#4a7a5a' : '#d8dae8';
 }
 
+// ── Popover mini ─────────────────────────────────────────────
 let flujoPopover = null;
 function closeFlujoPopover() {
   if (flujoPopover) { flujoPopover.remove(); flujoPopover = null; }
@@ -4615,7 +4507,6 @@ function showFlujoPopover(task, renderedPos) {
   pop.style.cssText = 'position:fixed;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;align-items:center;gap:4px;padding:5px 8px;z-index:900;pointer-events:all';
   const isDone = task.status === 'done';
 
-  // Botón completar
   const chk = document.createElement('button');
   chk.title = isDone ? 'Marcar pendiente' : 'Marcar completada';
   chk.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1.5px solid '+(isDone?'var(--green)':'var(--border-hi)')+';background:'+(isDone?'var(--green)':'transparent')+';color:var(--bg);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans)';
@@ -4626,32 +4517,22 @@ function showFlujoPopover(task, renderedPos) {
     try { await db.collection('tasks').doc(task.id).update({status:newStatus, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); closeFlujoPopover(); } catch(err) { showToast('Error.','err'); }
   });
 
-  // Botón editar
   const editBtn = document.createElement('button');
   editBtn.title = 'Editar tarea';
   editBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
   editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   editBtn.addEventListener('mouseenter', () => { editBtn.style.color='var(--amber)'; editBtn.style.borderColor='var(--amber)'; });
   editBtn.addEventListener('mouseleave', () => { editBtn.style.color='var(--text-dim)'; editBtn.style.borderColor='var(--border)'; });
-  editBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    closeFlujoPopover();
-    openModal(task);
-  });
+  editBtn.addEventListener('click', e => { e.stopPropagation(); closeFlujoPopover(); openModal(task); });
 
-  // Botón etiquetas
   const tagBtn = document.createElement('button');
   tagBtn.title = 'Cambiar etiquetas';
   tagBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;';
   tagBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
   tagBtn.addEventListener('mouseenter', () => { tagBtn.style.color='var(--amber)'; tagBtn.style.borderColor='var(--amber)'; });
   tagBtn.addEventListener('mouseleave', () => { tagBtn.style.color='var(--text-dim)'; tagBtn.style.borderColor='var(--border)'; });
-  tagBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    showFlujoTagDropdown(task, tagBtn);
-  });
+  tagBtn.addEventListener('click', e => { e.stopPropagation(); showFlujoTagDropdown(task, tagBtn); });
 
-  // Botón eliminar
   const delBtn = document.createElement('button');
   delBtn.title = 'Eliminar tarea';
   delBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
@@ -4674,183 +4555,177 @@ function showFlujoPopover(task, renderedPos) {
   let top  = renderedPos.y - ph - 10;
   if (left < 8) left = 8;
   if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
-  if (top < 8) top = renderedPos.y + 26;
-  pop.style.left = left+'px';
-  pop.style.top  = top+'px';
+  if (top < 8) top = renderedPos.y + 10;
+  pop.style.left = left + 'px';
+  pop.style.top  = top  + 'px';
 
   setTimeout(() => {
-    document.addEventListener('click', function _c(e) {
-      if (!pop.contains(e.target)) { closeFlujoPopover(); document.removeEventListener('click',_c); }
-    });
-  }, 0);
+    const outside = e => { if (!pop.contains(e.target)) { closeFlujoPopover(); document.removeEventListener('mousedown', outside); } };
+    document.addEventListener('mousedown', outside);
+  }, 50);
 }
 
 function showFlujoTagDropdown(task, anchorEl) {
-  // Cerrar cualquier dropdown previo
-  const prev = document.getElementById('flujo-tag-dropdown');
-  if (prev) { prev.remove(); if (prev._task === task.id) return; }
-
+  const existing = document.getElementById('flujo-tag-dropdown-pop');
+  if (existing) { existing.remove(); return; }
   const allTags = getAllTags();
-  const currentTaskTags = new Set(task.tags || []);
-
-  const dd = document.createElement('div');
-  dd.id = '_flujo-tag-dropdown';
-  dd._task = task.id;
-  dd.style.cssText = 'position:fixed;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius);box-shadow:var(--shadow);z-index:910;min-width:160px;max-width:220px;padding:6px 0;';
-
-  if (allTags.length === 0) {
-    const empty = document.createElement('div');
-    empty.style.cssText = 'padding:8px 14px;font-size:12px;color:var(--text-faint);';
-    empty.textContent = 'No hay etiquetas creadas';
-    dd.appendChild(empty);
-  } else {
-    allTags.forEach(tag => {
-      const row = document.createElement('button');
-      const active = currentTaskTags.has(tag);
-      row.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:7px 14px;background:none;border:none;color:var(--text);font-size:13px;cursor:pointer;text-align:left;transition:background .1s;';
-      row.innerHTML = '<span style="width:14px;height:14px;border-radius:3px;border:1.5px solid '+(active?'var(--amber)':'var(--border-hi)')+';background:'+(active?'var(--amber)':'transparent')+';display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+(active?'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</span>'
-        + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(tag)+'</span>';
-      row.addEventListener('mouseenter', () => row.style.background = 'var(--surface-2)');
-      row.addEventListener('mouseleave', () => row.style.background = 'none');
-      row.addEventListener('click', async e => {
-        e.stopPropagation();
-        const newTags = active
-          ? (task.tags || []).filter(t => t !== tag)
-          : [...(task.tags || []), tag];
-        dd.remove();
-        try {
-          await db.collection('tasks').doc(task.id).update({ tags: newTags, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-          showToast(active ? 'Etiqueta quitada.' : 'Etiqueta asignada.', 'ok');
-        } catch(err) { showToast('Error.', 'err'); }
-      });
-      dd.appendChild(row);
-    });
-    // Separador + nueva etiqueta
-    const sep = document.createElement('div');
-    sep.style.cssText = 'height:1px;background:var(--border);margin:4px 0;';
-    dd.appendChild(sep);
-    const newTagBtn = document.createElement('button');
-    newTagBtn.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:7px 14px;background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;text-align:left;';
-    newTagBtn.textContent = '＋ Nueva etiqueta…';
-    newTagBtn.addEventListener('mouseenter', () => newTagBtn.style.background = 'var(--surface-2)');
-    newTagBtn.addEventListener('mouseleave', () => newTagBtn.style.background = 'none');
-    newTagBtn.addEventListener('click', e => {
+  const pop = document.createElement('div');
+  pop.id = 'flujo-tag-dropdown-pop';
+  pop.style.cssText = 'position:fixed;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius);box-shadow:var(--shadow);padding:6px 0;z-index:950;min-width:160px;max-height:200px;overflow-y:auto;';
+  allTags.forEach(tag => {
+    const isOn = (task.tags||[]).includes(tag);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 12px;cursor:pointer;font-size:12px;color:var(--text-dim);transition:background .1s;';
+    row.innerHTML = '<span style="width:12px;height:12px;border-radius:2px;border:1.5px solid var(--border-hi);background:'+(isOn?'var(--amber)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;">'+(isOn?'<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</span>#'+tag;
+    row.addEventListener('mouseenter', () => row.style.background='var(--surface-2)');
+    row.addEventListener('mouseleave', () => row.style.background='');
+    row.addEventListener('click', async e => {
       e.stopPropagation();
-      dd.remove();
-      closeFlujoPopover();
-      openModal(task);
-      // Abrir sección avanzada después de que se abra el modal
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          const advBody = document.getElementById('modal-adv-body');
-          const advToggle = document.getElementById('modal-adv-toggle');
-          if (advBody && advBody.classList.contains('hidden') && advToggle) advToggle.click();
-          setTimeout(() => {
-            const tagInput = document.getElementById('tags-input');
-            if (tagInput) { tagInput.scrollIntoView({ behavior:'smooth', block:'center' }); tagInput.focus(); }
-          }, 120);
-        }, 80);
-      });
+      const cur = Array.isArray(task.tags) ? [...task.tags] : [];
+      const idx = cur.indexOf(tag);
+      if (idx >= 0) cur.splice(idx,1); else cur.push(tag);
+      try { await db.collection('tasks').doc(task.id).update({tags:cur, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); pop.remove(); } catch(err) { showToast('Error.','err'); }
     });
-    dd.appendChild(newTagBtn);
-  }
-
-  document.body.appendChild(dd);
-
-  // Posicionar debajo del ancla
+    pop.appendChild(row);
+  });
+  document.body.appendChild(pop);
   const rect = anchorEl.getBoundingClientRect();
-  const ddW = 180;
-  let left = rect.left;
-  let top  = rect.bottom + 4;
-  if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
-  if (top + 200 > window.innerHeight - 8) top = rect.top - 200;
-  dd.style.left = left + 'px';
-  dd.style.top  = top + 'px';
-
+  pop.style.left = rect.left + 'px';
+  pop.style.top  = (rect.bottom + 4) + 'px';
   setTimeout(() => {
-    document.addEventListener('click', function _c(e) {
-      if (!dd.contains(e.target)) { dd.remove(); document.removeEventListener('click', _c); }
-    });
-  }, 0);
+    const outside = e => { if (!pop.contains(e.target) && e.target !== anchorEl) { pop.remove(); document.removeEventListener('mousedown', outside); } };
+    document.addEventListener('mousedown', outside);
+  }, 50);
 }
 
-function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter) {
-  const els = [];
-  const q = search.trim().toLowerCase();
-  const visible = taskList.filter(t => {
-    if (hideDone && t.status === 'done') return false;
-    if (!showNoLabel && (!t.tags || t.tags.length === 0)) return false;
-    if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
-    if (tagFilter && tagFilter.length > 0) {
-      const tTags = t.tags || [];
-      if (!tagFilter.some(f => tTags.includes(f))) return false;
-    }
-    return true;
-  });
-  const labelSet = new Set();
-  visible.forEach(t => {
-    if (t.tags && t.tags.length > 0) t.tags.forEach(tag => labelSet.add(tag));
-    else labelSet.add('__none__');
-  });
-  labelSet.forEach(lbl => {
-    els.push({ data: { id:'root::'+lbl, label: lbl==='__none__' ? 'Sin etiqueta' : lbl, nodeType:'root' }});
-  });
-  visible.forEach(t => {
-    const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
-    lbls.forEach(lbl => {
-      const nid = t.id+'::'+lbl;
-      els.push({ data: { id:nid, taskId:t.id, labelKey:lbl, label:t.title, status:t.status, priority:t.priority, type:t.type, nodeType:'task', bgColor:flujoNodeBg(t), borderColor:flujoNodeBorder(t), textColor:flujoNodeText(t), borderStyle:t.type==='strategic'?'solid':'dashed' }});
-      els.push({ data: { id:'e-r-'+nid, source:'root::'+lbl, target:nid, edgeType:'root' }});
-    });
-  });
-  visible.forEach(t => {
-    if (!t.dependencies || !t.dependencies.length) return;
-    const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
-    lbls.forEach(lbl => {
-      const tgt = t.id+'::'+lbl;
-      t.dependencies.forEach(depId => {
-        const depTask = taskList.find(x => x.id === depId);
-        if (!depTask) return;
-        const depLbls = (depTask.tags && depTask.tags.length > 0) ? depTask.tags : ['__none__'];
-        if (!depLbls.includes(lbl)) return;
-        const src = depId+'::'+lbl;
-        els.push({ data: { id:'e-d-'+src+'->'+tgt, source:src, target:tgt, edgeType:'dep' }});
-      });
-    });
-  });
-  return els;
-}
-
-function flujoStylesheet() {
-  return [
-    { selector:'node[nodeType="root"]', style:{ 'background-color':'#1e1600','border-color':'#f0a500','border-width':2,'color':'#f0a500','label':'data(label)','font-family':'Space Mono, monospace','font-size':11,'font-weight':700,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'12px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':130 }},
-    { selector:'node[nodeType="task"]', style:{ 'background-color':'data(bgColor)','border-color':'data(borderColor)','border-width':2,'border-style':'data(borderStyle)','color':'data(textColor)','label':'data(label)','font-family':'DM Sans, sans-serif','font-size':11,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'9px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':150 }},
-    { selector:'node[nodeType="task"][status="done"]', style:{ 'opacity':0.55 }},
-    { selector:'node:selected', style:{ 'border-color':'#f0a500','border-width':3 }},
-    { selector:'edge[edgeType="root"]', style:{ 'line-color':'#2a2f3a','width':1.5,'target-arrow-color':'#2a2f3a','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8 }},
-    { selector:'edge[edgeType="dep"]', style:{ 'line-color':'#f0a500','line-style':'dashed','line-dash-pattern':[6,3],'width':1.5,'target-arrow-color':'#f0a500','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8,'opacity':0.75 }},
-    { selector:'.conn-source', style:{ 'border-color':'#f0a500','border-width':3 }},
-    { selector:'.conn-hover',  style:{ 'border-color':'#3eb87a','border-width':3 }}
-  ];
-}
-
+// ── Enter / exit conn mode ────────────────────────────────────
 function enterConnMode(srcNode) {
   flujoConnMode = true;
   flujoConnSrc  = srcNode;
   srcNode.addClass('conn-source');
   document.getElementById('flujo-cy').style.cursor = 'crosshair';
-  showToast('Solt\u00e1 sobre otra tarea para crear dependencia. Esc para cancelar.','ok');
 }
-
 function exitConnMode() {
-  if (!flujoConnMode) return;
-  flujoConnMode = false;
   if (flujoConnSrc) { flujoConnSrc.removeClass('conn-source'); flujoConnSrc = null; }
-  if (flujoCy) flujoCy.nodes().removeClass('conn-hover');
+  flujoConnMode = false;
   const cy = document.getElementById('flujo-cy');
   if (cy) cy.style.cursor = '';
 }
 
+// ── Cytoscape stylesheet ──────────────────────────────────────
+function flujoStylesheet() {
+  return [
+    { selector:'node[nodeType="root"]', style:{ 'background-color':'#1e1600','border-color':'#f0a500','border-width':2,'color':'#f0a500','label':'data(label)','font-family':'Space Mono, monospace','font-size':11,'font-weight':700,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'12px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':130 }},
+    { selector:'node[nodeType="task"]', style:{ 'background-color':'data(bgColor)','border-color':'data(borderColor)','border-width':2,'border-style':'data(borderStyle)','color':'data(textColor)','label':'data(label)','font-family':'DM Sans, sans-serif','font-size':11,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'9px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':150 }},
+    { selector:'node[nodeType="task"][status="done"]', style:{ 'opacity':0.55 }},
+    { selector:'node[nodeType="task"][hasDeps="yes"]', style:{ 'label':'data(labelWithIcon)' }},
+    { selector:'node:selected', style:{ 'border-color':'#f0a500','border-width':3 }},
+    { selector:'edge[edgeType="root"]', style:{ 'line-color':'#2a2f3a','width':1.5,'target-arrow-color':'#2a2f3a','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8 }},
+    { selector:'.conn-source', style:{ 'border-color':'#f0a500','border-width':3 }},
+    { selector:'.conn-hover',  style:{ 'border-color':'#3eb87a','border-width':3 }}
+  ];
+}
+
+// ── Quadrant layout helpers ───────────────────────────────────
+function flujoQuadrantGrid(n) {
+  // Returns {cols, rows} for n quadrants
+  if (n <= 1) return {cols:1, rows:1};
+  if (n === 2) return {cols:2, rows:1};
+  if (n === 3) return {cols:3, rows:1};
+  if (n === 4) return {cols:2, rows:2};
+  if (n <= 6) return {cols:3, rows:2};
+  if (n <= 9) return {cols:3, rows:3};
+  return {cols:4, rows:Math.ceil(n/4)};
+}
+
+function buildFlujoQuadrantElements(taskList, search, hideDone, tagFilter) {
+  const q = search.trim().toLowerCase();
+
+  // Determine which tags to show
+  const allTagsInData = new Set();
+  taskList.forEach(t => { if (t.tags && t.tags.length) t.tags.forEach(tag => allTagsInData.add(tag)); });
+  const activeTags = (tagFilter && tagFilter.length > 0)
+    ? tagFilter.filter(t => allTagsInData.has(t))
+    : [...allTagsInData];
+
+  if (activeTags.length === 0) return [];
+
+  const taskHasDeps = id => {
+    const t = taskList.find(x => x.id === id);
+    return t && t.dependencies && t.dependencies.length > 0;
+  };
+  const taskIsDependedOn = id => taskList.some(t => (t.dependencies||[]).includes(id));
+
+  const grid = flujoQuadrantGrid(activeTags.length);
+  const QUAD_W = 600;
+  const QUAD_H = 500;
+  const GAP_X  = 80;
+  const GAP_Y  = 80;
+
+  const elements = [];
+  const savedPositions = (() => {
+    try { return JSON.parse(localStorage.getItem('plordico_flujo_positions') || '{}'); } catch(e) { return {}; }
+  })();
+
+  activeTags.forEach((tag, idx) => {
+    const col = idx % grid.cols;
+    const row = Math.floor(idx / grid.cols);
+    const qx  = col * (QUAD_W + GAP_X);
+    const qy  = row * (QUAD_H + GAP_Y);
+    const cx  = qx + QUAD_W / 2;
+    const cy  = qy + QUAD_H / 2;
+
+    // Root label node (center of quadrant)
+    const rootId = 'root::' + tag;
+    elements.push({
+      data: { id: rootId, label: tag, nodeType: 'root', quadTag: tag },
+      position: savedPositions[rootId] || { x: cx, y: cy }
+    });
+
+    // Tasks for this tag
+    const tagTasks = taskList.filter(t => {
+      if (hideDone && t.status === 'done') return false;
+      if (!(t.tags||[]).includes(tag)) return false;
+      if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    tagTasks.forEach((t, ti) => {
+      const nid = t.id + '::' + tag;
+      const hasDeps = taskHasDeps(t.id) || taskIsDependedOn(t.id);
+      const labelWithIcon = hasDeps ? t.title + '\n🔗' : t.title;
+
+      // Default spiral position around root if no saved position
+      const angle  = (2 * Math.PI * ti) / Math.max(tagTasks.length, 1);
+      const radius = 120 + Math.floor(ti / 8) * 80;
+      const defX   = cx + radius * Math.cos(angle);
+      const defY   = cy + radius * Math.sin(angle);
+
+      elements.push({
+        data: {
+          id: nid, taskId: t.id, labelKey: tag,
+          label: t.title, labelWithIcon,
+          hasDeps: hasDeps ? 'yes' : 'no',
+          status: t.status, priority: t.priority, type: t.type,
+          nodeType: 'task',
+          bgColor: flujoNodeBg(t),
+          borderColor: flujoNodeBorder(t),
+          textColor: flujoNodeText(t),
+          borderStyle: t.type === 'strategic' ? 'solid' : 'dashed',
+          quadTag: tag
+        },
+        position: savedPositions[nid] || { x: defX, y: defY }
+      });
+
+      // Edge: root → task
+      elements.push({ data: { id: 'e-r-'+nid, source: rootId, target: nid, edgeType: 'root' } });
+    });
+  });
+
+  return elements;
+}
+
+// ── Main render ───────────────────────────────────────────────
 function renderFlujo() {
   const container = document.getElementById('flujo-cy');
   const emptyDiv  = document.getElementById('flujo-empty');
@@ -4860,26 +4735,22 @@ function renderFlujo() {
   closeFlujoPopover();
   if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
 
-  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoShowNoLabel, flujoTagFilter);
+  const elements = buildFlujoQuadrantElements(tasks, flujoSearch, flujoHideDone, flujoTagFilter);
   const taskNodes = elements.filter(el => el.data && el.data.nodeType === 'task');
 
   if (taskNodes.length === 0) {
     container.style.display = 'none';
     emptyDiv.style.display  = 'flex';
+    renderFlujoNoLabelPanel();
     return;
   }
   container.style.display = 'block';
   emptyDiv.style.display  = 'none';
 
-  // Si el contenedor aún no tiene dimensiones, esperar al siguiente frame con tamaño real
   if (container.offsetHeight === 0) {
     const ro = new ResizeObserver((entries, obs) => {
       for (const entry of entries) {
-        if (entry.contentRect.height > 0) {
-          obs.disconnect();
-          renderFlujo();
-          break;
-        }
+        if (entry.contentRect.height > 0) { obs.disconnect(); renderFlujo(); break; }
       }
     });
     ro.observe(container);
@@ -4890,44 +4761,26 @@ function renderFlujo() {
     container,
     elements,
     style: flujoStylesheet(),
-    layout: { name:'breadthfirst', directed:true, padding:40, spacingFactor:1.5, avoidOverlap:true },
+    layout: { name: 'preset' },
     userZoomingEnabled: true,
     userPanningEnabled: true,
-    minZoom: 0.15, maxZoom: 3
-  });
-
-  // Restaurar posiciones guardadas (si existen)
-  try {
-    const saved = localStorage.getItem('plordico_flujo_positions');
-    if (saved) {
-      const positions = JSON.parse(saved);
-      let restored = 0;
-      flujoCy.nodes().forEach(node => {
-        if (positions[node.id()]) {
-          node.position(positions[node.id()]);
-          restored++;
-        }
-      });
-      if (restored > 0) {
-        flujoCy.fit(undefined, 40);
-      }
-    }
-  } catch(e) { /* silencioso */ }
-
-  // Guardar posiciones al soltar un nodo
-  flujoCy.on('free', 'node', function() {
-    try {
-      const positions = {};
-      flujoCy.nodes().forEach(node => { positions[node.id()] = node.position(); });
-      localStorage.setItem('plordico_flujo_positions', JSON.stringify(positions));
-    } catch(e) { /* silencioso */ }
+    minZoom: 0.08, maxZoom: 3
   });
 
   flujoCy.resize();
-  flujoCy.fit(undefined, 40);
-  // Segunda pasada por si el primer frame aún no tenía dimensiones
-  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
+  flujoCy.fit(undefined, 60);
+  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 60); } });
 
+  // Save positions on drag
+  flujoCy.on('free', 'node', function() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('plordico_flujo_positions') || '{}');
+      flujoCy.nodes().forEach(node => { saved[node.id()] = node.position(); });
+      localStorage.setItem('plordico_flujo_positions', JSON.stringify(saved));
+    } catch(e) { /* silencioso */ }
+  });
+
+  // Tap task node
   flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
     if (flujoConnMode) {
       const tgtNode   = evt.target;
@@ -4941,7 +4794,7 @@ function renderFlujo() {
       const deps = Array.isArray(tgtTask.dependencies) ? [...tgtTask.dependencies] : [];
       if (!deps.includes(srcTaskId)) {
         deps.push(srcTaskId);
-        db.collection('tasks').doc(tgtTaskId).update({ dependencies:deps, updatedAt:firebase.firestore.FieldValue.serverTimestamp() })
+        db.collection('tasks').doc(tgtTaskId).update({ dependencies: deps, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
           .then(() => showToast('Dependencia creada.','ok'))
           .catch(() => showToast('Error.','err'));
       }
@@ -4962,17 +4815,16 @@ function renderFlujo() {
     evt.target.removeClass('conn-hover');
   });
 
+  // Right-click task → enter conn mode
   flujoCy.on('cxttap', 'node[nodeType="task"]', function(evt) {
     if (flujoConnMode) { exitConnMode(); return; }
     enterConnMode(evt.target);
   });
 
-  // Tap en nodo raíz → nueva tarea con esa etiqueta preseleccionada
+  // Tap root → new task with that tag
   flujoCy.on('tap', 'node[nodeType="root"]', function(evt) {
     const lbl = evt.target.data('label');
-    const tag = (lbl === 'Sin etiqueta') ? null : lbl;
-    // Abre el modal de nueva tarea con la etiqueta pre-rellenada
-    openModal(null, tag ? [tag] : []);
+    openModal(null, lbl ? [lbl] : []);
   });
 
   flujoCy.on('tap', function(evt) {
@@ -4989,44 +4841,15 @@ function renderFlujo() {
   };
   document.addEventListener('keydown', escFlujo);
 
+  renderFlujoNoLabelPanel();
 }
 
+// ── No-label panel ────────────────────────────────────────────
 document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
   flujoShowNoLabel = !flujoShowNoLabel;
   document.getElementById('flujo-nolabel-switch').className = 'toggle-switch' + (flujoShowNoLabel ? ' on' : '');
   renderFlujoNoLabelPanel();
 });
-
-function renderFlujoTagFilter() {
-  const wrap = document.getElementById('flujo-tag-filter');
-  if (!wrap) return;
-  const allTags = getAllTags();
-  wrap.innerHTML = '';
-  if (allTags.length === 0) return;
-  // Chip "Todas"
-  const allChip = document.createElement('button');
-  allChip.className = 'flujo-tag-chip' + (flujoTagFilter.length === 0 ? ' active' : '');
-  allChip.textContent = 'Todas';
-  allChip.addEventListener('click', () => {
-    flujoTagFilter = [];
-    renderFlujoTagFilter();
-    renderFlujo();
-  });
-  wrap.appendChild(allChip);
-  allTags.forEach(tag => {
-    const chip = document.createElement('button');
-    chip.className = 'flujo-tag-chip' + (flujoTagFilter.includes(tag) ? ' active' : '');
-    chip.textContent = '# ' + tag;
-    chip.addEventListener('click', () => {
-      const idx = flujoTagFilter.indexOf(tag);
-      if (idx >= 0) flujoTagFilter.splice(idx, 1);
-      else flujoTagFilter.push(tag);
-      renderFlujoTagFilter();
-      renderFlujo();
-    });
-    wrap.appendChild(chip);
-  });
-}
 
 function renderFlujoNoLabelPanel() {
   const panel = document.getElementById('flujo-nolabel-panel');
@@ -5035,7 +4858,6 @@ function renderFlujoNoLabelPanel() {
 
   if (!flujoShowNoLabel) { panel.style.display = 'none'; return; }
 
-  // Tareas sin etiqueta, respetando el filtro hideDone y búsqueda
   const q = flujoSearch.trim().toLowerCase();
   const unlabeled = tasks.filter(t => {
     if (!t.tags || t.tags.length === 0) {
@@ -5057,7 +4879,6 @@ function renderFlujoNoLabelPanel() {
       row.addEventListener('mouseenter', () => row.style.borderColor = 'var(--border-hi)');
       row.addEventListener('mouseleave', () => row.style.borderColor = 'var(--border)');
 
-      // Checkbox
       const chk = document.createElement('div');
       chk.style.cssText = 'width:16px;height:16px;border-radius:3px;border:1.5px solid '+(isDone?'var(--green)':'var(--border-hi)')+';background:'+(isDone?'var(--green)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;';
       chk.innerHTML = isDone ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '';
@@ -5067,17 +4888,14 @@ function renderFlujoNoLabelPanel() {
         await db.collection('tasks').doc(t.id).update({ status: newStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => showToast('Error.','err'));
       });
 
-      // Título
       const title = document.createElement('span');
       title.style.cssText = 'flex:1;font-size:13px;color:var(--text);' + (isDone ? 'text-decoration:line-through;color:var(--text-faint);' : '');
       title.textContent = t.title;
 
-      // Prioridad pill
       const pill = document.createElement('span');
       pill.style.cssText = 'font-size:10px;padding:2px 6px;border-radius:10px;flex-shrink:0;background:'+(t.priority==='high'?'rgba(229,57,53,.18)':'rgba(66,133,244,.18)')+';color:'+(t.priority==='high'?'var(--red)':'var(--blue)')+';';
       pill.textContent = t.priority === 'high' ? 'Alta' : 'Baja';
 
-      // Botón editar
       const editBtn = document.createElement('button');
       editBtn.title = 'Editar';
       editBtn.style.cssText = 'width:20px;height:20px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:3px;';
@@ -5092,9 +4910,10 @@ function renderFlujoNoLabelPanel() {
   panel.style.display = 'block';
 }
 
+// ── Toolbar toggles ───────────────────────────────────────────
 document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
   flujoHideDone = !flujoHideDone;
-  document.getElementById('flujo-toggle-switch').className = 'toggle-switch'+(!flujoHideDone?' on':'');
+  document.getElementById('flujo-toggle-switch').className = 'toggle-switch' + (!flujoHideDone ? ' on' : '');
   document.getElementById('flujo-toggle-label').textContent = !flujoHideDone ? 'Ocultar completadas' : 'Mostrar completadas';
   renderFlujo();
 });
@@ -5104,12 +4923,81 @@ document.getElementById('flujo-search-input').addEventListener('input', e => {
   document.getElementById('flujo-search-input-clear').classList.toggle('visible', !!flujoSearch);
   renderFlujo();
 });
-document.getElementById('flujo-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('flujo-search-input'); inp.value=''; flujoSearch='';
+document.getElementById('flujo-search-input-clear').addEventListener('click', () => {
+  document.getElementById('flujo-search-input').value = '';
+  flujoSearch = '';
   document.getElementById('flujo-search-input-clear').classList.remove('visible');
   renderFlujo();
 });
 
+// ── Tag filter dropdown ───────────────────────────────────────
+function renderFlujoFilterDropdown() {
+  const list = document.getElementById('flujo-filter-tag-list');
+  if (!list) return;
+  const allTags = getAllTags();
+  list.innerHTML = '';
+  allTags.forEach(tag => {
+    const isOn = flujoTagFilter.includes(tag);
+    const row  = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:4px 2px;cursor:pointer;font-size:12px;color:' + (isOn ? 'var(--amber)' : 'var(--text-dim)') + ';border-radius:4px;transition:color .1s;';
+    row.innerHTML = '<span style="width:13px;height:13px;border-radius:2px;border:1.5px solid '+(isOn?'var(--amber)':'var(--border-hi)')+';background:'+(isOn?'var(--amber)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;">'+(isOn?'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</span><span>#'+tag+'</span>';
+    row.addEventListener('click', () => {
+      const idx = flujoTagFilter.indexOf(tag);
+      if (idx >= 0) flujoTagFilter.splice(idx, 1); else flujoTagFilter.push(tag);
+      updateFlujoFilterBadge();
+      renderFlujoFilterDropdown();
+      renderFlujo();
+    });
+    list.appendChild(row);
+  });
+}
+
+function updateFlujoFilterBadge() {
+  const badge = document.getElementById('flujo-filter-badge');
+  if (!badge) return;
+  if (flujoTagFilter.length > 0) {
+    badge.textContent = flujoTagFilter.length;
+    badge.classList.remove('hidden');
+    document.getElementById('flujo-filter-btn').style.color = 'var(--amber)';
+    document.getElementById('flujo-filter-btn').style.borderColor = 'var(--amber)';
+  } else {
+    badge.classList.add('hidden');
+    document.getElementById('flujo-filter-btn').style.color = '';
+    document.getElementById('flujo-filter-btn').style.borderColor = '';
+  }
+}
+
+document.getElementById('flujo-filter-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  const dd = document.getElementById('flujo-filter-dropdown');
+  const isOpen = dd.style.display !== 'none';
+  dd.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) renderFlujoFilterDropdown();
+});
+
+document.getElementById('flujo-filter-all').addEventListener('click', () => {
+  flujoTagFilter = [...getAllTags()];
+  updateFlujoFilterBadge();
+  renderFlujoFilterDropdown();
+  renderFlujo();
+});
+
+document.getElementById('flujo-filter-none-btn').addEventListener('click', () => {
+  flujoTagFilter = [];
+  updateFlujoFilterBadge();
+  renderFlujoFilterDropdown();
+  renderFlujo();
+});
+
+document.addEventListener('click', e => {
+  const dd  = document.getElementById('flujo-filter-dropdown');
+  const btn = document.getElementById('flujo-filter-btn');
+  if (dd && !dd.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
+
+// ── FAB handlers ──────────────────────────────────────────────
 document.getElementById('fab-new-flujo').addEventListener('click', () => {
   openModal(null);
 });
@@ -5117,12 +5005,9 @@ document.getElementById('fab-new-flujo').addEventListener('click', () => {
 document.getElementById('fab-new-tag-flujo').addEventListener('click', () => {
   openModal(null);
   requestAnimationFrame(() => {
-    // Expandir sección avanzada si está cerrada
-    const advBody = document.getElementById('modal-adv-body');
+    const advBody   = document.getElementById('modal-adv-body');
     const advToggle = document.getElementById('modal-adv-toggle');
-    if (advBody && advBody.classList.contains('hidden') && advToggle) {
-      advToggle.click();
-    }
+    if (advBody && advBody.classList.contains('hidden') && advToggle) advToggle.click();
     setTimeout(() => {
       const tagInput = document.getElementById('tags-input');
       if (tagInput) { tagInput.scrollIntoView({behavior:'smooth', block:'center'}); tagInput.focus(); }
