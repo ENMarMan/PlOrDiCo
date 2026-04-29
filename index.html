@@ -106,21 +106,10 @@
     .sort-btn:hover { border-color: var(--border-hi); color: var(--text); }
     .sort-btn.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
     .search-wrap { position: relative; }
-    .search-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 28px 6px 30px; color: var(--text); font-size: 13px; width: 170px; transition: var(--tr); }
+    .search-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px 6px 30px; color: var(--text); font-size: 13px; width: 170px; transition: var(--tr); }
     .search-input:focus { outline: none; border-color: var(--amber); width: 210px; }
     .search-input::placeholder { color: var(--text-faint); }
     .search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; }
-    .search-clear { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px; display: none; border-radius: 50%; transition: var(--tr); }
-    .search-clear:hover { color: var(--text); background: var(--surface-3); }
-    .search-clear.visible { display: flex; align-items: center; justify-content: center; }
-    .sort-btn-today { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; transition: var(--tr); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); margin-left: 4px; }
-    .sort-btn-today:hover { border-color: var(--amber); color: var(--amber); }
-    .sort-btn-today.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
-    .flujo-tag-filter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .flujo-tag-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; cursor: pointer; transition: var(--tr); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
-    .flujo-tag-chip:hover { border-color: var(--border-hi); color: var(--text); }
-    .flujo-tag-chip.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
-    .flujo-tag-chip-clear { background: var(--surface-3); border-color: var(--border-hi); color: var(--text-dim); font-size: 10px; }
     .task-list-scroll { flex: 1; overflow-y: auto; padding: 14px 20px 80px; min-width: 0; }
     .task-list-scroll::-webkit-scrollbar { width: 4px; }
     .task-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -267,7 +256,8 @@
     .card-btn-delete { width: 24px; height: 24px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-faint); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
     .card-btn-delete:hover { border-color: var(--red-dim); color: var(--red); background: var(--red-glow); }
     /* Tag suggestions en modal */
-    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .tag-suggestions { display:none; flex-wrap:wrap; gap:4px; margin-top:4px; padding:6px 8px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); max-height:88px; overflow-y:auto; }
+    .tag-suggestions.open { display:flex; }
     .tag-suggestion { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface-3); border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer; transition: var(--tr); }
     .tag-suggestion:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
 
@@ -420,6 +410,9 @@
     .cal-task.t-overdue { background: var(--red-dim); }
     .cal-task.t-overdue .cal-task-title { color: var(--red); }
     .cal-task.t-recurrent { background: var(--surface-3); }
+    .cal-task.dragging { opacity: .3; pointer-events: none; }
+    .cal-day-cell.drag-over { outline: 2px solid var(--amber); background: var(--amber-glow); }
+    #cal-drag-ghost { position:fixed; pointer-events:none; z-index:9999; background:var(--surface); border:1px solid var(--amber); border-radius:4px; padding:3px 7px; font-size:11px; color:var(--text); box-shadow:0 4px 16px rgba(0,0,0,.4); opacity:.9; max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .cal-task-accent { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 10px; }
     .cal-task-check { width: 11px; height: 11px; border-radius: 2px; border: 1.5px solid var(--border-hi); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
     .cal-task-check:hover { border-color: var(--green); }
@@ -480,26 +473,26 @@
     @media (max-width: 720px) { .list-split-right.open { width: 100%; top: 94px; } }
 
     /* MENÚ CONTEXTUAL */
-    .ctx-menu { position: fixed; z-index: 800; background: var(--surface); border: 1px solid var(--border-hi); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,.55); min-width: 188px; max-width: 220px; padding: 4px 0; animation: ctxIn .12s ease; overflow: visible; }
+    .ctx-menu { position: fixed; z-index: 800; background: var(--surface); border: 1px solid var(--border-hi); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,.55); min-width: 200px; padding: 6px 0; animation: ctxIn .12s ease; overflow: visible; }
     @keyframes ctxIn { from { opacity:0; transform: scale(.96); } to { opacity:1; transform: scale(1); } }
-    .ctx-section { padding: 2px 0; border-bottom: 1px solid var(--border); }
+    .ctx-section { padding: 4px 0; border-bottom: 1px solid var(--border); }
     .ctx-section:last-child { border-bottom: none; }
-    .ctx-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); padding: 4px 12px 2px; }
-    .ctx-item { display: flex; align-items: center; gap: 7px; width: 100%; padding: 5px 12px; background: none; border: none; color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
+    .ctx-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); padding: 6px 14px 2px; }
+    .ctx-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 14px; background: none; border: none; color: var(--text-dim); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
     .ctx-item:hover { background: var(--surface-2); color: var(--text); }
     .ctx-item.active { color: var(--amber); }
-    .ctx-item svg { width: 12px; height: 12px; flex-shrink: 0; color: var(--text-faint); }
+    .ctx-item svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--text-faint); }
     .ctx-item:hover svg { color: var(--text-dim); }
     .ctx-item.active svg { color: var(--amber); }
-    .ctx-date-wrap { padding: 4px 12px 5px; }
-    .ctx-date-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 8px; color: var(--text); font-size: 12px; font-family: var(--sans); width: 100%; transition: var(--tr); }
+    .ctx-date-wrap { padding: 6px 14px 8px; }
+    .ctx-date-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 9px; color: var(--text); font-size: 13px; font-family: var(--sans); width: 100%; transition: var(--tr); }
     .ctx-date-input:focus { outline: none; border-color: var(--amber); }
-    .ctx-tags-wrap { padding: 4px 12px 6px; display: flex; flex-direction: column; gap: 2px; max-height: 84px; overflow-y: auto; }
+    .ctx-tags-wrap { padding: 6px 14px 8px; display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; }
     .ctx-tags-wrap::-webkit-scrollbar { width: 3px; }
     .ctx-tags-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .ctx-tag-row { display: flex; align-items: center; gap: 6px; padding: 3px 5px; border-radius: var(--radius); cursor: pointer; transition: var(--tr); font-size: 11px; color: var(--text-dim); }
+    .ctx-tag-row { display: flex; align-items: center; gap: 7px; padding: 4px 6px; border-radius: var(--radius); cursor: pointer; transition: var(--tr); font-size: 12px; color: var(--text-dim); }
     .ctx-tag-row:hover { background: var(--surface-2); color: var(--text); }
-    .ctx-tag-row input[type=checkbox] { accent-color: var(--amber); width: 12px; height: 12px; flex-shrink: 0; pointer-events: none; }
+    .ctx-tag-row input[type=checkbox] { accent-color: var(--amber); width: 13px; height: 13px; flex-shrink: 0; pointer-events: none; }
 
     /* BOTÓN MÁS OPCIONES (modal y split panel) */
     .adv-toggle { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
@@ -710,17 +703,14 @@
             <span class="matrix-filter-badge hidden" id="lista-filter-badge">0</span>
           </button>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
-          <div class="search-wrap">
-            <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-input" id="search-input" placeholder="Buscar…" />
-            <button class="search-clear" id="search-input-clear" title="Limpiar">✕</button>
-          </div>
-          <label class="matrix-toggle-wrap" id="lista-toggle-wrap">
-            <div class="toggle-switch" id="lista-toggle-switch"></div>
-            <span class="matrix-toggle-label" id="lista-toggle-label">Mostrar completadas</span>
-          </label>
+        <div class="search-wrap">
+          <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Buscar…" />
         </div>
+        <label class="matrix-toggle-wrap" id="lista-toggle-wrap">
+          <div class="toggle-switch" id="lista-toggle-switch"></div>
+          <span class="matrix-toggle-label" id="lista-toggle-label">Mostrar completadas</span>
+        </label>
       </div>
       <div class="sort-bar visible" id="sort-bar">
         <span class="sort-bar-label">Ordenar</span>
@@ -728,7 +718,6 @@
         <button class="sort-btn" data-sort="due-desc">↓ Vence más tarde</button>
         <button class="sort-btn" data-sort="created-asc">↑ Más antiguas</button>
         <button class="sort-btn" data-sort="created-desc">↓ Más recientes</button>
-        <button class="sort-btn-today" id="filter-today-btn">📅 Hoy</button>
       </div>
       <div class="list-body">
         <!-- SIDEBAR LISTA -->
@@ -783,8 +772,8 @@
             </div>
             <div class="split-panel-footer" id="split-panel-footer">
               <button class="btn-danger hidden" id="sp-btn-delete">Eliminar</button>
-              <div style="display:flex;gap:8px;margin-left:auto">
-                <button class="btn-ghost hidden" id="sp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
+              <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+                <button class="btn-ghost hidden" id="sp-btn-skip-task" style="font-size:12px;padding:5px 10px;" title="Saltar esta ocurrencia y crear la siguiente">⏭ Saltar</button>
                 <button class="btn-cancel" id="sp-btn-cancel">Cancelar</button>
                 <button class="btn-primary" id="sp-btn-save"><span id="sp-save-label">Guardar</span></button>
               </div>
@@ -811,7 +800,6 @@
         <div class="search-wrap">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="matrix-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="matrix-search-input-clear" title="Limpiar">✕</button>
         </div>
         <label class="matrix-toggle-wrap">
           <div class="toggle-switch" id="matrix-toggle-switch"></div>
@@ -922,7 +910,6 @@
         <div class="search-wrap">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="cal-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="cal-search-input-clear" title="Limpiar">✕</button>
         </div>
         <label class="cal-toggle-wrap" id="cal-toggle-wrap">
           <div class="toggle-switch" id="cal-toggle-switch"></div>
@@ -961,7 +948,6 @@
         <div class="search-wrap" style="margin-left:6px">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="gantt-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="gantt-search-input-clear" title="Limpiar">✕</button>
         </div>
         <label class="matrix-toggle-wrap" id="gantt-toggle-wrap">
           <div class="toggle-switch" id="gantt-toggle-switch"></div>
@@ -978,13 +964,11 @@
     <div class="flujo-toolbar">
       <div class="flujo-toolbar-left">
         <span style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);">Diagrama de Flujo</span>
-        <div class="flujo-tag-filter" id="flujo-tag-filter"></div>
       </div>
       <div class="flujo-toolbar-right">
         <div class="search-wrap">
           <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="flujo-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="flujo-search-input-clear" title="Limpiar">✕</button>
         </div>
         <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none">
           <div class="toggle-switch" id="flujo-nolabel-switch"></div>
@@ -1053,8 +1037,8 @@
   </div>
   <div class="split-panel-footer" id="gantt-split-footer">
     <button class="btn-danger hidden" id="gsp-btn-delete">Eliminar</button>
-    <div style="display:flex;gap:8px;margin-left:auto">
-      <button class="btn-ghost hidden" id="gsp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
+    <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+      <button class="btn-ghost hidden" id="gsp-btn-skip-task" style="font-size:12px;padding:5px 10px;" title="Saltar esta ocurrencia y crear la siguiente">⏭ Saltar</button>
       <button class="btn-cancel" id="gsp-btn-cancel">Cancelar</button>
       <button class="btn-primary" id="gsp-btn-save"><span id="gsp-save-label">Guardar</span></button>
     </div>
@@ -1110,7 +1094,25 @@
         </div>
       </div>
 
-      <!-- RECURRENCIA (básico) -->
+      <!-- BOTÓN MÁS OPCIONES -->
+      <button type="button" class="adv-toggle" id="modal-adv-toggle">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        Más opciones<span class="adv-toggle-arrow">▾</span>
+      </button>
+
+      <!-- SECCIÓN AVANZADA -->
+      <div class="adv-body hidden" id="modal-adv-body">
+
+        <!-- CHECKLIST -->
+        <div class="form-group">
+          <div class="checklist-header">
+            <label class="form-label" style="margin:0">Checklist <span class="form-hint">— pasos de la tarea</span></label>
+            <button type="button" class="btn-add-check" id="btn-add-check-item">＋ Paso</button>
+          </div>
+          <div class="checklist-items" id="checklist-items"></div>
+        </div>
+
+        <!-- RECURRENCIA -->
         <div class="form-group">
           <label class="form-label">Recurrencia</label>
           <div class="recurrence-box">
@@ -1143,31 +1145,13 @@
           </div>
         </div>
 
-        <!-- ETIQUETAS (básico) -->
+        <!-- ETIQUETAS -->
         <div class="form-group">
           <label class="form-label">Etiquetas <span class="form-hint">— Enter o coma para agregar</span></label>
           <div class="tags-input-wrap" id="tags-wrap">
             <input type="text" class="tags-text-input" id="tags-input" placeholder="ej: urgente, cliente…" maxlength="30" />
           </div>
           <div class="tag-suggestions" id="tag-suggestions"></div>
-        </div>
-
-      <!-- BOTÓN MÁS OPCIONES -->
-      <button type="button" class="adv-toggle" id="modal-adv-toggle">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
-        Más opciones<span class="adv-toggle-arrow">▾</span>
-      </button>
-
-      <!-- SECCIÓN AVANZADA -->
-      <div class="adv-body hidden" id="modal-adv-body">
-
-        <!-- CHECKLIST -->
-        <div class="form-group">
-          <div class="checklist-header">
-            <label class="form-label" style="margin:0">Checklist <span class="form-hint">— pasos de la tarea</span></label>
-            <button type="button" class="btn-add-check" id="btn-add-check-item">＋ Paso</button>
-          </div>
-          <div class="checklist-items" id="checklist-items"></div>
         </div>
 
         <!-- RECORDATORIO -->
@@ -1231,8 +1215,8 @@
     </div>
     <div class="modal-footer">
       <button class="btn-danger hidden" id="btn-delete">Eliminar</button>
-      <div style="display:flex;gap:8px;margin-left:auto">
-        <button class="btn-ghost hidden" id="btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
+      <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+        <button class="btn-ghost hidden" id="btn-skip-task" style="font-size:12px;padding:5px 10px;" title="Saltar esta ocurrencia y crear la siguiente">⏭ Saltar</button>
         <button class="btn-cancel" id="btn-cancel">Cancelar</button>
         <button class="btn-primary" id="btn-save"><span id="save-label">Guardar</span></button>
       </div>
@@ -1418,7 +1402,6 @@ let calSearchQuery  = '';
 let activeFilter    = 'all';  // kept for compatibility
 let activeTagFilter = null;   // kept for compatibility
 let searchQuery     = '';
-let filterToday     = false;
 let listaSortMode   = 'due-asc'; // 'due-asc'|'due-desc'|'created-asc'|'created-desc'
 let recurrenceOn    = false;
 let unsubscribe     = null;
@@ -1666,7 +1649,7 @@ function subscribeToTasks() {
       renderMatrix();
       renderCalendar();
       if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
-      if (document.querySelector('.nav-tab[data-panel="flujo"].active')) { renderFlujoTagFilter(); renderFlujo(); renderFlujoNoLabelPanel(); }
+      if (document.querySelector('.nav-tab[data-panel="flujo"].active')) { renderFlujo(); renderFlujoNoLabelPanel(); }
       renderTagFilterRow();
       renderTagsPanel();
     }, err => { console.error(err); showToast('Error: ' + err.code, 'err'); });
@@ -1803,35 +1786,29 @@ async function skipTask(id) {
     showToast('Esta tarea no tiene recurrencia.', 'err'); return;
   }
   const nextDate = calcNextRecDate(task);
+  if (!nextDate) {
+    showToast('No hay siguiente ocurrencia (fin de recurrencia alcanzado).', 'err'); return;
+  }
   const rec = task.recurrence;
-  const shouldCreate = !rec.endDate || (nextDate && nextDate <= rec.endDate);
-  if (!nextDate || !shouldCreate) {
+  if (rec.endDate && nextDate > rec.endDate) {
     showToast('No hay siguiente ocurrencia (fin de recurrencia alcanzado).', 'err'); return;
   }
   const batch = db.batch();
-  // Eliminar la tarea actual (en vez de marcarla como completada)
   batch.delete(db.collection('tasks').doc(id));
-  // Crear la siguiente tarea
-  let newGantt = task.gantt ? {...task.gantt} : null;
+  let newGantt = task.gantt ? { ...task.gantt } : null;
   if (newGantt && newGantt.enabled && newGantt.startDate && task.dueDate) {
-    const oldDue  = new Date(task.dueDate + 'T00:00:00');
-    const nextDue = new Date(nextDate     + 'T00:00:00');
+    const oldDue  = new Date(task.dueDate  + 'T00:00:00');
+    const nextDue = new Date(nextDate       + 'T00:00:00');
     const delta   = Math.round((nextDue - oldDue) / 86400000);
     const oldStart = new Date(newGantt.startDate + 'T00:00:00');
     const newStart = new Date(oldStart); newStart.setDate(newStart.getDate() + delta);
     const pad2 = n => String(n).padStart(2,'0');
     newGantt = { ...newGantt, startDate: newStart.getFullYear()+'-'+pad2(newStart.getMonth()+1)+'-'+pad2(newStart.getDate()) };
   }
-  const newTask = {
-    ...task,
-    id: undefined,
-    status: 'pending',
-    dueDate: nextDate,
-    gantt: newGantt,
+  const newTask = { ...task, status: 'pending', dueDate: nextDate, gantt: newGantt,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    checklist: (task.checklist || []).map(item => ({ ...item, done: false }))
-  };
+    checklist: (task.checklist || []).map(item => ({ ...item, done: false })) };
   delete newTask.id;
   batch.set(db.collection('tasks').doc(), newTask);
   try {
@@ -1893,11 +1870,6 @@ function getFiltered() {
   }
   if (listaFilterTag) {
     list = list.filter(t => (t.tags||[]).includes(listaFilterTag));
-  }
-  if (filterToday) {
-    const pad = n => String(n).padStart(2,'0');
-    const todayStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
-    list = list.filter(t => t.dueDate === todayStr);
   }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -2065,7 +2037,7 @@ function openModal(task=null, prefillTags=null) {
   modalTitle.textContent=task?'Editar tarea':'Nueva tarea';
   btnDelete.classList.toggle('hidden',!task);
   const btnSkipTask = document.getElementById('btn-skip-task');
-  if (btnSkipTask) btnSkipTask.classList.toggle('hidden', !(task && task.recurrence && task.recurrence.enabled && task.dueDate));
+  if (btnSkipTask) btnSkipTask.classList.toggle('hidden', !(task && task.dueDate && task.recurrence && task.recurrence.enabled));
   fTitle.value=task?task.title:''; fDesc.value=task?(task.description||''):'';
   fPriority.value=task?task.priority:'high'; fType.value=task?task.type:'operative';
   fStatus.value=task?task.status:'pending'; fDue.value=task&&task.dueDate?task.dueDate:'';
@@ -2170,7 +2142,8 @@ function renderTagSuggestions() {
   existing.forEach(tag => {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'tag-suggestion'; btn.textContent = '+ ' + tag;
-    btn.addEventListener('click', () => {
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault();
       if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); renderTagSuggestions(); }
     });
     suggestionsEl.appendChild(btn);
@@ -2304,6 +2277,13 @@ tagsInput.addEventListener('keydown',e=>{
     if(tag&&!currentTags.includes(tag)){currentTags.push(tag);renderTagsUI();renderTagSuggestions();} tagsInput.value='';
   } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();renderTagSuggestions();}
 });
+tagsInput.addEventListener('focus', () => {
+  const el = document.getElementById('tag-suggestions');
+  if (el) el.classList.add('open');
+});
+tagsInput.addEventListener('blur', () => {
+  setTimeout(() => { const el = document.getElementById('tag-suggestions'); if (el) el.classList.remove('open'); }, 150);
+});
 tagsWrap.addEventListener('click',()=>tagsInput.focus());
 
 document.querySelectorAll('.nav-tab').forEach(tab=>{
@@ -2318,7 +2298,6 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if (tab.dataset.panel === 'calendario') renderCalendar();
     if (tab.dataset.panel === 'gantt') renderGantt();
     if (tab.dataset.panel === 'flujo') {
-      renderFlujoTagFilter();
       // Esperar a que el contenedor tenga dimensiones reales antes de renderizar
       const cy = document.getElementById('flujo-cy');
       if (cy.offsetHeight > 0) {
@@ -2434,23 +2413,7 @@ function renderListaTagFilters() {
   });
 }
 
-searchInput.addEventListener('input',()=>{
-  searchQuery=searchInput.value.trim();
-  document.getElementById('search-input-clear').classList.toggle('visible', !!searchQuery);
-  renderList();
-});
-document.getElementById('search-input-clear').addEventListener('click',()=>{
-  searchInput.value=''; searchQuery='';
-  document.getElementById('search-input-clear').classList.remove('visible');
-  renderList();
-});
-
-// Botón "Hoy" en lista
-document.getElementById('filter-today-btn').addEventListener('click', () => {
-  filterToday = !filterToday;
-  document.getElementById('filter-today-btn').classList.toggle('active', filterToday);
-  renderList();
-});
+searchInput.addEventListener('input',()=>{searchQuery=searchInput.value.trim();renderList();});
 
 // Toggle completadas Lista
 document.getElementById('lista-toggle-wrap').addEventListener('click', () => {
@@ -2462,12 +2425,6 @@ document.getElementById('lista-toggle-wrap').addEventListener('click', () => {
 
 document.getElementById('matrix-search-input').addEventListener('input', e => {
   matrixSearchQuery = e.target.value.trim();
-  document.getElementById('matrix-search-input-clear').classList.toggle('visible', !!matrixSearchQuery);
-  renderMatrix();
-});
-document.getElementById('matrix-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('matrix-search-input'); inp.value=''; matrixSearchQuery='';
-  document.getElementById('matrix-search-input-clear').classList.remove('visible');
   renderMatrix();
 });
 
@@ -2488,8 +2445,9 @@ btnSave.addEventListener('click', saveTask);
 btnDelete.addEventListener('click', deleteTask);
 document.getElementById('btn-skip-task').addEventListener('click', async () => {
   if (!editingId) return;
+  const id = editingId;
   closeModal();
-  await skipTask(editingId);
+  await skipTask(id);
 });
 modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
 document.addEventListener('keydown', e => {
@@ -2542,8 +2500,9 @@ spBtnSave.addEventListener('click', saveSplitTask);
 spBtnDelete.addEventListener('click', deleteSplitTask);
 document.getElementById('sp-btn-skip-task').addEventListener('click', async () => {
   if (!splitEditingId) return;
+  const id = splitEditingId;
   closeSplitPanel();
-  await skipTask(splitEditingId);
+  await skipTask(id);
 });
 
 function openSplitPanel(task, focusField) {
@@ -2555,8 +2514,8 @@ function openSplitPanel(task, focusField) {
   splitRecurrenceOn = !!(task && task.recurrence && task.recurrence.enabled);
   splitPanelTitle.textContent = task ? 'Editar tarea' : 'Nueva tarea';
   spBtnDelete.classList.toggle('hidden', !task);
-  const spBtnSkip = document.getElementById('sp-btn-skip-task');
-  if (spBtnSkip) spBtnSkip.classList.toggle('hidden', !(task && task.recurrence && task.recurrence.enabled && task.dueDate));
+  const spSkipBtn = document.getElementById('sp-btn-skip-task');
+  if (spSkipBtn) spSkipBtn.classList.toggle('hidden', !(task && task.dueDate && task.recurrence && task.recurrence.enabled));
   splitPanelBody.innerHTML = buildSplitFormHTML(task);
   bindSplitFormEvents(task);
   splitRight.classList.add('open');
@@ -2605,24 +2564,14 @@ function buildSplitFormHTML(task) {
     (task.reminder && task.reminder.enabled) ||
     (task.dependencies && task.dependencies.length)
   ));
+  const advOpen = hasAdv;
   // Campos básicos
   let html = '<div class="form-group"><label class="form-label">T\u00edtulo *</label><input type="text" class="form-input" id="sp-f-title" placeholder="\u00bfQu\u00e9 hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
     + '<div class="form-group"><label class="form-label">Descripci\u00f3n</label><textarea class="form-textarea" id="sp-f-desc" placeholder="Detalle opcional\u2026">' + descVal + '</textarea></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="sp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
     + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="sp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="sp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>'
-    + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="sp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="sp-toggle-switch"></div><span class="toggle-label" id="sp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
-    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="sp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
-    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
-    + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
-    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>';
-  const advHasData = !!(task && (
-    (task.checklist && task.checklist.length) ||
-    (task.reminder && task.reminder.enabled) ||
-    (task.dependencies && task.dependencies.length)
-  ));
-  const advOpen = advHasData;
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="sp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>';
   // Botón "Más opciones"
   html += '<button type="button" class="adv-toggle' + (advOpen?' open has-data':'') + '" id="sp-adv-toggle">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
@@ -2630,6 +2579,11 @@ function buildSplitFormHTML(task) {
   // Sección avanzada
   html += '<div class="adv-body' + (advOpen?'':' hidden') + '" id="sp-adv-body">'
     + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="sp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="sp-checklist-items"></div></div>'
+    + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="sp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="sp-toggle-switch"></div><span class="toggle-label" id="sp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
+    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="sp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
+    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
+    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>'
     + buildSpReminderHTML(task)
     + buildSpGanttHTML(task)
     + '<div class="form-group"><label class="form-label">Depende de</label><div class="dep-dropdown-wrap" id="sp-dep-dropdown-wrap"><button type="button" class="dep-trigger" id="sp-dep-trigger"><span class="dep-trigger-label" id="sp-dep-trigger-label">Seleccionar tareas\u2026</span><span class="dep-trigger-arrow">\u25bc</span></button><div class="dep-dropdown-panel" id="sp-dep-dropdown-panel"></div></div><div class="dep-selected-pills" id="sp-dep-selected-pills"></div></div>'
@@ -2690,6 +2644,8 @@ function bindSplitFormEvents(task) {
   spRenderTagsUI(); spRenderTagSuggestions();
   const spTagsInput = document.getElementById('sp-tags-input');
   document.getElementById('sp-tags-wrap').addEventListener('click', () => spTagsInput.focus());
+  spTagsInput.addEventListener('focus', () => { const el=document.getElementById('sp-tag-suggestions'); if(el) el.classList.add('open'); });
+  spTagsInput.addEventListener('blur',  () => { setTimeout(()=>{ const el=document.getElementById('sp-tag-suggestions'); if(el) el.classList.remove('open'); },150); });
   spTagsInput.addEventListener('keydown', e => {
     if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
       e.preventDefault();
@@ -2734,7 +2690,10 @@ function spRenderTagSuggestions() {
   el.innerHTML = '';
   getAllTags().filter(t => !splitCurrentTags.includes(t)).forEach(tag => {
     const btn = document.createElement('button'); btn.type='button'; btn.className='tag-suggestion'; btn.textContent='+ '+tag;
-    btn.addEventListener('click', () => { if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault();
+      if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); }
+    });
     el.appendChild(btn);
   });
 }
@@ -3556,6 +3515,7 @@ function getRecDatesInRange(task, fromDate, toDate) {
 }
 
 function renderCalendar() {
+  calDragCleanup(); // cancel any in-progress drag before re-render
   const grid  = document.getElementById('cal-grid');
   const wdRow = document.getElementById('cal-weekdays');
   const label = document.getElementById('cal-month-label');
@@ -3606,7 +3566,7 @@ function renderCalendar() {
     const isToday   = cur.getTime() === today.getTime();
 
     const cell = document.createElement('div');
-    cell.className = 'cal-cell' + (!isThisMon ? ' other-month' : '') + (isToday ? ' today' : '');
+    cell.className = 'cal-cell cal-day-cell' + (!isThisMon ? ' other-month' : '') + (isToday ? ' today' : '');
     cell.dataset.dateStr = dateStr;
 
     const dn = document.createElement('div');
@@ -3669,6 +3629,63 @@ function renderCalendar() {
   });
 }
 
+// ── Calendar drag state ────────────────────────────────────────────────────
+let calDragState = null; // { taskId, startX, startY, ghost, sourceEl, moved }
+
+function calDragCleanup() {
+  if (!calDragState) return;
+  if (calDragState.ghost) calDragState.ghost.remove();
+  if (calDragState.sourceEl) calDragState.sourceEl.classList.remove('dragging');
+  document.querySelectorAll('.cal-day-cell.drag-over').forEach(c => c.classList.remove('drag-over'));
+  document.removeEventListener('mousemove', calDragOnMove);
+  document.removeEventListener('mouseup',   calDragOnUp);
+  calDragState = null;
+}
+
+function calDragOnMove(e) {
+  if (!calDragState) return;
+  const dx = e.clientX - calDragState.startX;
+  const dy = e.clientY - calDragState.startY;
+  if (!calDragState.moved && Math.sqrt(dx*dx + dy*dy) > 5) {
+    calDragState.moved = true;
+    calDragState.sourceEl.classList.add('dragging');
+    const ghost = document.createElement('div');
+    ghost.id = 'cal-drag-ghost';
+    ghost.textContent = calDragState.title;
+    document.body.appendChild(ghost);
+    calDragState.ghost = ghost;
+  }
+  if (calDragState.moved && calDragState.ghost) {
+    calDragState.ghost.style.left = (e.clientX + 12) + 'px';
+    calDragState.ghost.style.top  = (e.clientY - 10) + 'px';
+    // Highlight target cell
+    document.querySelectorAll('.cal-day-cell.drag-over').forEach(c => c.classList.remove('drag-over'));
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const cell   = target ? target.closest('.cal-day-cell') : null;
+    if (cell && cell.dataset.dateStr) cell.classList.add('drag-over');
+  }
+}
+
+async function calDragOnUp(e) {
+  if (!calDragState) return;
+  const wasMoved = calDragState.moved;
+  const taskId   = calDragState.taskId;
+  const target   = document.elementFromPoint(e.clientX, e.clientY);
+  const cell     = target ? target.closest('.cal-day-cell') : null;
+  const newDate  = cell ? cell.dataset.dateStr : null;
+  calDragCleanup();
+  if (wasMoved && newDate) {
+    try {
+      await db.collection('tasks').doc(taskId).update({
+        dueDate: newDate,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast('Fecha actualizada.', 'ok');
+    } catch(err) { showToast('Error al mover tarea.', 'err'); }
+  }
+  // if not moved → click was handled by the click listener on the element itself
+}
+
 function buildCalTask(task, isRecurrent, dateStr, today) {
   const accent = task.priority === 'high'
     ? (task.type === 'strategic' ? 'var(--red)' : 'var(--orange)')
@@ -3698,10 +3715,25 @@ function buildCalTask(task, isRecurrent, dateStr, today) {
     try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
     catch(err) { showToast('Error.', 'err'); }
   });
+
+  // Drag vs click logic via mousedown
+  el.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;           // only left button
+    if (e.target.closest('.cal-task-check') || e.target.closest('.cal-task-del')) return;
+    e.stopPropagation();
+    calDragState = { taskId: task.id, title: task.title, startX: e.clientX, startY: e.clientY,
+                     ghost: null, sourceEl: el, moved: false };
+    document.addEventListener('mousemove', calDragOnMove);
+    document.addEventListener('mouseup',   calDragOnUp);
+  });
+
+  // Click only fires if drag didn't happen (mousedown handler tracks movement)
   el.addEventListener('click', e => {
     e.stopPropagation();
+    if (calDragState && calDragState.moved) return; // was a drag, not a click
     openModal(tasks.find(t => t.id === task.id) || task);
   });
+
   el.addEventListener('contextmenu', e => {
     e.preventDefault(); e.stopPropagation();
     showContextMenu(tasks.find(t => t.id === task.id) || task, e.clientX, e.clientY, true);
@@ -3766,14 +3798,7 @@ document.getElementById('cal-toggle-wrap').addEventListener('click', () => {
   renderCalendar();
 });
 document.getElementById('cal-search-input').addEventListener('input', e => {
-  calSearchQuery = e.target.value.trim();
-  document.getElementById('cal-search-input-clear').classList.toggle('visible', !!calSearchQuery);
-  renderCalendar();
-});
-document.getElementById('cal-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('cal-search-input'); inp.value=''; calSearchQuery='';
-  document.getElementById('cal-search-input-clear').classList.remove('visible');
-  renderCalendar();
+  calSearchQuery = e.target.value.trim(); renderCalendar();
 });
 document.getElementById('fab-new-calendario').addEventListener('click', () => openModal(null));
 
@@ -3801,8 +3826,9 @@ gspBtnSave.addEventListener('click', saveGanttSplitTask);
 gspBtnDelete.addEventListener('click', deleteGanttSplitTask);
 document.getElementById('gsp-btn-skip-task').addEventListener('click', async () => {
   if (!ganttSplitEditingId) return;
+  const id = ganttSplitEditingId;
   closeGanttSplitPanel();
-  await skipTask(ganttSplitEditingId);
+  await skipTask(id);
 });
 
 function openGanttSplitPanel(task) {
@@ -3814,8 +3840,8 @@ function openGanttSplitPanel(task) {
   ganttSplitRecurrenceOn     = !!(task && task.recurrence && task.recurrence.enabled);
   ganttSplitTitle.textContent = task ? 'Editar tarea' : 'Nueva tarea';
   gspBtnDelete.classList.toggle('hidden', !task);
-  const gspBtnSkip = document.getElementById('gsp-btn-skip-task');
-  if (gspBtnSkip) gspBtnSkip.classList.toggle('hidden', !(task && task.recurrence && task.recurrence.enabled && task.dueDate));
+  const gspSkipBtn = document.getElementById('gsp-btn-skip-task');
+  if (gspSkipBtn) gspSkipBtn.classList.toggle('hidden', !(task && task.dueDate && task.recurrence && task.recurrence.enabled));
   // Reutilizamos buildSplitFormHTML/bindSplitFormEvents pero apuntando a variables ganttSplit*
   // Para simplificar, usamos el mismo HTML y bind, intercambiando los prefijos en runtime
   ganttSplitBody.innerHTML = buildGanttSplitFormHTML(task);
@@ -3863,25 +3889,19 @@ function buildGanttSplitFormHTML(task) {
     + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="gsp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
     + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
     + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="gsp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>'
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>';
+
+  html += '<button type="button" class="adv-toggle' + (hasAdv?' open has-data':'') + '" id="gsp-adv-toggle">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
+    + 'M\u00e1s opciones<span class="adv-toggle-arrow">\u25be</span></button>';
+
+  html += '<div class="adv-body' + (hasAdv?'':' hidden') + '" id="gsp-adv-body">'
+    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="gsp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="gsp-checklist-items"></div></div>'
     + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="gsp-toggle-switch"></div><span class="toggle-label" id="gsp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
     + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="gsp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
     + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="gsp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
     + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="gsp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
-    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="gsp-tags-wrap"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="gsp-tag-suggestions"></div></div>';
-
-  const advHasData = !!(task && (
-    (task.checklist && task.checklist.length) ||
-    (task.reminder && task.reminder.enabled) ||
-    (task.dependencies && task.dependencies.length) ||
-    (task.gantt && task.gantt.enabled)
-  ));
-  html += '<button type="button" class="adv-toggle' + (advHasData?' open has-data':'') + '" id="gsp-adv-toggle">'
-    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>'
-    + 'M\u00e1s opciones<span class="adv-toggle-arrow">\u25be</span></button>';
-
-  html += '<div class="adv-body' + (advHasData?'':' hidden') + '" id="gsp-adv-body">'
-    + '<div class="form-group"><div class="checklist-header"><label class="form-label" style="margin:0">Checklist <span class="form-hint">\u2014 pasos de la tarea</span></label><button type="button" class="btn-add-check" id="gsp-btn-add-check">\uff0b Paso</button></div><div class="checklist-items" id="gsp-checklist-items"></div></div>'
+    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="gsp-tags-wrap"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="gsp-tag-suggestions"></div></div>'
     + '<div class="form-group"><label class="form-label">Recordatorio</label><div class="reminder-box"><div class="recurrence-toggle" id="gsp-reminder-toggle"><div class="toggle-switch' + (remOn?' on':'') + '" id="gsp-reminder-sw"></div><span class="toggle-label" id="gsp-reminder-lbl">' + (remOn?'Con recordatorio':'Sin recordatorio') + '</span></div>'
     + '<div class="reminder-fields-row' + (remOn?'':' hidden') + '" id="gsp-reminder-fields"><div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" id="gsp-reminder-date" value="' + remDate + '" /></div><div class="form-group"><label class="form-label">Hora (en punto)</label><select class="form-select" id="gsp-reminder-hour">' + remHourOpts + '</select></div></div></div></div>'
     + '<div class="form-group"><label class="form-label">Diagrama de Gantt</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-gantt-toggle"><div class="toggle-switch' + (gnOn?' on':'') + '" id="gsp-gantt-switch"></div><span class="toggle-label" id="gsp-gantt-label">' + (gnOn?'Incluido en Gantt':'No incluir en Gantt') + '</span></div>'
@@ -3922,7 +3942,10 @@ function bindGanttSplitFormEvents(task) {
   const gspTagsInput=document.getElementById('gsp-tags-input');
   const gspTagsWrap=document.getElementById('gsp-tags-wrap');
   if(gspTagsWrap) gspTagsWrap.addEventListener('click',()=>gspTagsInput&&gspTagsInput.focus());
-  if(gspTagsInput) gspTagsInput.addEventListener('keydown',e=>{
+  if(gspTagsInput) {
+    gspTagsInput.addEventListener('focus',()=>{ const el=document.getElementById('gsp-tag-suggestions');if(el)el.classList.add('open'); });
+    gspTagsInput.addEventListener('blur', ()=>{ setTimeout(()=>{ const el=document.getElementById('gsp-tag-suggestions');if(el)el.classList.remove('open'); },150); });
+    gspTagsInput.addEventListener('keydown',e=>{
     if((e.key==='Enter'||e.key===',')&&gspTagsInput.value.trim()){
       e.preventDefault();
       const tag=gspTagsInput.value.trim().replace(/,/g,'');
@@ -3931,7 +3954,8 @@ function bindGanttSplitFormEvents(task) {
     } else if(e.key==='Backspace'&&!gspTagsInput.value&&ganttSplitCurrentTags.length){
       ganttSplitCurrentTags.pop();gspRenderTagsUI();gspRenderTagSuggestions();
     }
-  });
+    });
+  }
 
   const gspRemTgl=document.getElementById('gsp-reminder-toggle');
   ganttSplitReminderOn=!!(task&&task.reminder&&task.reminder.enabled);
@@ -4004,7 +4028,10 @@ function gspRenderTagSuggestions(){
   el.innerHTML='';
   getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t)).forEach(tag=>{
     const btn=document.createElement('button');btn.type='button';btn.className='tag-suggestion';btn.textContent='+ '+tag;
-    btn.addEventListener('click',()=>{if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
+    btn.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}
+    });
     el.appendChild(btn);
   });
 }
@@ -4449,14 +4476,7 @@ document.querySelectorAll('.gantt-group-btn').forEach(btn=>{
   });
 });
 document.getElementById('gantt-search-input').addEventListener('input',e=>{
-  ganttSearchQuery=e.target.value.trim();
-  document.getElementById('gantt-search-input-clear').classList.toggle('visible', !!ganttSearchQuery);
-  renderGantt();
-});
-document.getElementById('gantt-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('gantt-search-input'); inp.value=''; ganttSearchQuery='';
-  document.getElementById('gantt-search-input-clear').classList.remove('visible');
-  renderGantt();
+  ganttSearchQuery=e.target.value.trim(); renderGantt();
 });
 document.getElementById('gantt-toggle-wrap').addEventListener('click',()=>{
   ganttHideDone=!ganttHideDone;
@@ -4590,7 +4610,6 @@ let flujoCy        = null;
 let flujoConnMode  = false;
 let flujoConnSrc   = null;
 let flujoShowNoLabel = false;
-let flujoTagFilter  = []; // array de etiquetas seleccionadas; vacío = todas
 
 function flujoNodeBg(task) {
   if (task.status === 'done') return '#1a2e1f';
@@ -4774,17 +4793,13 @@ function showFlujoTagDropdown(task, anchorEl) {
   }, 0);
 }
 
-function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter) {
+function buildFlujoElements(taskList, search, hideDone, showNoLabel) {
   const els = [];
   const q = search.trim().toLowerCase();
   const visible = taskList.filter(t => {
     if (hideDone && t.status === 'done') return false;
     if (!showNoLabel && (!t.tags || t.tags.length === 0)) return false;
     if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
-    if (tagFilter && tagFilter.length > 0) {
-      const tTags = t.tags || [];
-      if (!tagFilter.some(f => tTags.includes(f))) return false;
-    }
     return true;
   });
   const labelSet = new Set();
@@ -4860,7 +4875,7 @@ function renderFlujo() {
   closeFlujoPopover();
   if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
 
-  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoShowNoLabel, flujoTagFilter);
+  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoShowNoLabel);
   const taskNodes = elements.filter(el => el.data && el.data.nodeType === 'task');
 
   if (taskNodes.length === 0) {
@@ -4997,37 +5012,6 @@ document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
   renderFlujoNoLabelPanel();
 });
 
-function renderFlujoTagFilter() {
-  const wrap = document.getElementById('flujo-tag-filter');
-  if (!wrap) return;
-  const allTags = getAllTags();
-  wrap.innerHTML = '';
-  if (allTags.length === 0) return;
-  // Chip "Todas"
-  const allChip = document.createElement('button');
-  allChip.className = 'flujo-tag-chip' + (flujoTagFilter.length === 0 ? ' active' : '');
-  allChip.textContent = 'Todas';
-  allChip.addEventListener('click', () => {
-    flujoTagFilter = [];
-    renderFlujoTagFilter();
-    renderFlujo();
-  });
-  wrap.appendChild(allChip);
-  allTags.forEach(tag => {
-    const chip = document.createElement('button');
-    chip.className = 'flujo-tag-chip' + (flujoTagFilter.includes(tag) ? ' active' : '');
-    chip.textContent = '# ' + tag;
-    chip.addEventListener('click', () => {
-      const idx = flujoTagFilter.indexOf(tag);
-      if (idx >= 0) flujoTagFilter.splice(idx, 1);
-      else flujoTagFilter.push(tag);
-      renderFlujoTagFilter();
-      renderFlujo();
-    });
-    wrap.appendChild(chip);
-  });
-}
-
 function renderFlujoNoLabelPanel() {
   const panel = document.getElementById('flujo-nolabel-panel');
   const list  = document.getElementById('flujo-nolabel-list');
@@ -5101,12 +5085,6 @@ document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
 
 document.getElementById('flujo-search-input').addEventListener('input', e => {
   flujoSearch = e.target.value;
-  document.getElementById('flujo-search-input-clear').classList.toggle('visible', !!flujoSearch);
-  renderFlujo();
-});
-document.getElementById('flujo-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('flujo-search-input'); inp.value=''; flujoSearch='';
-  document.getElementById('flujo-search-input-clear').classList.remove('visible');
   renderFlujo();
 });
 
