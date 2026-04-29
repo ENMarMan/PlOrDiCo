@@ -2488,8 +2488,9 @@ btnSave.addEventListener('click', saveTask);
 btnDelete.addEventListener('click', deleteTask);
 document.getElementById('btn-skip-task').addEventListener('click', async () => {
   if (!editingId) return;
+  const idToSkip = editingId;
   closeModal();
-  await skipTask(editingId);
+  await skipTask(idToSkip);
 });
 modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
 document.addEventListener('keydown', e => {
@@ -2542,8 +2543,9 @@ spBtnSave.addEventListener('click', saveSplitTask);
 spBtnDelete.addEventListener('click', deleteSplitTask);
 document.getElementById('sp-btn-skip-task').addEventListener('click', async () => {
   if (!splitEditingId) return;
+  const idToSkip = splitEditingId;
   closeSplitPanel();
-  await skipTask(splitEditingId);
+  await skipTask(idToSkip);
 });
 
 function openSplitPanel(task, focusField) {
@@ -3801,8 +3803,9 @@ gspBtnSave.addEventListener('click', saveGanttSplitTask);
 gspBtnDelete.addEventListener('click', deleteGanttSplitTask);
 document.getElementById('gsp-btn-skip-task').addEventListener('click', async () => {
   if (!ganttSplitEditingId) return;
+  const idToSkip = ganttSplitEditingId;
   closeGanttSplitPanel();
-  await skipTask(ganttSplitEditingId);
+  await skipTask(idToSkip);
 });
 
 function openGanttSplitPanel(task) {
