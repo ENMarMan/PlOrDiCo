@@ -216,13 +216,32 @@
     .recurrence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
     /* TAGS INPUT */
-    .tags-input-wrap { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 9px; min-height: 38px; cursor: text; transition: var(--tr); }
-    .tags-input-wrap:focus-within { border-color: var(--amber); }
-    .tag-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-3); border: 1px solid var(--border-hi); border-radius: 3px; padding: 2px 7px; font-size: 12px; color: var(--text); }
-    .tag-remove { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: var(--tr); }
+    /* TAG SELECTOR — componente compacto de una línea con dropdown */
+    .tag-selector { position: relative; }
+    .tag-selector-trigger { display: flex; align-items: center; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 9px; min-height: 34px; cursor: pointer; transition: var(--tr); user-select: none; }
+    .tag-selector-trigger:hover, .tag-selector-trigger.open { border-color: var(--amber); }
+    .tag-selector-pills { display: flex; align-items: center; gap: 4px; flex: 1; overflow: hidden; min-width: 0; }
+    .tag-selector-placeholder { font-size: 13px; color: var(--text-faint); }
+    .tag-pill { display: inline-flex; align-items: center; gap: 3px; background: var(--surface-3); border: 1px solid var(--border-hi); border-radius: 3px; padding: 1px 6px; font-size: 12px; color: var(--text); white-space: nowrap; flex-shrink: 0; }
+    .tag-pill-overflow { display: inline-flex; align-items: center; background: var(--surface-3); border: 1px solid var(--border-hi); border-radius: 3px; padding: 1px 7px; font-size: 11px; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+    .tag-remove { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 12px; line-height: 1; padding: 0; transition: var(--tr); }
     .tag-remove:hover { color: var(--red); }
-    .tags-text-input { background: none; border: none; outline: none; color: var(--text); font-size: 13px; min-width: 70px; flex: 1; }
+    .tag-selector-arrow { font-size: 10px; color: var(--text-dim); flex-shrink: 0; margin-left: auto; transition: transform .15s; }
+    .tag-selector-trigger.open .tag-selector-arrow { transform: rotate(180deg); }
+    .tag-selector-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 9999; background: var(--surface-2); border: 1px solid var(--amber); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,.45); padding: 8px; display: none; }
+    .tag-selector-dropdown.open { display: block; }
+    .tag-selector-input-row { display: flex; align-items: center; gap: 6px; background: var(--surface-1); border: 1px solid var(--border); border-radius: calc(var(--radius) - 1px); padding: 4px 8px; margin-bottom: 7px; }
+    .tag-selector-input-row:focus-within { border-color: var(--amber); }
+    .tags-text-input { background: none; border: none; outline: none; color: var(--text); font-size: 13px; flex: 1; }
     .tags-text-input::placeholder { color: var(--text-faint); }
+    .tag-dd-section-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 4px; }
+    .tag-dd-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; min-height: 0; }
+    .tag-dd-pill { display: inline-flex; align-items: center; gap: 3px; background: var(--surface-3); border: 1px solid var(--border-hi); border-radius: 3px; padding: 2px 7px; font-size: 12px; color: var(--text); }
+    .tag-dd-pill .tag-remove { font-size: 13px; }
+    .tag-dd-suggestions { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag-suggestion { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface-3); border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer; transition: var(--tr); }
+    .tag-suggestion:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+    .tag-dd-empty { font-size: 12px; color: var(--text-faint); padding: 2px 0; }
 
     /* DEP DROPDOWN */
     .dep-dropdown-wrap { position: relative; }
@@ -266,10 +285,6 @@
     .task-card:hover .task-card-actions { display: flex; }
     .card-btn-delete { width: 24px; height: 24px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-faint); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
     .card-btn-delete:hover { border-color: var(--red-dim); color: var(--red); background: var(--red-glow); }
-    /* Tag suggestions en modal */
-    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
-    .tag-suggestion { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface-3); border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer; transition: var(--tr); }
-    .tag-suggestion:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
 
     /* MATRIZ DE EISENHOWER */
     .matrix-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
@@ -1145,11 +1160,28 @@
 
         <!-- ETIQUETAS (básico) -->
         <div class="form-group">
-          <label class="form-label">Etiquetas <span class="form-hint">— Enter o coma para agregar</span></label>
-          <div class="tags-input-wrap" id="tags-wrap">
-            <input type="text" class="tags-text-input" id="tags-input" placeholder="ej: urgente, cliente…" maxlength="30" />
+          <label class="form-label">Etiquetas</label>
+          <div class="tag-selector" id="tag-selector">
+            <div class="tag-selector-trigger" id="tag-selector-trigger">
+              <div class="tag-selector-pills" id="tag-selector-pills">
+                <span class="tag-selector-placeholder" id="tag-selector-placeholder">Sin etiquetas</span>
+              </div>
+              <span class="tag-selector-arrow">▾</span>
+            </div>
+            <div class="tag-selector-dropdown" id="tag-selector-dropdown">
+              <div class="tag-selector-input-row">
+                <input type="text" class="tags-text-input" id="tags-input" placeholder="Nueva etiqueta… Enter o coma" maxlength="30" />
+              </div>
+              <div id="tag-dd-assigned-section" style="display:none">
+                <div class="tag-dd-section-label">Asignadas</div>
+                <div class="tag-dd-pills" id="tag-dd-assigned"></div>
+              </div>
+              <div id="tag-dd-available-section">
+                <div class="tag-dd-section-label">Disponibles</div>
+                <div class="tag-dd-suggestions" id="tag-suggestions"></div>
+              </div>
+            </div>
           </div>
-          <div class="tag-suggestions" id="tag-suggestions"></div>
         </div>
 
       <!-- BOTÓN MÁS OPCIONES -->
@@ -1466,7 +1498,8 @@ const toggleLabel    = document.getElementById('toggle-label');
 const recOptions     = document.getElementById('recurrence-options');
 const recIntervalGrp = document.getElementById('rec-interval-group');
 const tagsInput      = document.getElementById('tags-input');
-const tagsWrap       = document.getElementById('tags-wrap');
+const tagSelectorTrigger  = document.getElementById('tag-selector-trigger');
+const tagSelectorDropdown = document.getElementById('tag-selector-dropdown');
 
 // UTILS
 let toastTimer;
@@ -2150,16 +2183,50 @@ function openModal(task=null, prefillTags=null) {
   modalBackdrop.classList.add('open'); setTimeout(()=>fTitle.focus(),80);
 }
 
-function closeModal() { modalBackdrop.classList.remove('open'); editingId=null; }
+function closeModal() {
+  modalBackdrop.classList.remove('open');
+  editingId=null;
+  if (tagSelectorDropdown) { tagSelectorDropdown.classList.remove('open'); tagSelectorTrigger.classList.remove('open'); }
+}
 
 function renderTagsUI() {
-  tagsWrap.querySelectorAll('.tag-pill').forEach(el=>el.remove());
-  currentTags.forEach(tag => {
-    const pill=document.createElement('span'); pill.className='tag-pill';
-    pill.innerHTML=`${escHtml(tag)}<button class="tag-remove">×</button>`;
-    pill.querySelector('.tag-remove').addEventListener('click',()=>{currentTags=currentTags.filter(t=>t!==tag);renderTagsUI();renderTagSuggestions();});
-    tagsWrap.insertBefore(pill,tagsInput);
-  });
+  const pillsRow = document.getElementById('tag-selector-pills');
+  const placeholder = document.getElementById('tag-selector-placeholder');
+  const ddAssigned = document.getElementById('tag-dd-assigned');
+  const ddAssignedSec = document.getElementById('tag-dd-assigned-section');
+  if (!pillsRow) return;
+  // Limpiar pills del trigger
+  pillsRow.querySelectorAll('.tag-pill, .tag-pill-overflow').forEach(el => el.remove());
+  // Sección "Asignadas" en el dropdown
+  if (ddAssigned) {
+    ddAssigned.innerHTML = '';
+    currentTags.forEach(tag => {
+      const p = document.createElement('span'); p.className = 'tag-dd-pill';
+      p.innerHTML = escHtml(tag) + '<button class="tag-remove" type="button">\u00d7</button>';
+      p.querySelector('.tag-remove').addEventListener('click', e => {
+        e.stopPropagation();
+        currentTags = currentTags.filter(t => t !== tag); renderTagsUI(); renderTagSuggestions();
+      });
+      ddAssigned.appendChild(p);
+    });
+  }
+  if (ddAssignedSec) ddAssignedSec.style.display = currentTags.length ? '' : 'none';
+  // Pills resumen en el trigger (máx 3 visibles + overflow)
+  if (currentTags.length === 0) {
+    if (placeholder) placeholder.style.display = '';
+  } else {
+    if (placeholder) placeholder.style.display = 'none';
+    const max = 3;
+    currentTags.slice(0, max).forEach(tag => {
+      const p = document.createElement('span'); p.className = 'tag-pill'; p.textContent = tag;
+      pillsRow.appendChild(p);
+    });
+    if (currentTags.length > max) {
+      const ov = document.createElement('span'); ov.className = 'tag-pill-overflow';
+      ov.textContent = '+' + (currentTags.length - max);
+      pillsRow.appendChild(ov);
+    }
+  }
 }
 
 function renderTagSuggestions() {
@@ -2167,14 +2234,20 @@ function renderTagSuggestions() {
   if (!suggestionsEl) return;
   const existing = getAllTags().filter(t => !currentTags.includes(t));
   suggestionsEl.innerHTML = '';
-  existing.forEach(tag => {
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'tag-suggestion'; btn.textContent = '+ ' + tag;
-    btn.addEventListener('click', () => {
-      if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); renderTagSuggestions(); }
+  const sec = document.getElementById('tag-dd-available-section');
+  if (existing.length === 0) {
+    suggestionsEl.innerHTML = '<span class="tag-dd-empty">Sin etiquetas disponibles</span>';
+  } else {
+    existing.forEach(tag => {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'tag-suggestion'; btn.textContent = '+ ' + tag;
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); renderTagSuggestions(); }
+      });
+      suggestionsEl.appendChild(btn);
     });
-    suggestionsEl.appendChild(btn);
-  });
+  }
 }
 
 function renderChecklistUI() {
@@ -2303,8 +2376,24 @@ tagsInput.addEventListener('keydown',e=>{
     e.preventDefault(); const tag=tagsInput.value.trim().replace(/,/g,'');
     if(tag&&!currentTags.includes(tag)){currentTags.push(tag);renderTagsUI();renderTagSuggestions();} tagsInput.value='';
   } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();renderTagSuggestions();}
+  else if(e.key==='Escape'){ tagSelectorDropdown.classList.remove('open'); tagSelectorTrigger.classList.remove('open'); }
 });
-tagsWrap.addEventListener('click',()=>tagsInput.focus());
+tagSelectorTrigger.addEventListener('click', e => {
+  const isOpen = tagSelectorDropdown.classList.contains('open');
+  tagSelectorDropdown.classList.toggle('open', !isOpen);
+  tagSelectorTrigger.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    setTimeout(() => tagsInput.focus(), 40);
+    document.addEventListener('click', function closeTagDD(ev) {
+      const sel = document.getElementById('tag-selector');
+      if (sel && !sel.contains(ev.target)) {
+        tagSelectorDropdown.classList.remove('open');
+        tagSelectorTrigger.classList.remove('open');
+        document.removeEventListener('click', closeTagDD);
+      }
+    });
+  }
+});
 
 document.querySelectorAll('.nav-tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
@@ -2618,7 +2707,7 @@ function buildSplitFormHTML(task) {
     + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="sp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
     + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="sp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="sp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
     + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="sp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
-    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="sp-tags-wrap"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="sp-tag-suggestions"></div></div>';
+    + '<div class="form-group"><label class="form-label">Etiquetas</label><div class="tag-selector" id="sp-tag-selector"><div class="tag-selector-trigger" id="sp-tag-selector-trigger"><div class="tag-selector-pills" id="sp-tag-selector-pills"><span class="tag-selector-placeholder" id="sp-tag-selector-placeholder">Sin etiquetas</span></div><span class="tag-selector-arrow">\u25be</span></div><div class="tag-selector-dropdown" id="sp-tag-selector-dropdown"><div class="tag-selector-input-row"><input type="text" class="tags-text-input" id="sp-tags-input" placeholder="Nueva etiqueta\u2026 Enter o coma" maxlength="30" /></div><div id="sp-tag-dd-assigned-section" style="display:none"><div class="tag-dd-section-label">Asignadas</div><div class="tag-dd-pills" id="sp-tag-dd-assigned"></div></div><div id="sp-tag-dd-available-section"><div class="tag-dd-section-label">Disponibles</div><div class="tag-dd-suggestions" id="sp-tag-suggestions"></div></div></div></div></div>';
   const advHasData = !!(task && (
     (task.checklist && task.checklist.length) ||
     (task.reminder && task.reminder.enabled) ||
@@ -2691,8 +2780,26 @@ function bindSplitFormEvents(task) {
   document.getElementById('sp-btn-add-check').addEventListener('click', spAddCheckItem);
   spRenderTagsUI(); spRenderTagSuggestions();
   const spTagsInput = document.getElementById('sp-tags-input');
-  document.getElementById('sp-tags-wrap').addEventListener('click', () => spTagsInput.focus());
-  spTagsInput.addEventListener('keydown', e => {
+  const spTagTrigger = document.getElementById('sp-tag-selector-trigger');
+  const spTagDropdown = document.getElementById('sp-tag-selector-dropdown');
+  if (spTagTrigger && spTagDropdown) {
+    spTagTrigger.addEventListener('click', () => {
+      const isOpen = spTagDropdown.classList.contains('open');
+      spTagDropdown.classList.toggle('open', !isOpen);
+      spTagTrigger.classList.toggle('open', !isOpen);
+      if (!isOpen) {
+        setTimeout(() => spTagsInput && spTagsInput.focus(), 40);
+        document.addEventListener('click', function closeSpTagDD(ev) {
+          const sel = document.getElementById('sp-tag-selector');
+          if (sel && !sel.contains(ev.target)) {
+            spTagDropdown.classList.remove('open'); spTagTrigger.classList.remove('open');
+            document.removeEventListener('click', closeSpTagDD);
+          }
+        });
+      }
+    });
+  }
+  if (spTagsInput) spTagsInput.addEventListener('keydown', e => {
     if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
       e.preventDefault();
       const tag = spTagsInput.value.trim().replace(/,/g,'');
@@ -2700,7 +2807,7 @@ function bindSplitFormEvents(task) {
       spTagsInput.value = '';
     } else if (e.key==='Backspace' && !spTagsInput.value && splitCurrentTags.length) {
       splitCurrentTags.pop(); spRenderTagsUI(); spRenderTagSuggestions();
-    }
+    } else if (e.key==='Escape' && spTagDropdown) { spTagDropdown.classList.remove('open'); spTagTrigger && spTagTrigger.classList.remove('open'); }
   });
   spRenderDepDropdown(task ? task.id : null);
   const titleEl = document.getElementById('sp-f-title');
@@ -2720,25 +2827,55 @@ function bindSplitFormEvents(task) {
 }
 
 function spRenderTagsUI() {
-  const wrap = document.getElementById('sp-tags-wrap'); if (!wrap) return;
-  wrap.querySelectorAll('.tag-pill').forEach(el => el.remove());
-  const inp = document.getElementById('sp-tags-input');
-  splitCurrentTags.forEach(tag => {
-    const pill = document.createElement('span'); pill.className = 'tag-pill';
-    pill.innerHTML = escHtml(tag) + '<button class="tag-remove">\u00d7</button>';
-    pill.querySelector('.tag-remove').addEventListener('click', () => { splitCurrentTags = splitCurrentTags.filter(t => t !== tag); spRenderTagsUI(); spRenderTagSuggestions(); });
-    wrap.insertBefore(pill, inp);
-  });
+  const pillsRow = document.getElementById('sp-tag-selector-pills');
+  const placeholder = document.getElementById('sp-tag-selector-placeholder');
+  const ddAssigned = document.getElementById('sp-tag-dd-assigned');
+  const ddAssignedSec = document.getElementById('sp-tag-dd-assigned-section');
+  if (!pillsRow) return;
+  pillsRow.querySelectorAll('.tag-pill, .tag-pill-overflow').forEach(el => el.remove());
+  if (ddAssigned) {
+    ddAssigned.innerHTML = '';
+    splitCurrentTags.forEach(tag => {
+      const p = document.createElement('span'); p.className = 'tag-dd-pill';
+      p.innerHTML = escHtml(tag) + '<button class="tag-remove" type="button">\u00d7</button>';
+      p.querySelector('.tag-remove').addEventListener('click', e => {
+        e.stopPropagation();
+        splitCurrentTags = splitCurrentTags.filter(t => t !== tag); spRenderTagsUI(); spRenderTagSuggestions();
+      });
+      ddAssigned.appendChild(p);
+    });
+  }
+  if (ddAssignedSec) ddAssignedSec.style.display = splitCurrentTags.length ? '' : 'none';
+  if (splitCurrentTags.length === 0) {
+    if (placeholder) placeholder.style.display = '';
+  } else {
+    if (placeholder) placeholder.style.display = 'none';
+    const max = 3;
+    splitCurrentTags.slice(0, max).forEach(tag => {
+      const p = document.createElement('span'); p.className = 'tag-pill'; p.textContent = tag;
+      pillsRow.appendChild(p);
+    });
+    if (splitCurrentTags.length > max) {
+      const ov = document.createElement('span'); ov.className = 'tag-pill-overflow';
+      ov.textContent = '+' + (splitCurrentTags.length - max);
+      pillsRow.appendChild(ov);
+    }
+  }
 }
 
 function spRenderTagSuggestions() {
   const el = document.getElementById('sp-tag-suggestions'); if (!el) return;
+  const existing = getAllTags().filter(t => !splitCurrentTags.includes(t));
   el.innerHTML = '';
-  getAllTags().filter(t => !splitCurrentTags.includes(t)).forEach(tag => {
-    const btn = document.createElement('button'); btn.type='button'; btn.className='tag-suggestion'; btn.textContent='+ '+tag;
-    btn.addEventListener('click', () => { if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
-    el.appendChild(btn);
-  });
+  if (existing.length === 0) {
+    el.innerHTML = '<span class="tag-dd-empty">Sin etiquetas disponibles</span>';
+  } else {
+    existing.forEach(tag => {
+      const btn = document.createElement('button'); btn.type='button'; btn.className='tag-suggestion'; btn.textContent='+ '+tag;
+      btn.addEventListener('click', e => { e.stopPropagation(); if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
+      el.appendChild(btn);
+    });
+  }
 }
 
 function spRenderChecklistUI() {
@@ -3871,7 +4008,7 @@ function buildGanttSplitFormHTML(task) {
     + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="gsp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
     + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="gsp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
     + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="gsp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
-    + '<div class="form-group"><label class="form-label">Etiquetas <span class="form-hint">\u2014 Enter o coma para agregar</span></label><div class="tags-input-wrap" id="gsp-tags-wrap"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="ej: urgente, cliente\u2026" maxlength="30" /></div><div class="tag-suggestions" id="gsp-tag-suggestions"></div></div>';
+    + '<div class="form-group"><label class="form-label">Etiquetas</label><div class="tag-selector" id="gsp-tag-selector"><div class="tag-selector-trigger" id="gsp-tag-selector-trigger"><div class="tag-selector-pills" id="gsp-tag-selector-pills"><span class="tag-selector-placeholder" id="gsp-tag-selector-placeholder">Sin etiquetas</span></div><span class="tag-selector-arrow">\u25be</span></div><div class="tag-selector-dropdown" id="gsp-tag-selector-dropdown"><div class="tag-selector-input-row"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="Nueva etiqueta\u2026 Enter o coma" maxlength="30" /></div><div id="gsp-tag-dd-assigned-section" style="display:none"><div class="tag-dd-section-label">Asignadas</div><div class="tag-dd-pills" id="gsp-tag-dd-assigned"></div></div><div id="gsp-tag-dd-available-section"><div class="tag-dd-section-label">Disponibles</div><div class="tag-dd-suggestions" id="gsp-tag-suggestions"></div></div></div></div></div>';
 
   const advHasData = !!(task && (
     (task.checklist && task.checklist.length) ||
@@ -3923,8 +4060,25 @@ function bindGanttSplitFormEvents(task) {
 
   gspRenderTagsUI(); gspRenderTagSuggestions();
   const gspTagsInput=document.getElementById('gsp-tags-input');
-  const gspTagsWrap=document.getElementById('gsp-tags-wrap');
-  if(gspTagsWrap) gspTagsWrap.addEventListener('click',()=>gspTagsInput&&gspTagsInput.focus());
+  const gspTagTrigger=document.getElementById('gsp-tag-selector-trigger');
+  const gspTagDropdown=document.getElementById('gsp-tag-selector-dropdown');
+  if(gspTagTrigger&&gspTagDropdown){
+    gspTagTrigger.addEventListener('click',()=>{
+      const isOpen=gspTagDropdown.classList.contains('open');
+      gspTagDropdown.classList.toggle('open',!isOpen);
+      gspTagTrigger.classList.toggle('open',!isOpen);
+      if(!isOpen){
+        setTimeout(()=>gspTagsInput&&gspTagsInput.focus(),40);
+        document.addEventListener('click',function closeGspTagDD(ev){
+          const sel=document.getElementById('gsp-tag-selector');
+          if(sel&&!sel.contains(ev.target)){
+            gspTagDropdown.classList.remove('open');gspTagTrigger.classList.remove('open');
+            document.removeEventListener('click',closeGspTagDD);
+          }
+        });
+      }
+    });
+  }
   if(gspTagsInput) gspTagsInput.addEventListener('keydown',e=>{
     if((e.key==='Enter'||e.key===',')&&gspTagsInput.value.trim()){
       e.preventDefault();
@@ -3933,7 +4087,7 @@ function bindGanttSplitFormEvents(task) {
       gspTagsInput.value='';
     } else if(e.key==='Backspace'&&!gspTagsInput.value&&ganttSplitCurrentTags.length){
       ganttSplitCurrentTags.pop();gspRenderTagsUI();gspRenderTagSuggestions();
-    }
+    } else if(e.key==='Escape'&&gspTagDropdown){gspTagDropdown.classList.remove('open');gspTagTrigger&&gspTagTrigger.classList.remove('open');}
   });
 
   const gspRemTgl=document.getElementById('gsp-reminder-toggle');
@@ -3992,24 +4146,54 @@ function gspAddCheckItem(){
   const c=document.getElementById('gsp-checklist-items');if(c){const ins=c.querySelectorAll('.check-item-input');if(ins.length)ins[ins.length-1].focus();}
 }
 function gspRenderTagsUI(){
-  const wrap=document.getElementById('gsp-tags-wrap');if(!wrap)return;
-  wrap.querySelectorAll('.tag-pill').forEach(el=>el.remove());
-  const inp=document.getElementById('gsp-tags-input');
-  ganttSplitCurrentTags.forEach(tag=>{
-    const pill=document.createElement('span');pill.className='tag-pill';
-    pill.innerHTML=escHtml(tag)+'<button class="tag-remove">×</button>';
-    pill.querySelector('.tag-remove').addEventListener('click',()=>{ganttSplitCurrentTags=ganttSplitCurrentTags.filter(t=>t!==tag);gspRenderTagsUI();gspRenderTagSuggestions();});
-    wrap.insertBefore(pill,inp);
-  });
+  const pillsRow=document.getElementById('gsp-tag-selector-pills');
+  const placeholder=document.getElementById('gsp-tag-selector-placeholder');
+  const ddAssigned=document.getElementById('gsp-tag-dd-assigned');
+  const ddAssignedSec=document.getElementById('gsp-tag-dd-assigned-section');
+  if(!pillsRow)return;
+  pillsRow.querySelectorAll('.tag-pill,.tag-pill-overflow').forEach(el=>el.remove());
+  if(ddAssigned){
+    ddAssigned.innerHTML='';
+    ganttSplitCurrentTags.forEach(tag=>{
+      const p=document.createElement('span');p.className='tag-dd-pill';
+      p.innerHTML=escHtml(tag)+'<button class="tag-remove" type="button">\u00d7</button>';
+      p.querySelector('.tag-remove').addEventListener('click',e=>{
+        e.stopPropagation();
+        ganttSplitCurrentTags=ganttSplitCurrentTags.filter(t=>t!==tag);gspRenderTagsUI();gspRenderTagSuggestions();
+      });
+      ddAssigned.appendChild(p);
+    });
+  }
+  if(ddAssignedSec)ddAssignedSec.style.display=ganttSplitCurrentTags.length?'':'none';
+  if(ganttSplitCurrentTags.length===0){
+    if(placeholder)placeholder.style.display='';
+  }else{
+    if(placeholder)placeholder.style.display='none';
+    const max=3;
+    ganttSplitCurrentTags.slice(0,max).forEach(tag=>{
+      const p=document.createElement('span');p.className='tag-pill';p.textContent=tag;
+      pillsRow.appendChild(p);
+    });
+    if(ganttSplitCurrentTags.length>max){
+      const ov=document.createElement('span');ov.className='tag-pill-overflow';
+      ov.textContent='+'+(ganttSplitCurrentTags.length-max);
+      pillsRow.appendChild(ov);
+    }
+  }
 }
 function gspRenderTagSuggestions(){
   const el=document.getElementById('gsp-tag-suggestions');if(!el)return;
+  const existing=getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t));
   el.innerHTML='';
-  getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t)).forEach(tag=>{
-    const btn=document.createElement('button');btn.type='button';btn.className='tag-suggestion';btn.textContent='+ '+tag;
-    btn.addEventListener('click',()=>{if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
-    el.appendChild(btn);
-  });
+  if(existing.length===0){
+    el.innerHTML='<span class="tag-dd-empty">Sin etiquetas disponibles</span>';
+  }else{
+    existing.forEach(tag=>{
+      const btn=document.createElement('button');btn.type='button';btn.className='tag-suggestion';btn.textContent='+ '+tag;
+      btn.addEventListener('click',e=>{e.stopPropagation();if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
+      el.appendChild(btn);
+    });
+  }
 }
 function gspRenderDepDropdown(excludeId){
   const trigger=document.getElementById('gsp-dep-trigger'),label=document.getElementById('gsp-dep-trigger-label'),
