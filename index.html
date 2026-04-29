@@ -216,7 +216,7 @@
     .recurrence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
     /* TAGS INPUT */
-    .tags-input-wrap { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 9px; min-height: 38px; cursor: text; transition: var(--tr); position: relative; }
+    .tags-input-wrap { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 9px; min-height: 38px; cursor: text; transition: var(--tr); }
     .tags-input-wrap:focus-within { border-color: var(--amber); }
     .tag-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-3); border: 1px solid var(--border-hi); border-radius: 3px; padding: 2px 7px; font-size: 12px; color: var(--text); }
     .tag-remove { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: var(--tr); }
@@ -267,8 +267,7 @@
     .card-btn-delete { width: 24px; height: 24px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-faint); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
     .card-btn-delete:hover { border-color: var(--red-dim); color: var(--red); background: var(--red-glow); }
     /* Tag suggestions en modal */
-    .tag-suggestions { position:absolute; left:0; right:0; top:calc(100% + 3px); z-index:200; background:var(--surface); border:1px solid var(--border-hi); border-radius:var(--radius); display:none; flex-wrap:wrap; gap:4px; padding:7px 8px; max-height:90px; overflow-y:auto; box-shadow:var(--shadow); }
-    .tag-suggestions.open { display:flex; }
+    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
     .tag-suggestion { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface-3); border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer; transition: var(--tr); }
     .tag-suggestion:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
 
@@ -623,16 +622,6 @@
     .flujo-empty { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;text-align:center;color:var(--text-faint); }
     .flujo-empty svg { opacity:.2; }
     .flujo-empty p { font-size:13px;line-height:1.6; }
-    /* Dropdown etiquetas Flujo */
-    .flujo-tags-dropdown { position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius);box-shadow:var(--shadow);min-width:200px;max-width:260px; }
-    .flujo-tags-dd-header { display:flex;gap:6px;padding:8px 10px 6px;border-bottom:1px solid var(--border); }
-    .flujo-tags-dd-all, .flujo-tags-dd-clear { flex:1;padding:4px 8px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);font-size:11px;cursor:pointer;transition:var(--tr); }
-    .flujo-tags-dd-all:hover, .flujo-tags-dd-clear:hover { border-color:var(--amber);color:var(--amber); }
-    .flujo-tags-dd-list-item { display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s; }
-    .flujo-tags-dd-list-item:hover { background:var(--surface-2); }
-    .flujo-tags-dd-cb { width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border-hi);background:transparent;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--tr); }
-    .flujo-tags-dd-cb.on { border-color:var(--amber);background:var(--amber); }
-    .cal-drag-over { outline: 2px solid var(--amber) !important; background: var(--amber-glow) !important; }
 
   </style>
 </head>
@@ -794,7 +783,6 @@
             </div>
             <div class="split-panel-footer" id="split-panel-footer">
               <button class="btn-danger hidden" id="sp-btn-delete">Eliminar</button>
-              <span id="sp-autosave-indicator" style="display:none;font-size:11px;color:var(--text-faint);margin-right:auto;margin-left:8px;"></span>
               <div style="display:flex;gap:8px;margin-left:auto">
                 <button class="btn-ghost hidden" id="sp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
                 <button class="btn-cancel" id="sp-btn-cancel">Cancelar</button>
@@ -990,20 +978,7 @@
     <div class="flujo-toolbar">
       <div class="flujo-toolbar-left">
         <span style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);">Diagrama de Flujo</span>
-        <div style="position:relative;">
-          <button class="filter-btn" id="flujo-tags-btn" title="Filtrar por etiquetas">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            Etiquetas
-            <span class="filter-badge hidden" id="flujo-tags-badge"></span>
-          </button>
-          <div class="flujo-tags-dropdown hidden" id="flujo-tags-dropdown">
-            <div class="flujo-tags-dd-header">
-              <button class="flujo-tags-dd-all" id="flujo-tags-dd-all">Todas</button>
-              <button class="flujo-tags-dd-clear" id="flujo-tags-dd-clear">Limpiar</button>
-            </div>
-            <div id="flujo-tags-dd-list"></div>
-          </div>
-        </div>
+        <div class="flujo-tag-filter" id="flujo-tag-filter"></div>
       </div>
       <div class="flujo-toolbar-right">
         <div class="search-wrap">
@@ -1030,7 +1005,6 @@
         <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber)"></span>Estratégica</div>
         <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
         <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
-        <div class="flujo-legend-row"><span style="font-size:11px;line-height:1;">🔗</span>Con dependencias</div>
       </div>
       <div class="flujo-empty" id="flujo-empty" style="display:none;">
         <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
@@ -1079,7 +1053,6 @@
   </div>
   <div class="split-panel-footer" id="gantt-split-footer">
     <button class="btn-danger hidden" id="gsp-btn-delete">Eliminar</button>
-    <span id="gsp-autosave-indicator" style="display:none;font-size:11px;color:var(--text-faint);margin-right:auto;margin-left:8px;"></span>
     <div style="display:flex;gap:8px;margin-left:auto">
       <button class="btn-ghost hidden" id="gsp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
       <button class="btn-cancel" id="gsp-btn-cancel">Cancelar</button>
@@ -1258,7 +1231,6 @@
     </div>
     <div class="modal-footer">
       <button class="btn-danger hidden" id="btn-delete">Eliminar</button>
-      <span id="autosave-indicator" style="display:none;font-size:11px;color:var(--text-faint);margin-right:auto;margin-left:8px;"></span>
       <div style="display:flex;gap:8px;margin-left:auto">
         <button class="btn-ghost hidden" id="btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
         <button class="btn-cancel" id="btn-cancel">Cancelar</button>
@@ -1429,41 +1401,6 @@ let currentUser     = null;
 let tasks           = [];
 let freeTags        = [];
 let editingId       = null;
-
-// ── Autoguardado ─────────────────────────────────────────────
-let autoSaveTimer   = { modal: null, split: null, gantt: null };
-let autoSaveStatus  = { modal: '', split: '', gantt: '' };
-
-function showAutoSaveStatus(formType, status) {
-  autoSaveStatus[formType] = status;
-  const idMap = { modal: 'autosave-indicator', split: 'sp-autosave-indicator', gantt: 'gsp-autosave-indicator' };
-  const el = document.getElementById(idMap[formType]);
-  if (!el) return;
-  if (status === 'saving') {
-    el.textContent = 'Guardando…'; el.style.color = 'var(--text-faint)'; el.style.display = '';
-  } else if (status === 'saved') {
-    el.textContent = '✓ Guardado'; el.style.color = 'var(--green)'; el.style.display = '';
-    setTimeout(() => { if (autoSaveStatus[formType] === 'saved') { el.style.display = 'none'; autoSaveStatus[formType] = ''; } }, 2500);
-  } else {
-    el.style.display = 'none';
-  }
-}
-
-function scheduleAutoSave(formType) {
-  // Solo cuando se está editando (no creando)
-  const editId = formType === 'modal' ? editingId : formType === 'split' ? splitEditingId : ganttSplitEditingId;
-  if (!editId) return;
-  clearTimeout(autoSaveTimer[formType]);
-  showAutoSaveStatus(formType, 'saving');
-  autoSaveTimer[formType] = setTimeout(async () => {
-    try {
-      if (formType === 'modal')  await saveTask(true);
-      else if (formType === 'split') await saveSplitTask(true);
-      else await saveGanttSplitTask(true);
-      showAutoSaveStatus(formType, 'saved');
-    } catch(e) { showAutoSaveStatus(formType, ''); }
-  }, 1200);
-}
 let currentTags     = [];
 let currentChecklist = [];
 let selectedDeps    = new Set();
@@ -1736,10 +1673,10 @@ function subscribeToTasks() {
   startReminderPolling();
 }
 
-async function saveTask(silent=false) {
+async function saveTask() {
   const title = fTitle.value.trim();
-  if (!title) { if(!silent){fTitle.focus(); showToast('El título es obligatorio.', 'err');} return; }
-  if (!silent) { btnSave.disabled = true; saveLabel.innerHTML = '<span class="spinner"></span>'; }
+  if (!title) { fTitle.focus(); showToast('El título es obligatorio.', 'err'); return; }
+  btnSave.disabled = true; saveLabel.innerHTML = '<span class="spinner"></span>';
 
   const rec = recurrenceOn ? {
     enabled: true, type: fRecType.value,
@@ -1782,15 +1719,15 @@ async function saveTask(silent=false) {
   try {
     if (editingId) {
       await fsUpdate('tasks', editingId, data);
-      if (!silent) showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
+      showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     } else {
       data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       await fsAdd('tasks', data);
-      if (!silent) showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
+      showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     }
-    if (!silent) closeModal();
-  } catch(e) { console.error(e); if(!silent) showToast('Error al guardar.', 'err'); else throw e; }
-  finally { if (!silent) { btnSave.disabled = false; saveLabel.textContent = 'Guardar'; } }
+    closeModal();
+  } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
+  finally { btnSave.disabled = false; saveLabel.textContent = 'Guardar'; }
 }
 
 async function deleteTask() {
@@ -2213,7 +2150,7 @@ function openModal(task=null, prefillTags=null) {
   modalBackdrop.classList.add('open'); setTimeout(()=>fTitle.focus(),80);
 }
 
-function closeModal() { modalBackdrop.classList.remove('open'); editingId=null; clearTimeout(autoSaveTimer.modal); showAutoSaveStatus('modal',''); }
+function closeModal() { modalBackdrop.classList.remove('open'); editingId=null; }
 
 function renderTagsUI() {
   tagsWrap.querySelectorAll('.tag-pill').forEach(el=>el.remove());
@@ -2233,8 +2170,7 @@ function renderTagSuggestions() {
   existing.forEach(tag => {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'tag-suggestion'; btn.textContent = '+ ' + tag;
-    btn.addEventListener('mousedown', e => {
-      e.preventDefault(); // evitar blur antes de agregar
+    btn.addEventListener('click', () => {
       if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); renderTagSuggestions(); }
     });
     suggestionsEl.appendChild(btn);
@@ -2359,8 +2295,6 @@ recToggle.addEventListener('click',()=>{
   toggleLabel.textContent=recurrenceOn?'Con recurrencia':'Sin recurrencia';
   recOptions.classList.toggle('hidden',!recurrenceOn);
   if(recurrenceOn) updateRecInterval();
-  const btnSkipTask=document.getElementById('btn-skip-task');
-  if(btnSkipTask){const hasDue=!!(fDue&&fDue.value);btnSkipTask.classList.toggle('hidden',!(recurrenceOn&&hasDue&&editingId));}
 });
 fRecType.addEventListener('change', updateRecInterval);
 
@@ -2371,8 +2305,6 @@ tagsInput.addEventListener('keydown',e=>{
   } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();renderTagSuggestions();}
 });
 tagsWrap.addEventListener('click',()=>tagsInput.focus());
-tagsInput.addEventListener('focus', () => { const el=document.getElementById('tag-suggestions'); if(el) el.classList.add('open'); });
-tagsInput.addEventListener('blur', () => { const el=document.getElementById('tag-suggestions'); if(el) el.classList.remove('open'); });
 
 document.querySelectorAll('.nav-tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
@@ -2560,14 +2492,6 @@ document.getElementById('btn-skip-task').addEventListener('click', async () => {
   await skipTask(editingId);
 });
 modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
-
-// Autoguardado modal — escucha input/change en el cuerpo del modal
-const modalEl = document.getElementById('modal-backdrop');
-if (modalEl) {
-  const AS_FIELDS = 'input,select,textarea';
-  modalEl.addEventListener('input', e => { if (e.target.matches(AS_FIELDS)) scheduleAutoSave('modal'); });
-  modalEl.addEventListener('change', e => { if (e.target.matches(AS_FIELDS)) scheduleAutoSave('modal'); });
-}
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeSplitPanel(); closeGanttSplitPanel(); closeCtxMenu(); }
 
@@ -2616,14 +2540,6 @@ document.getElementById('split-panel-close').addEventListener('click', closeSpli
 spBtnCancel.addEventListener('click', closeSplitPanel);
 spBtnSave.addEventListener('click', saveSplitTask);
 spBtnDelete.addEventListener('click', deleteSplitTask);
-
-// Autoguardado split panel — listener delegado
-const splitRightEl = document.getElementById('list-split-right');
-if (splitRightEl) {
-  const AS_FIELDS = 'input,select,textarea';
-  splitRightEl.addEventListener('input', e => { if (e.target.matches(AS_FIELDS)) scheduleAutoSave('split'); });
-  splitRightEl.addEventListener('change', e => { if (e.target.matches(AS_FIELDS)) scheduleAutoSave('split'); });
-}
 document.getElementById('sp-btn-skip-task').addEventListener('click', async () => {
   if (!splitEditingId) return;
   closeSplitPanel();
@@ -2672,7 +2588,6 @@ function closeSplitPanel() {
   splitLeft.classList.remove('dimmed');
   document.getElementById('task-list').style.paddingRight = '';
   splitEditingId = null;
-  clearTimeout(autoSaveTimer.split); showAutoSaveStatus('split','');
 }
 
 function buildSplitFormHTML(task) {
@@ -2768,11 +2683,6 @@ function bindSplitFormEvents(task) {
     spToggleLabel.textContent = splitRecurrenceOn ? 'Con recurrencia' : 'Sin recurrencia';
     spRecOptions.classList.toggle('hidden', !splitRecurrenceOn);
     if (splitRecurrenceOn) spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily');
-    const spBtnSkip = document.getElementById('sp-btn-skip-task');
-    if (spBtnSkip) {
-      const hasDue = !!(document.getElementById('sp-f-due') && document.getElementById('sp-f-due').value);
-      spBtnSkip.classList.toggle('hidden', !(splitRecurrenceOn && hasDue && splitEditingId));
-    }
   });
   spRecType.addEventListener('change', () => { spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily'); });
   spRenderChecklistUI();
@@ -2780,8 +2690,6 @@ function bindSplitFormEvents(task) {
   spRenderTagsUI(); spRenderTagSuggestions();
   const spTagsInput = document.getElementById('sp-tags-input');
   document.getElementById('sp-tags-wrap').addEventListener('click', () => spTagsInput.focus());
-  spTagsInput.addEventListener('focus', () => { const el=document.getElementById('sp-tag-suggestions'); if(el) el.classList.add('open'); });
-  spTagsInput.addEventListener('blur', () => { const el=document.getElementById('sp-tag-suggestions'); if(el) el.classList.remove('open'); });
   spTagsInput.addEventListener('keydown', e => {
     if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
       e.preventDefault();
@@ -2826,7 +2734,7 @@ function spRenderTagSuggestions() {
   el.innerHTML = '';
   getAllTags().filter(t => !splitCurrentTags.includes(t)).forEach(tag => {
     const btn = document.createElement('button'); btn.type='button'; btn.className='tag-suggestion'; btn.textContent='+ '+tag;
-    btn.addEventListener('mousedown', e => { e.preventDefault(); if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
+    btn.addEventListener('click', () => { if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
     el.appendChild(btn);
   });
 }
@@ -2895,11 +2803,11 @@ function spRenderDepDropdown(excludeId) {
   }
 }
 
-async function saveSplitTask(silent=false) {
+async function saveSplitTask() {
   const titleEl = document.getElementById('sp-f-title');
   const title = (titleEl ? titleEl.value : '').trim();
-  if (!title) { if(!silent&&titleEl) titleEl.focus(); if(!silent) showToast('El t\u00edtulo es obligatorio.', 'err'); return; }
-  if (!silent) { spBtnSave.disabled = true; spSaveLabel.innerHTML = '<span class="spinner"></span>'; }
+  if (!title) { if(titleEl) titleEl.focus(); showToast('El t\u00edtulo es obligatorio.', 'err'); return; }
+  spBtnSave.disabled = true; spSaveLabel.innerHTML = '<span class="spinner"></span>';
   const spRecTypeEl = document.getElementById('sp-f-rec-type');
   const rec = splitRecurrenceOn ? {
     enabled:true, type:spRecTypeEl.value,
@@ -2936,14 +2844,16 @@ async function saveSplitTask(silent=false) {
   try {
     if (splitEditingId) {
       await fsUpdate('tasks', splitEditingId, data);
-      if (!silent) { showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok'); closeSplitPanel(); }
+      showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
+      closeSplitPanel();
     } else {
       data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       await fsAdd('tasks', data);
-      if (!silent) { showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok'); closeSplitPanel(); }
+      showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
+      closeSplitPanel();
     }
-  } catch(e) { console.error(e); if(!silent) showToast('Error al guardar.', 'err'); else throw e; }
-  finally { if (!silent) { spBtnSave.disabled=false; spSaveLabel.textContent='Guardar'; } }
+  } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
+  finally { spBtnSave.disabled=false; spSaveLabel.textContent='Guardar'; }
 }
 
 async function deleteSplitTask() {
@@ -3788,63 +3698,10 @@ function buildCalTask(task, isRecurrent, dateStr, today) {
     try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
     catch(err) { showToast('Error.', 'err'); }
   });
-  // Drag & Drop
-  let calDragState = null;
-  el.addEventListener('mousedown', e => {
-    if (e.button !== 0) return;
-    const startX = e.clientX, startY = e.clientY, startTime = Date.now();
-    let ghost = null, dragging = false, lastCell = null;
-
-    const onMove = mv => {
-      const dx = mv.clientX - startX, dy = mv.clientY - startY;
-      if (!dragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5) && (Date.now() - startTime) > 0) {
-        dragging = true;
-        ghost = el.cloneNode(true);
-        ghost.style.cssText = 'position:fixed;opacity:.65;pointer-events:none;z-index:9999;width:' + el.offsetWidth + 'px;';
-        document.body.appendChild(ghost);
-        el.style.opacity = '.3';
-      }
-      if (dragging && ghost) {
-        ghost.style.left = (mv.clientX - el.offsetWidth/2) + 'px';
-        ghost.style.top  = (mv.clientY - 10) + 'px';
-        // highlight target cell
-        const target = document.elementFromPoint(mv.clientX, mv.clientY);
-        const cell = target ? target.closest('.cal-cell') : null;
-        if (lastCell && lastCell !== cell) lastCell.classList.remove('cal-drag-over');
-        if (cell && cell !== el.closest('.cal-cell')) { cell.classList.add('cal-drag-over'); lastCell = cell; }
-        else if (!cell) lastCell = null;
-      }
-    };
-
-    const onUp = async uv => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      if (ghost) { ghost.remove(); ghost = null; }
-      el.style.opacity = '';
-      if (lastCell) lastCell.classList.remove('cal-drag-over');
-
-      const elapsed = Date.now() - startTime;
-      if (!dragging || elapsed < 200) {
-        // Fue click
-        e.stopPropagation();
-        openModal(tasks.find(t => t.id === task.id) || task);
-        return;
-      }
-      // Fue drag
-      if (!lastCell) return;
-      const newDate = lastCell.dataset.dateStr;
-      if (!newDate || newDate === task.dueDate) return;
-      if (isRecurrent) return; // No mover ocurrencias virtuales
-      try {
-        await db.collection('tasks').doc(task.id).update({ dueDate: newDate, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-        showToast('Fecha actualizada.', 'ok');
-      } catch(err) { showToast('Error al actualizar.', 'err'); }
-    };
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    openModal(tasks.find(t => t.id === task.id) || task);
   });
-
   el.addEventListener('contextmenu', e => {
     e.preventDefault(); e.stopPropagation();
     showContextMenu(tasks.find(t => t.id === task.id) || task, e.clientX, e.clientY, true);
@@ -3941,15 +3798,6 @@ const gspSaveLabel      = document.getElementById('gsp-save-label');
 document.getElementById('gantt-split-close').addEventListener('click', closeGanttSplitPanel);
 gspBtnCancel.addEventListener('click', closeGanttSplitPanel);
 gspBtnSave.addEventListener('click', saveGanttSplitTask);
-
-// Autoguardado gantt split panel — listener delegado
-const ganttSplitRightEl = document.getElementById('gantt-split-right');
-if (ganttSplitRightEl) {
-  const AS_FIELDS = 'input,select,textarea';
-  ganttSplitRightEl.addEventListener('input', e => { if (e.target.matches(AS_FIELDS)) scheduleAutoSave('gantt'); });
-  ganttSplitRightEl.addEventListener('change', e => { if (e.target.matches(AS_FIELDS)) scheduleAutoSave('gantt'); });
-}
-
 gspBtnDelete.addEventListener('click', deleteGanttSplitTask);
 document.getElementById('gsp-btn-skip-task').addEventListener('click', async () => {
   if (!ganttSplitEditingId) return;
@@ -3979,7 +3827,6 @@ function openGanttSplitPanel(task) {
 function closeGanttSplitPanel() {
   ganttSplitRight.classList.remove('open');
   ganttSplitEditingId = null;
-  clearTimeout(autoSaveTimer.gantt); showAutoSaveStatus('gantt','');
 }
 
 // Construir HTML del formulario para el panel Gantt (prefijo gsp-)
@@ -4063,8 +3910,6 @@ function bindGanttSplitFormEvents(task) {
       gspToggleLbl.textContent=ganttSplitRecurrenceOn?'Con recurrencia':'Sin recurrencia';
       gspRecOpts.classList.toggle('hidden',!ganttSplitRecurrenceOn);
       if (ganttSplitRecurrenceOn) gspRecIntGrp.classList.toggle('hidden',gspRecType.value!=='daily');
-      const gspBtnSkip=document.getElementById('gsp-btn-skip-task');
-      if(gspBtnSkip){const hasDue=!!(document.getElementById('gsp-f-due')&&document.getElementById('gsp-f-due').value);gspBtnSkip.classList.toggle('hidden',!(ganttSplitRecurrenceOn&&hasDue&&ganttSplitEditingId));}
     });
   }
   if (gspRecType) gspRecType.addEventListener('change',()=>{gspRecIntGrp.classList.toggle('hidden',gspRecType.value!=='daily');});
@@ -4077,10 +3922,6 @@ function bindGanttSplitFormEvents(task) {
   const gspTagsInput=document.getElementById('gsp-tags-input');
   const gspTagsWrap=document.getElementById('gsp-tags-wrap');
   if(gspTagsWrap) gspTagsWrap.addEventListener('click',()=>gspTagsInput&&gspTagsInput.focus());
-  if(gspTagsInput){
-    gspTagsInput.addEventListener('focus',()=>{const el=document.getElementById('gsp-tag-suggestions');if(el)el.classList.add('open');});
-    gspTagsInput.addEventListener('blur',()=>{const el=document.getElementById('gsp-tag-suggestions');if(el)el.classList.remove('open');});
-  }
   if(gspTagsInput) gspTagsInput.addEventListener('keydown',e=>{
     if((e.key==='Enter'||e.key===',')&&gspTagsInput.value.trim()){
       e.preventDefault();
@@ -4163,7 +4004,7 @@ function gspRenderTagSuggestions(){
   el.innerHTML='';
   getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t)).forEach(tag=>{
     const btn=document.createElement('button');btn.type='button';btn.className='tag-suggestion';btn.textContent='+ '+tag;
-    btn.addEventListener('mousedown',e=>{e.preventDefault();if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
+    btn.addEventListener('click',()=>{if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
     el.appendChild(btn);
   });
 }
@@ -4207,11 +4048,11 @@ function gspRenderDepDropdown(excludeId){
 }
 
 
-async function saveGanttSplitTask(silent=false) {
+async function saveGanttSplitTask() {
   const titleEl = document.getElementById('gsp-f-title');
   const title = (titleEl ? titleEl.value : '').trim();
-  if (!title) { if(!silent&&titleEl) titleEl.focus(); if(!silent) showToast('El título es obligatorio.', 'err'); return; }
-  if (!silent) { gspBtnSave.disabled = true; gspSaveLabel.innerHTML = '<span class="spinner"></span>'; }
+  if (!title) { if(titleEl) titleEl.focus(); showToast('El título es obligatorio.', 'err'); return; }
+  gspBtnSave.disabled = true; gspSaveLabel.innerHTML = '<span class="spinner"></span>';
 
   const gspRecTypeEl = document.getElementById('gsp-f-rec-type');
   const rec = ganttSplitRecurrenceOn ? {
@@ -4258,15 +4099,15 @@ async function saveGanttSplitTask(silent=false) {
   try {
     if (ganttSplitEditingId) {
       await fsUpdate('tasks', ganttSplitEditingId, data);
-      if (!silent) showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
+      showToast(isOnline() ? 'Tarea actualizada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     } else {
       data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       await fsAdd('tasks', data);
-      if (!silent) showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
+      showToast(isOnline() ? 'Tarea creada.' : 'Guardada offline — se sincronizará al conectar.', 'ok');
     }
-    if (!silent) closeGanttSplitPanel();
-  } catch(e) { console.error(e); if(!silent) showToast('Error al guardar.', 'err'); else throw e; }
-  finally { if (!silent) { gspBtnSave.disabled=false; gspSaveLabel.textContent='Guardar'; } }
+    closeGanttSplitPanel();
+  } catch(e) { console.error(e); showToast('Error al guardar.', 'err'); }
+  finally { gspBtnSave.disabled=false; gspSaveLabel.textContent='Guardar'; }
 }
 
 async function deleteGanttSplitTask() {
@@ -4934,108 +4775,80 @@ function showFlujoTagDropdown(task, anchorEl) {
 }
 
 function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter) {
+  const els = [];
   const q = search.trim().toLowerCase();
-  // Determinar etiquetas activas según filtro
-  const activeTags = (tagFilter && tagFilter.length > 0) ? tagFilter : null;
-
-  // Set de IDs de tareas que tienen dependencias (en cualquier dirección)
-  const hasDepsSet = new Set();
-  taskList.forEach(t => {
-    if (t.dependencies && t.dependencies.length > 0) {
-      hasDepsSet.add(t.id);
-      t.dependencies.forEach(depId => hasDepsSet.add(depId));
-    }
-  });
-
   const visible = taskList.filter(t => {
     if (hideDone && t.status === 'done') return false;
     if (!showNoLabel && (!t.tags || t.tags.length === 0)) return false;
     if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
-    if (activeTags) {
+    if (tagFilter && tagFilter.length > 0) {
       const tTags = t.tags || [];
-      if (!activeTags.some(f => tTags.includes(f))) return false;
+      if (!tagFilter.some(f => tTags.includes(f))) return false;
     }
     return true;
   });
-
-  // Calcular etiquetas únicas presentes (respetando filtro)
-  const tagOrder = [];
-  const tagSet   = new Set();
+  const labelSet = new Set();
   visible.forEach(t => {
-    const tTags = (t.tags && t.tags.length > 0) ? t.tags : [];
-    tTags.forEach(tag => {
-      if (!tagSet.has(tag)) { tagSet.add(tag); tagOrder.push(tag); }
+    if (t.tags && t.tags.length > 0) t.tags.forEach(tag => labelSet.add(tag));
+    else labelSet.add('__none__');
+  });
+  labelSet.forEach(lbl => {
+    els.push({ data: { id:'root::'+lbl, label: lbl==='__none__' ? 'Sin etiqueta' : lbl, nodeType:'root' }});
+  });
+  visible.forEach(t => {
+    const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
+    lbls.forEach(lbl => {
+      const nid = t.id+'::'+lbl;
+      els.push({ data: { id:nid, taskId:t.id, labelKey:lbl, label:t.title, status:t.status, priority:t.priority, type:t.type, nodeType:'task', bgColor:flujoNodeBg(t), borderColor:flujoNodeBorder(t), textColor:flujoNodeText(t), borderStyle:t.type==='strategic'?'solid':'dashed' }});
+      els.push({ data: { id:'e-r-'+nid, source:'root::'+lbl, target:nid, edgeType:'root' }});
     });
   });
-  // Si hay tareas sin etiqueta visibles, no se generan nodos raíz para ellas (van al panel inferior)
-
-  // Calcular grid de cuadrantes
-  const n = tagOrder.length;
-  let cols, rows;
-  if      (n <= 1)  { cols=1; rows=1; }
-  else if (n <= 2)  { cols=2; rows=1; }
-  else if (n <= 3)  { cols=3; rows=1; }
-  else if (n <= 4)  { cols=2; rows=2; }
-  else if (n <= 6)  { cols=3; rows=2; }
-  else if (n <= 9)  { cols=3; rows=3; }
-  else              { cols=4; rows=Math.ceil(n/4); }
-
-  const QW = 600, QH = 500, GAP = 80;
-  const els = [];
-
-  tagOrder.forEach((tag, qi) => {
-    const col = qi % cols;
-    const row = Math.floor(qi / cols);
-    const ox  = col * (QW + GAP);
-    const oy  = row * (QH + GAP);
-    // Centro del cuadrante
-    const cx  = ox + QW / 2;
-    const cy  = oy + QH / 2;
-
-    // Nodo raíz (etiqueta)
-    const rootId = 'root::' + tag;
-    els.push({ data: { id: rootId, label: tag, nodeType: 'root', quadrant: qi },
-               position: { x: cx, y: cy } });
-
-    // Tareas de este cuadrante
-    const qTasks = visible.filter(t => (t.tags || []).includes(tag));
-    // Espiral alrededor del nodo raíz
-    const BASE_R = 120, R_STEP = 90;
-    qTasks.forEach((t, ti) => {
-      // Espiral: ángulo y radio crecientes
-      const angle  = (ti * 2.399); // ángulo áureo ~137.5°
-      const radius = BASE_R + Math.floor(ti / 6) * R_STEP;
-      const nx = cx + radius * Math.cos(angle);
-      const ny = cy + radius * Math.sin(angle);
-      // Clamp dentro del cuadrante con margen
-      const M = 40;
-      const px = Math.max(ox + M, Math.min(ox + QW - M, nx));
-      const py = Math.max(oy + M, Math.min(oy + QH - M, ny));
-
-      const nid   = t.id + '::' + tag;
-      const label = hasDepsSet.has(t.id) ? t.title + '\n🔗' : t.title;
-      els.push({ data: { id: nid, taskId: t.id, labelKey: tag, label,
-        status: t.status, priority: t.priority, type: t.type,
-        nodeType: 'task', bgColor: flujoNodeBg(t), borderColor: flujoNodeBorder(t),
-        textColor: flujoNodeText(t), borderStyle: t.type === 'strategic' ? 'solid' : 'dashed' },
-        position: { x: px, y: py } });
-      els.push({ data: { id: 'e-r-' + nid, source: rootId, target: nid, edgeType: 'root' } });
+  visible.forEach(t => {
+    if (!t.dependencies || !t.dependencies.length) return;
+    const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
+    lbls.forEach(lbl => {
+      const tgt = t.id+'::'+lbl;
+      t.dependencies.forEach(depId => {
+        const depTask = taskList.find(x => x.id === depId);
+        if (!depTask) return;
+        const depLbls = (depTask.tags && depTask.tags.length > 0) ? depTask.tags : ['__none__'];
+        if (!depLbls.includes(lbl)) return;
+        const src = depId+'::'+lbl;
+        els.push({ data: { id:'e-d-'+src+'->'+tgt, source:src, target:tgt, edgeType:'dep' }});
+      });
     });
   });
-
   return els;
 }
 
 function flujoStylesheet() {
   return [
-    { selector:'node[nodeType="root"]', style:{ 'background-color':'#1e1600','border-color':'#f0a500','border-width':2,'color':'#f0a500','label':'data(label)','font-family':'Space Mono, monospace','font-size':11,'font-weight':700,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'12px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':140 }},
+    { selector:'node[nodeType="root"]', style:{ 'background-color':'#1e1600','border-color':'#f0a500','border-width':2,'color':'#f0a500','label':'data(label)','font-family':'Space Mono, monospace','font-size':11,'font-weight':700,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'12px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':130 }},
     { selector:'node[nodeType="task"]', style:{ 'background-color':'data(bgColor)','border-color':'data(borderColor)','border-width':2,'border-style':'data(borderStyle)','color':'data(textColor)','label':'data(label)','font-family':'DM Sans, sans-serif','font-size':11,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'9px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':150 }},
     { selector:'node[nodeType="task"][status="done"]', style:{ 'opacity':0.55 }},
     { selector:'node:selected', style:{ 'border-color':'#f0a500','border-width':3 }},
     { selector:'edge[edgeType="root"]', style:{ 'line-color':'#2a2f3a','width':1.5,'target-arrow-color':'#2a2f3a','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8 }},
+    { selector:'edge[edgeType="dep"]', style:{ 'line-color':'#f0a500','line-style':'dashed','line-dash-pattern':[6,3],'width':1.5,'target-arrow-color':'#f0a500','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8,'opacity':0.75 }},
     { selector:'.conn-source', style:{ 'border-color':'#f0a500','border-width':3 }},
     { selector:'.conn-hover',  style:{ 'border-color':'#3eb87a','border-width':3 }}
   ];
+}
+
+function enterConnMode(srcNode) {
+  flujoConnMode = true;
+  flujoConnSrc  = srcNode;
+  srcNode.addClass('conn-source');
+  document.getElementById('flujo-cy').style.cursor = 'crosshair';
+  showToast('Solt\u00e1 sobre otra tarea para crear dependencia. Esc para cancelar.','ok');
+}
+
+function exitConnMode() {
+  if (!flujoConnMode) return;
+  flujoConnMode = false;
+  if (flujoConnSrc) { flujoConnSrc.removeClass('conn-source'); flujoConnSrc = null; }
+  if (flujoCy) flujoCy.nodes().removeClass('conn-hover');
+  const cy = document.getElementById('flujo-cy');
+  if (cy) cy.style.cursor = '';
 }
 
 function renderFlujo() {
@@ -5053,48 +4866,55 @@ function renderFlujo() {
   if (taskNodes.length === 0) {
     container.style.display = 'none';
     emptyDiv.style.display  = 'flex';
-    renderFlujoNoLabelPanel();
     return;
   }
   container.style.display = 'block';
   emptyDiv.style.display  = 'none';
 
+  // Si el contenedor aún no tiene dimensiones, esperar al siguiente frame con tamaño real
   if (container.offsetHeight === 0) {
     const ro = new ResizeObserver((entries, obs) => {
       for (const entry of entries) {
-        if (entry.contentRect.height > 0) { obs.disconnect(); renderFlujo(); break; }
+        if (entry.contentRect.height > 0) {
+          obs.disconnect();
+          renderFlujo();
+          break;
+        }
       }
     });
     ro.observe(container);
     return;
   }
 
-  // Cargar posiciones guardadas
-  let savedPositions = {};
-  try {
-    const raw = localStorage.getItem('plordico_flujo_positions');
-    if (raw) savedPositions = JSON.parse(raw);
-  } catch(e) { /* silencioso */ }
-
-  // Si hay posiciones guardadas para estos nodos, usarlas; si no, usar las calculadas
-  const finalElements = elements.map(el => {
-    if (!el.position) return el; // aristas
-    const saved = savedPositions[el.data.id];
-    if (saved) return { ...el, position: saved };
-    return el;
-  });
-
   flujoCy = cytoscape({
     container,
-    elements: finalElements,
+    elements,
     style: flujoStylesheet(),
-    layout: { name: 'preset' },
+    layout: { name:'breadthfirst', directed:true, padding:40, spacingFactor:1.5, avoidOverlap:true },
     userZoomingEnabled: true,
     userPanningEnabled: true,
-    minZoom: 0.08, maxZoom: 3
+    minZoom: 0.15, maxZoom: 3
   });
 
-  // Guardar posiciones al soltar nodo
+  // Restaurar posiciones guardadas (si existen)
+  try {
+    const saved = localStorage.getItem('plordico_flujo_positions');
+    if (saved) {
+      const positions = JSON.parse(saved);
+      let restored = 0;
+      flujoCy.nodes().forEach(node => {
+        if (positions[node.id()]) {
+          node.position(positions[node.id()]);
+          restored++;
+        }
+      });
+      if (restored > 0) {
+        flujoCy.fit(undefined, 40);
+      }
+    }
+  } catch(e) { /* silencioso */ }
+
+  // Guardar posiciones al soltar un nodo
   flujoCy.on('free', 'node', function() {
     try {
       const positions = {};
@@ -5104,31 +4924,26 @@ function renderFlujo() {
   });
 
   flujoCy.resize();
-  flujoCy.fit(undefined, 60);
-  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 60); } });
+  flujoCy.fit(undefined, 40);
+  // Segunda pasada por si el primer frame aún no tenía dimensiones
+  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
 
-  // Tap en nodo tarea
   flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
     if (flujoConnMode) {
       const tgtNode   = evt.target;
       if (tgtNode === flujoConnSrc) { exitConnMode(); return; }
       const srcTaskId = flujoConnSrc.data('taskId');
       const tgtTaskId = tgtNode.data('taskId');
-      // Solo permitir dependencias dentro del mismo cuadrante (misma etiqueta)
       if (!srcTaskId || !tgtTaskId) { exitConnMode(); return; }
-      if (flujoConnSrc.data('labelKey') !== tgtNode.data('labelKey')) {
-        showToast('Las dependencias solo se crean dentro del mismo cuadrante.', 'err');
-        exitConnMode(); return;
-      }
       exitConnMode();
       const tgtTask = tasks.find(t => t.id === tgtTaskId);
       if (!tgtTask) return;
       const deps = Array.isArray(tgtTask.dependencies) ? [...tgtTask.dependencies] : [];
       if (!deps.includes(srcTaskId)) {
         deps.push(srcTaskId);
-        db.collection('tasks').doc(tgtTaskId).update({ dependencies: deps, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-          .then(() => showToast('Dependencia creada.', 'ok'))
-          .catch(() => showToast('Error.', 'err'));
+        db.collection('tasks').doc(tgtTaskId).update({ dependencies:deps, updatedAt:firebase.firestore.FieldValue.serverTimestamp() })
+          .then(() => showToast('Dependencia creada.','ok'))
+          .catch(() => showToast('Error.','err'));
       }
       return;
     }
@@ -5152,10 +4967,12 @@ function renderFlujo() {
     enterConnMode(evt.target);
   });
 
-  // Tap en nodo raíz → nueva tarea con esa etiqueta
+  // Tap en nodo raíz → nueva tarea con esa etiqueta preseleccionada
   flujoCy.on('tap', 'node[nodeType="root"]', function(evt) {
     const lbl = evt.target.data('label');
-    openModal(null, lbl ? [lbl] : []);
+    const tag = (lbl === 'Sin etiqueta') ? null : lbl;
+    // Abre el modal de nueva tarea con la etiqueta pre-rellenada
+    openModal(null, tag ? [tag] : []);
   });
 
   flujoCy.on('tap', function(evt) {
@@ -5172,24 +4989,6 @@ function renderFlujo() {
   };
   document.addEventListener('keydown', escFlujo);
 
-  renderFlujoNoLabelPanel();
-}
-
-function enterConnMode(srcNode) {
-  flujoConnMode = true;
-  flujoConnSrc  = srcNode;
-  srcNode.addClass('conn-source');
-  document.getElementById('flujo-cy').style.cursor = 'crosshair';
-  showToast('Solt\u00e1 sobre otra tarea para crear dependencia. Esc para cancelar.','ok');
-}
-
-function exitConnMode() {
-  if (!flujoConnMode) return;
-  flujoConnMode = false;
-  if (flujoConnSrc) { flujoConnSrc.removeClass('conn-source'); flujoConnSrc = null; }
-  if (flujoCy) flujoCy.nodes().removeClass('conn-hover');
-  const cy = document.getElementById('flujo-cy');
-  if (cy) cy.style.cursor = '';
 }
 
 document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
@@ -5199,41 +4998,35 @@ document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
 });
 
 function renderFlujoTagFilter() {
-  const listEl   = document.getElementById('flujo-tags-dd-list');
-  const badgeEl  = document.getElementById('flujo-tags-badge');
-  if (!listEl) return;
-
+  const wrap = document.getElementById('flujo-tag-filter');
+  if (!wrap) return;
   const allTags = getAllTags();
-  listEl.innerHTML = '';
+  wrap.innerHTML = '';
+  if (allTags.length === 0) return;
+  // Chip "Todas"
+  const allChip = document.createElement('button');
+  allChip.className = 'flujo-tag-chip' + (flujoTagFilter.length === 0 ? ' active' : '');
+  allChip.textContent = 'Todas';
+  allChip.addEventListener('click', () => {
+    flujoTagFilter = [];
+    renderFlujoTagFilter();
+    renderFlujo();
+  });
+  wrap.appendChild(allChip);
   allTags.forEach(tag => {
-    const active = flujoTagFilter.includes(tag);
-    const row = document.createElement('div');
-    row.className = 'flujo-tags-dd-list-item';
-    row.innerHTML = '<span class="flujo-tags-dd-cb' + (active ? ' on' : '') + '">'
-      + (active ? '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '')
-      + '</span><span>' + escHtml(tag) + '</span>';
-    row.addEventListener('click', e => {
-      e.stopPropagation();
+    const chip = document.createElement('button');
+    chip.className = 'flujo-tag-chip' + (flujoTagFilter.includes(tag) ? ' active' : '');
+    chip.textContent = '# ' + tag;
+    chip.addEventListener('click', () => {
       const idx = flujoTagFilter.indexOf(tag);
       if (idx >= 0) flujoTagFilter.splice(idx, 1);
       else flujoTagFilter.push(tag);
       renderFlujoTagFilter();
       renderFlujo();
     });
-    listEl.appendChild(row);
+    wrap.appendChild(chip);
   });
-
-  // Badge
-  if (badgeEl) {
-    if (flujoTagFilter.length > 0) {
-      badgeEl.textContent = flujoTagFilter.length;
-      badgeEl.classList.remove('hidden');
-    } else {
-      badgeEl.classList.add('hidden');
-    }
-  }
 }
-
 
 function renderFlujoNoLabelPanel() {
   const panel = document.getElementById('flujo-nolabel-panel');
@@ -5298,40 +5091,6 @@ function renderFlujoNoLabelPanel() {
   }
   panel.style.display = 'block';
 }
-
-// ── Listeners dropdown Etiquetas en Flujo ──────────────────
-(function() {
-  const btn = document.getElementById('flujo-tags-btn');
-  const dd  = document.getElementById('flujo-tags-dropdown');
-  if (!btn || !dd) return;
-
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    const isOpen = !dd.classList.contains('hidden');
-    dd.classList.toggle('hidden', isOpen);
-    if (!isOpen) renderFlujoTagFilter();
-  });
-
-  document.getElementById('flujo-tags-dd-all').addEventListener('click', e => {
-    e.stopPropagation();
-    flujoTagFilter = [];
-    renderFlujoTagFilter();
-    renderFlujo();
-  });
-
-  document.getElementById('flujo-tags-dd-clear').addEventListener('click', e => {
-    e.stopPropagation();
-    flujoTagFilter = [];
-    renderFlujoTagFilter();
-    renderFlujo();
-  });
-
-  document.addEventListener('click', e => {
-    if (!btn.contains(e.target) && !dd.contains(e.target)) {
-      dd.classList.add('hidden');
-    }
-  });
-})();
 
 document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
   flujoHideDone = !flujoHideDone;
