@@ -435,6 +435,8 @@
     .cal-task.t-overdue { background: var(--red-dim); }
     .cal-task.t-overdue .cal-task-title { color: var(--red); }
     .cal-task.t-recurrent { background: var(--surface-3); }
+    .cal-task.dragging { opacity: .35; pointer-events: none; }
+    .cal-cell.drag-over { border-color: var(--amber); background: var(--amber-glow2); box-shadow: inset 0 0 0 1px var(--amber); }
     .cal-task-accent { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 10px; }
     .cal-task-check { width: 11px; height: 11px; border-radius: 2px; border: 1.5px solid var(--border-hi); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: var(--tr); }
     .cal-task-check:hover { border-color: var(--green); }
@@ -3783,6 +3785,31 @@ function renderCalendar() {
       setTimeout(() => { const el = document.getElementById('f-due'); if (el) el.value = dateStr; }, 60);
     });
 
+    // Drag & drop — cambiar fecha límite arrastrando entre celdas
+    cell.addEventListener('dragover', e => {
+      if (!e.dataTransfer.types.includes('taskid')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      cell.classList.add('drag-over');
+    });
+    cell.addEventListener('dragleave', e => {
+      if (!e.currentTarget.contains(e.relatedTarget)) cell.classList.remove('drag-over');
+    });
+    cell.addEventListener('drop', async e => {
+      e.preventDefault();
+      cell.classList.remove('drag-over');
+      const taskId = e.dataTransfer.getData('taskId');
+      const sourceDateStr = e.dataTransfer.getData('sourceDateStr');
+      if (!taskId || dateStr === sourceDateStr) return;
+      try {
+        await db.collection('tasks').doc(taskId).update({
+          dueDate: dateStr,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('Fecha actualizada → ' + dateStr);
+      } catch(err) { showToast('Error al mover tarea.', 'err'); }
+    });
+
     grid.appendChild(cell);
     cur.setDate(cur.getDate() + 1);
   }
@@ -3821,6 +3848,15 @@ function buildCalTask(task, isRecurrent, dateStr, today) {
     + (isDone      ? ' t-done'      : '')
     + (isOverdue   ? ' t-overdue'   : '')
     + (isRecurrent ? ' t-recurrent' : '');
+  el.draggable = true;
+  el.addEventListener('dragstart', e => {
+    e.stopPropagation();
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('taskId', task.id);
+    e.dataTransfer.setData('sourceDateStr', dateStr);
+    setTimeout(() => el.classList.add('dragging'), 0);
+  });
+  el.addEventListener('dragend', () => el.classList.remove('dragging'));
 
   el.innerHTML =
     '<div class="cal-task-accent" style="background:' + accent + '"></div>'
