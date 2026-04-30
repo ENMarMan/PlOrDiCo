@@ -992,25 +992,26 @@
 
   <!-- PANEL FLUJO -->
   <div id="panel-flujo" class="panel">
-    <div class="flujo-toolbar">
-      <div class="flujo-toolbar-left">
-        <span style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);">Diagrama de Flujo</span>
-        <div class="flujo-tag-filter" id="flujo-tag-filter"></div>
+    <div class="list-toolbar" id="flujo-toolbar-bar">
+      <!-- Chips de etiqueta (inyectados por renderFlujoTagFilter) -->
+      <div class="flujo-tag-filter" id="flujo-tag-filter"></div>
+      <!-- Separador visual -->
+      <div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
+      <!-- Toggle Sin etiqueta -->
+      <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none;flex-shrink:0;">
+        <div class="toggle-switch" id="flujo-nolabel-switch"></div>
+        <span class="matrix-toggle-label" id="flujo-nolabel-label">Sin etiqueta</span>
       </div>
-      <div class="flujo-toolbar-right">
-        <div class="search-wrap">
-          <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="search-input" id="flujo-search-input" placeholder="Buscar…" />
-          <button class="search-clear" id="flujo-search-input-clear" title="Limpiar">✕</button>
-        </div>
-        <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none">
-          <div class="toggle-switch" id="flujo-nolabel-switch"></div>
-          <span class="matrix-toggle-label" id="flujo-nolabel-label">Sin etiqueta</span>
-        </div>
-        <div class="matrix-toggle-wrap" id="flujo-toggle-wrap" style="cursor:pointer;user-select:none">
-          <div class="toggle-switch" id="flujo-toggle-switch"></div>
-          <span class="matrix-toggle-label" id="flujo-toggle-label">Mostrar completadas</span>
-        </div>
+      <!-- Toggle Mostrar completadas -->
+      <div class="matrix-toggle-wrap" id="flujo-toggle-wrap" style="cursor:pointer;user-select:none;flex-shrink:0;">
+        <div class="toggle-switch" id="flujo-toggle-switch"></div>
+        <span class="matrix-toggle-label" id="flujo-toggle-label">Mostrar completadas</span>
+      </div>
+      <!-- Buscador -->
+      <div class="search-wrap" style="margin-left:auto;flex-shrink:0;">
+        <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="search-input" id="flujo-search-input" placeholder="Buscar…" />
+        <button class="search-clear" id="flujo-search-input-clear" title="Limpiar">✕</button>
       </div>
     </div>
     <div class="flujo-canvas-wrap">
@@ -5109,35 +5110,96 @@ function renderFlujo() {
     return;
   }
 
+  // ── Recuperar posiciones guardadas ──────────────────────────
+  let savedPositions = {};
+  try {
+    const saved = localStorage.getItem('plordico_flujo_positions');
+    if (saved) savedPositions = JSON.parse(saved);
+  } catch(e) { /* silencioso */ }
+
+  // ── Calcular cuadrantes virtuales por etiqueta ───────────────
+  // Recolectar todas las etiquetas presentes en los elementos raíz
+  const rootNodes   = elements.filter(el => el.data && el.data.nodeType === 'root');
+  const labelList   = rootNodes.map(el => el.data.id.replace(/^root::/, ''));
+
+  // Parámetros de grilla de cuadrantes
+  const QUAD_W      = 620;   // ancho reservado por cuadrante
+  const QUAD_H      = 500;   // alto reservado por cuadrante
+  const QUAD_GAP_X  = 80;    // espacio horizontal entre cuadrantes
+  const QUAD_GAP_Y  = 100;   // espacio vertical entre cuadrantes
+  const COLS        = 2;     // columnas en la grilla
+
+  // Origen de cada cuadrante (esquina superior-izquierda)
+  const quadOrigins = {};
+  labelList.forEach((lbl, i) => {
+    const col = i % COLS;
+    const row = Math.floor(i / COLS);
+    quadOrigins[lbl] = {
+      x: col * (QUAD_W + QUAD_GAP_X),
+      y: row * (QUAD_H + QUAD_GAP_Y)
+    };
+  });
+
+  // ── Inicializar cytoscape con posiciones predefinidas ────────
+  // Primero creamos el grafo sin layout (posiciones manuales)
   flujoCy = cytoscape({
     container,
     elements,
     style: flujoStylesheet(),
-    layout: { name:'breadthfirst', directed:true, padding:40, spacingFactor:1.5, avoidOverlap:true },
+    layout: { name: 'preset' },
     userZoomingEnabled: true,
     userPanningEnabled: true,
-    minZoom: 0.15, maxZoom: 3
+    minZoom: 0.08, maxZoom: 3
   });
 
-  // Restaurar posiciones guardadas (si existen)
-  try {
-    const saved = localStorage.getItem('plordico_flujo_positions');
-    if (saved) {
-      const positions = JSON.parse(saved);
-      let restored = 0;
-      flujoCy.nodes().forEach(node => {
-        if (positions[node.id()]) {
-          node.position(positions[node.id()]);
-          restored++;
-        }
-      });
-      if (restored > 0) {
-        flujoCy.fit(undefined, 40);
-      }
-    }
-  } catch(e) { /* silencioso */ }
+  // ── Posicionar nodos en cuadrantes ───────────────────────────
+  // Para cada etiqueta: nodo raíz arriba-centro; tareas en grid debajo
+  const TASK_W       = 180;
+  const TASK_H       = 60;
+  const TASK_GAP_X   = 20;
+  const TASK_GAP_Y   = 20;
+  const TASKS_PER_ROW = 3;
+  const ROOT_Y_OFFSET = 30;   // distancia desde el top del cuadrante al nodo raíz
+  const TASKS_Y_START = 110;  // distancia desde el top del cuadrante al primer nodo tarea
 
-  // Guardar posiciones al soltar un nodo
+  labelList.forEach(lbl => {
+    const origin    = quadOrigins[lbl];
+    const rootId    = 'root::' + lbl;
+    const rootNode  = flujoCy.getElementById(rootId);
+
+    // Nodo raíz centrado horizontalmente en el cuadrante
+    const rootPos = {
+      x: origin.x + QUAD_W / 2,
+      y: origin.y + ROOT_Y_OFFSET
+    };
+
+    // Si ya había posición guardada para este nodo raíz, usarla
+    if (savedPositions[rootId]) {
+      rootNode.position(savedPositions[rootId]);
+    } else {
+      rootNode.position(rootPos);
+    }
+
+    // Nodos tarea de esta etiqueta
+    const taskNodesOfLabel = flujoCy.nodes('[nodeType="task"][labelKey="' + lbl + '"]');
+    let idx = 0;
+    taskNodesOfLabel.forEach(n => {
+      const nid = n.id();
+      if (savedPositions[nid]) {
+        n.position(savedPositions[nid]);
+      } else {
+        const col = idx % TASKS_PER_ROW;
+        const row = Math.floor(idx / TASKS_PER_ROW);
+        n.position({
+          x: origin.x + col * (TASK_W + TASK_GAP_X) + TASK_W / 2 + 10,
+          y: origin.y + TASKS_Y_START + row * (TASK_H + TASK_GAP_Y)
+        });
+      }
+      idx++;
+    });
+  });
+
+  // ── Guardar posiciones al soltar un nodo ─────────────────────
   flujoCy.on('free', 'node', function() {
     try {
       const positions = {};
@@ -5147,10 +5209,32 @@ function renderFlujo() {
   });
 
   flujoCy.resize();
-  flujoCy.fit(undefined, 40);
-  // Segunda pasada por si el primer frame aún no tenía dimensiones
-  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
 
+  // ── Zoom automático según filtro ─────────────────────────────
+  const doFit = () => {
+    if (!flujoCy) return;
+    if (flujoTagFilter.length > 0) {
+      // Fit solo sobre los nodos de los cuadrantes filtrados
+      const filteredIds = new Set();
+      flujoTagFilter.forEach(tag => {
+        filteredIds.add('root::' + tag);
+        flujoCy.nodes('[nodeType="task"][labelKey="' + tag + '"]').forEach(n => filteredIds.add(n.id()));
+      });
+      const targetNodes = flujoCy.nodes().filter(n => filteredIds.has(n.id()));
+      if (targetNodes.length > 0) {
+        flujoCy.fit(targetNodes, 60);
+      } else {
+        flujoCy.fit(undefined, 40);
+      }
+    } else {
+      flujoCy.fit(undefined, 40);
+    }
+  };
+
+  doFit();
+  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); doFit(); } });
+
+  // ── Event listeners (sin modificar) ──────────────────────────
   flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
     if (flujoConnMode) {
       const tgtNode   = evt.target;
@@ -5194,7 +5278,6 @@ function renderFlujo() {
   flujoCy.on('tap', 'node[nodeType="root"]', function(evt) {
     const lbl = evt.target.data('label');
     const tag = (lbl === 'Sin etiqueta') ? null : lbl;
-    // Abre el modal de nueva tarea con la etiqueta pre-rellenada
     openModal(null, tag ? [tag] : []);
   });
 
@@ -5211,7 +5294,6 @@ function renderFlujo() {
     }
   };
   document.addEventListener('keydown', escFlujo);
-
 }
 
 document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
@@ -5226,7 +5308,8 @@ function renderFlujoTagFilter() {
   const allTags = getAllTags();
   wrap.innerHTML = '';
   if (allTags.length === 0) return;
-  // Chip "Todas"
+
+  // Chip "Todas" (limpia el filtro)
   const allChip = document.createElement('button');
   allChip.className = 'flujo-tag-chip' + (flujoTagFilter.length === 0 ? ' active' : '');
   allChip.textContent = 'Todas';
@@ -5236,6 +5319,8 @@ function renderFlujoTagFilter() {
     renderFlujo();
   });
   wrap.appendChild(allChip);
+
+  // Un chip por etiqueta (selección múltiple)
   allTags.forEach(tag => {
     const chip = document.createElement('button');
     chip.className = 'flujo-tag-chip' + (flujoTagFilter.includes(tag) ? ' active' : '');
