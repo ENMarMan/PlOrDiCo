@@ -116,11 +116,7 @@
     .sort-btn-today { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; transition: var(--tr); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); margin-left: 4px; }
     .sort-btn-today:hover { border-color: var(--amber); color: var(--amber); }
     .sort-btn-today.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
-    .flujo-tag-filter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .flujo-tag-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; cursor: pointer; transition: var(--tr); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
-    .flujo-tag-chip:hover { border-color: var(--border-hi); color: var(--text); }
-    .flujo-tag-chip.active { background: var(--amber-glow); border-color: var(--amber); color: var(--amber); }
-    .flujo-tag-chip-clear { background: var(--surface-3); border-color: var(--border-hi); color: var(--text-dim); font-size: 10px; }
+
     .task-list-scroll { flex: 1; overflow-y: auto; padding: 14px 20px 80px; min-width: 0; }
     .task-list-scroll::-webkit-scrollbar { width: 4px; }
     .task-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -626,11 +622,40 @@
     .gantt-empty p { font-size:13px;line-height:1.6; }
 
     /* ── PANEL FLUJO ─────────────────────────────────── */
-    .flujo-toolbar { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 20px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap; }
-    .flujo-toolbar-left { display:flex;align-items:center;gap:10px; }
-    .flujo-toolbar-right { display:flex;align-items:center;gap:10px; }
-    .flujo-canvas-wrap { flex:1;position:relative;overflow:hidden;min-height:400px; }
-    #flujo-cy { width:100%;height:100%;min-height:400px; }
+    #panel-flujo { flex-direction:row!important; overflow:hidden; }
+    .flujo-sidebar { width:220px;min-width:220px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s ease,min-width .22s ease;flex-shrink:0;background:var(--surface); }
+    .flujo-sidebar.collapsed { width:36px;min-width:36px; }
+    .flujo-sidebar-header { display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;flex-shrink:0;border-bottom:1px solid var(--border); }
+    .flujo-sidebar-title { font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;overflow:hidden; }
+    .flujo-sidebar.collapsed .flujo-sidebar-title { display:none; }
+    .flujo-sidebar-toggle { width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--tr); }
+    .flujo-sidebar-toggle:hover { border-color:var(--border-hi);color:var(--text); }
+    .flujo-sidebar-body { flex:1;overflow-y:auto;padding:10px 0 80px;display:flex;flex-direction:column;gap:0; }
+    .flujo-sidebar.collapsed .flujo-sidebar-body { display:none; }
+    .flujo-sidebar-section { padding:0 12px 12px; }
+    .flujo-sidebar-section-label { font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);padding:10px 0 6px; }
+    .flujo-sidebar-sep { height:1px;background:var(--border);margin:4px 12px 0; }
+    .flujo-search-wrap { display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px;margin:0 12px 10px; }
+    .flujo-search-wrap input { flex:1;background:none;border:none;outline:none;font-size:12px;color:var(--text);font-family:var(--sans); }
+    .flujo-search-wrap input::placeholder { color:var(--text-faint); }
+    .flujo-filter-btn { display:flex;align-items:center;gap:7px;width:100%;padding:6px 12px;background:none;border:none;border-radius:var(--radius);color:var(--text-dim);font-size:12px;font-family:var(--sans);cursor:pointer;text-align:left;transition:background .12s,color .12s;white-space:nowrap; }
+    .flujo-filter-btn:hover { background:var(--surface-2);color:var(--text); }
+    .flujo-filter-btn.active { background:var(--amber-glow);color:var(--amber); }
+    .flujo-filter-btn .flujo-fb-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+    .flujo-filter-btn .flujo-fb-box { width:8px;height:8px;border-radius:2px;flex-shrink:0;border:2px solid currentColor; }
+    .flujo-tag-chip-sb { display:flex;align-items:center;gap:7px;width:100%;padding:6px 12px;background:none;border:none;border-radius:var(--radius);color:var(--text-dim);font-size:12px;font-family:var(--sans);cursor:pointer;text-align:left;transition:background .12s,color .12s;white-space:nowrap;overflow:hidden; }
+    .flujo-tag-chip-sb:hover { background:var(--surface-2);color:var(--text); }
+    .flujo-tag-chip-sb.active { background:var(--amber-glow);color:var(--amber); }
+    .flujo-tag-chip-sb span { overflow:hidden;text-overflow:ellipsis; }
+    .flujo-tag-count { margin-left:auto;font-size:10px;opacity:.55;flex-shrink:0; }
+    .flujo-main { flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative; }
+    .flujo-topbar { display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px; }
+    .flujo-topbar-left { font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap; }
+    .flujo-topbar-right { display:flex;align-items:center;gap:8px; }
+    .flujo-focus-badge { display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;font-size:11px;background:var(--amber-glow);border:1px solid var(--amber);color:var(--amber);font-family:var(--sans); }
+    .flujo-focus-badge button { background:none;border:none;color:var(--amber);cursor:pointer;font-size:12px;line-height:1;padding:0 0 0 2px; }
+    .flujo-canvas-wrap { flex:1;position:relative;overflow:hidden; }
+    #flujo-cy { width:100%;height:100%; }
     .flujo-legend { position:absolute;top:12px;right:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;display:flex;flex-direction:column;gap:6px;z-index:10; }
     .flujo-legend-title { font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:2px; }
     .flujo-legend-row { display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-dim); }
@@ -639,6 +664,7 @@
     .flujo-empty { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;text-align:center;color:var(--text-faint); }
     .flujo-empty svg { opacity:.2; }
     .flujo-empty p { font-size:13px;line-height:1.6; }
+    .flujo-quadrant-label { position:absolute;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);opacity:.35;pointer-events:none;z-index:5; }
 
   </style>
 </head>
@@ -992,54 +1018,139 @@
 
   <!-- PANEL FLUJO -->
   <div id="panel-flujo" class="panel">
-    <div class="list-toolbar" id="flujo-toolbar-bar">
-      <!-- Chips de etiqueta (inyectados por renderFlujoTagFilter) -->
-      <div class="flujo-tag-filter" id="flujo-tag-filter"></div>
-      <!-- Separador visual -->
-      <div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
-      <!-- Toggle Sin etiqueta -->
-      <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none;flex-shrink:0;">
-        <div class="toggle-switch" id="flujo-nolabel-switch"></div>
-        <span class="matrix-toggle-label" id="flujo-nolabel-label">Sin etiqueta</span>
+
+    <!-- SIDEBAR COLAPSABLE -->
+    <div class="flujo-sidebar" id="flujo-sidebar">
+      <div class="flujo-sidebar-header">
+        <span class="flujo-sidebar-title">Filtros</span>
+        <button class="flujo-sidebar-toggle" id="flujo-sidebar-toggle" title="Colapsar filtros">
+          <svg id="flujo-sidebar-toggle-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
       </div>
-      <!-- Toggle Mostrar completadas -->
-      <div class="matrix-toggle-wrap" id="flujo-toggle-wrap" style="cursor:pointer;user-select:none;flex-shrink:0;">
-        <div class="toggle-switch" id="flujo-toggle-switch"></div>
-        <span class="matrix-toggle-label" id="flujo-toggle-label">Mostrar completadas</span>
+      <div class="flujo-sidebar-body" id="flujo-sidebar-body">
+
+        <!-- Buscador -->
+        <div style="padding:10px 12px 0;">
+          <div class="flujo-search-wrap">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="flujo-search-input" placeholder="Buscar…" />
+            <button id="flujo-search-input-clear" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:11px;padding:0;display:none;" title="Limpiar">✕</button>
+          </div>
+        </div>
+
+        <!-- Etiquetas -->
+        <div class="flujo-sidebar-section">
+          <div class="flujo-sidebar-section-label">Etiquetas</div>
+          <button class="flujo-tag-chip-sb active" id="flujo-tag-all" data-tag="__all__">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span>Todas</span>
+          </button>
+          <div id="flujo-tag-list"></div>
+        </div>
+
+        <div class="flujo-sidebar-sep"></div>
+
+        <!-- Estado -->
+        <div class="flujo-sidebar-section">
+          <div class="flujo-sidebar-section-label">Estado</div>
+          <button class="flujo-filter-btn active" id="flujo-f-status-all" data-ftype="status" data-fval="all">
+            <span>Todas</span>
+          </button>
+          <button class="flujo-filter-btn" id="flujo-f-status-pending" data-ftype="status" data-fval="pending">
+            <span class="flujo-fb-dot" style="background:var(--blue)"></span><span>Pendiente</span>
+          </button>
+          <button class="flujo-filter-btn" id="flujo-f-status-progress" data-ftype="status" data-fval="in_progress">
+            <span class="flujo-fb-dot" style="background:var(--amber)"></span><span>En curso</span>
+          </button>
+          <button class="flujo-filter-btn" id="flujo-f-status-done" data-ftype="status" data-fval="done">
+            <span class="flujo-fb-dot" style="background:var(--green)"></span><span>Completada</span>
+          </button>
+        </div>
+
+        <div class="flujo-sidebar-sep"></div>
+
+        <!-- Prioridad -->
+        <div class="flujo-sidebar-section">
+          <div class="flujo-sidebar-section-label">Prioridad</div>
+          <button class="flujo-filter-btn active" data-ftype="priority" data-fval="all">
+            <span>Todas</span>
+          </button>
+          <button class="flujo-filter-btn" data-ftype="priority" data-fval="high">
+            <span class="flujo-fb-dot" style="background:var(--red)"></span><span>Alta</span>
+          </button>
+          <button class="flujo-filter-btn" data-ftype="priority" data-fval="low">
+            <span class="flujo-fb-dot" style="background:var(--blue)"></span><span>Baja</span>
+          </button>
+        </div>
+
+        <div class="flujo-sidebar-sep"></div>
+
+        <!-- Tipo -->
+        <div class="flujo-sidebar-section">
+          <div class="flujo-sidebar-section-label">Tipo</div>
+          <button class="flujo-filter-btn active" data-ftype="tasktype" data-fval="all">
+            <span>Todos</span>
+          </button>
+          <button class="flujo-filter-btn" data-ftype="tasktype" data-fval="strategic">
+            <span class="flujo-fb-box" style="border-color:var(--amber)"></span><span>Estratégica</span>
+          </button>
+          <button class="flujo-filter-btn" data-ftype="tasktype" data-fval="operative">
+            <span class="flujo-fb-box" style="border-color:var(--border-hi)"></span><span>Operativa</span>
+          </button>
+        </div>
+
+        <div class="flujo-sidebar-sep"></div>
+
+        <!-- Sin etiqueta -->
+        <div class="flujo-sidebar-section" style="padding-top:8px;">
+          <div class="matrix-toggle-wrap" id="flujo-nolabel-wrap" style="cursor:pointer;user-select:none;padding:4px 0;">
+            <div class="toggle-switch" id="flujo-nolabel-switch"></div>
+            <span class="matrix-toggle-label" id="flujo-nolabel-label" style="font-size:12px;">Sin etiqueta</span>
+          </div>
+        </div>
+
       </div>
-      <!-- Buscador -->
-      <div class="search-wrap" style="margin-left:auto;flex-shrink:0;">
-        <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="search-input" id="flujo-search-input" placeholder="Buscar…" />
-        <button class="search-clear" id="flujo-search-input-clear" title="Limpiar">✕</button>
+    </div><!-- /sidebar -->
+
+    <!-- ÁREA PRINCIPAL -->
+    <div class="flujo-main">
+      <!-- Topbar delgada -->
+      <div class="flujo-topbar">
+        <div class="flujo-topbar-left" id="flujo-topbar-title">Diagrama de Flujo</div>
+        <div class="flujo-topbar-right" id="flujo-focus-badges"></div>
       </div>
-    </div>
-    <div class="flujo-canvas-wrap">
-      <div id="flujo-cy"></div>
-      <div class="flujo-legend" id="flujo-legend">
-        <div class="flujo-legend-title">Referencia</div>
-        <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--red)"></span>Alta prioridad</div>
-        <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--blue)"></span>Baja prioridad</div>
-        <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber)"></span>Estratégica</div>
-        <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
-        <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
+
+      <!-- Canvas Cytoscape -->
+      <div class="flujo-canvas-wrap">
+        <div id="flujo-cy"></div>
+        <div class="flujo-legend" id="flujo-legend">
+          <div class="flujo-legend-title">Referencia</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--red)"></span>Alta prioridad</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--blue)"></span>Baja prioridad</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber)"></span>Estratégica</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
+        </div>
+        <div class="flujo-empty" id="flujo-empty" style="display:none;">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
+          <p>No hay tareas para mostrar.<br/>Creá tareas o ajustá los filtros.</p>
+        </div>
       </div>
-      <div class="flujo-empty" id="flujo-empty" style="display:none;">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
-        <p>No hay tareas para mostrar.<br/>Creá tareas o ajustá los filtros.</p>
+
+      <!-- Panel sin etiqueta -->
+      <div id="flujo-nolabel-panel" style="display:none;border-top:1px solid var(--border);background:var(--surface-2);padding:10px 16px;max-height:220px;overflow-y:auto;flex-shrink:0;">
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">Tareas sin etiqueta</div>
+        <div id="flujo-nolabel-list" style="display:flex;flex-direction:column;gap:4px;"></div>
       </div>
-    </div>
-    <!-- Panel tareas sin etiqueta -->
-    <div id="flujo-nolabel-panel" style="display:none;border-top:1px solid var(--border);background:var(--surface-2);padding:10px 16px;max-height:220px;overflow-y:auto;flex-shrink:0;">
-      <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">Tareas sin etiqueta</div>
-      <div id="flujo-nolabel-list" style="display:flex;flex-direction:column;gap:4px;"></div>
-    </div>
-    <!-- FAB nueva tarea -->
-    <button class="fab" id="fab-new-flujo" style="right:84px;" title="Nueva tarea">+</button>
-    <!-- FAB nueva etiqueta -->
-    <button class="fab" id="fab-new-tag-flujo" style="right:24px;font-size:16px;font-weight:700;" title="Nueva etiqueta">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="12" y1="5" x2="12" y2="11"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
-    </button>
+
+      <!-- FAB nueva tarea -->
+      <button class="fab" id="fab-new-flujo" style="right:84px;" title="Nueva tarea">+</button>
+      <!-- FAB nueva etiqueta -->
+      <button class="fab" id="fab-new-tag-flujo" style="right:24px;font-size:16px;font-weight:700;" title="Nueva etiqueta">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="12" y1="5" x2="12" y2="11"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
+      </button>
+    </div><!-- /main -->
+
   </div>
 
   <!-- PANEL ETIQUETAS -->
@@ -4808,14 +4919,19 @@ function showGanttContextMenu(task, x, y) {
 // PANEL FLUJO
 // ══════════════════════════════════════════════════════════════
 
-let flujoHideDone  = true;
-let flujoSearch    = '';
-let flujoCy        = null;
-let flujoConnMode  = false;
-let flujoConnSrc   = null;
+let flujoHideDone    = true;
+let flujoSearch      = '';
+let flujoCy          = null;
+let flujoConnMode    = false;
+let flujoConnSrc     = null;
 let flujoShowNoLabel = false;
-let flujoTagFilter  = []; // array de etiquetas seleccionadas; vacío = todas
+let flujoTagFilter   = [];   // etiquetas seleccionadas; vacío = todas
+let flujoFilterStatus   = 'all';   // all | pending | in_progress | done
+let flujoFilterPriority = 'all';   // all | high | low
+let flujoFilterType     = 'all';   // all | strategic | operative
+let flujoSidebarOpen = true;
 
+// ── Helpers de color de nodo (sin cambios) ──────────────────────────────────
 function flujoNodeBg(task) {
   if (task.status === 'done') return '#1a2e1f';
   return task.priority === 'high' ? '#2a1212' : '#122030';
@@ -4828,6 +4944,7 @@ function flujoNodeText(task) {
   return task.status === 'done' ? '#4a7a5a' : '#d8dae8';
 }
 
+// ── Popover menú contextual (sin cambios funcionales) ──────────────────────
 let flujoPopover = null;
 function closeFlujoPopover() {
   if (flujoPopover) { flujoPopover.remove(); flujoPopover = null; }
@@ -4839,7 +4956,6 @@ function showFlujoPopover(task, renderedPos) {
   pop.style.cssText = 'position:fixed;background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;align-items:center;gap:4px;padding:5px 8px;z-index:900;pointer-events:all';
   const isDone = task.status === 'done';
 
-  // Botón completar
   const chk = document.createElement('button');
   chk.title = isDone ? 'Marcar pendiente' : 'Marcar completada';
   chk.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1.5px solid '+(isDone?'var(--green)':'var(--border-hi)')+';background:'+(isDone?'var(--green)':'transparent')+';color:var(--bg);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans)';
@@ -4850,32 +4966,22 @@ function showFlujoPopover(task, renderedPos) {
     try { await db.collection('tasks').doc(task.id).update({status:newStatus, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); closeFlujoPopover(); } catch(err) { showToast('Error.','err'); }
   });
 
-  // Botón editar
   const editBtn = document.createElement('button');
   editBtn.title = 'Editar tarea';
   editBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
   editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   editBtn.addEventListener('mouseenter', () => { editBtn.style.color='var(--amber)'; editBtn.style.borderColor='var(--amber)'; });
   editBtn.addEventListener('mouseleave', () => { editBtn.style.color='var(--text-dim)'; editBtn.style.borderColor='var(--border)'; });
-  editBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    closeFlujoPopover();
-    openModal(task);
-  });
+  editBtn.addEventListener('click', e => { e.stopPropagation(); closeFlujoPopover(); openModal(task); });
 
-  // Botón etiquetas
   const tagBtn = document.createElement('button');
   tagBtn.title = 'Cambiar etiquetas';
   tagBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;';
   tagBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
   tagBtn.addEventListener('mouseenter', () => { tagBtn.style.color='var(--amber)'; tagBtn.style.borderColor='var(--amber)'; });
   tagBtn.addEventListener('mouseleave', () => { tagBtn.style.color='var(--text-dim)'; tagBtn.style.borderColor='var(--border)'; });
-  tagBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    showFlujoTagDropdown(task, tagBtn);
-  });
+  tagBtn.addEventListener('click', e => { e.stopPropagation(); showFlujoTagDropdown(task, tagBtn); });
 
-  // Botón eliminar
   const delBtn = document.createElement('button');
   delBtn.title = 'Eliminar tarea';
   delBtn.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
@@ -4909,9 +5015,9 @@ function showFlujoPopover(task, renderedPos) {
   }, 0);
 }
 
+// ── Dropdown etiquetas en popover (sin cambios) ─────────────────────────────
 function showFlujoTagDropdown(task, anchorEl) {
-  // Cerrar cualquier dropdown previo
-  const prev = document.getElementById('flujo-tag-dropdown');
+  const prev = document.getElementById('_flujo-tag-dropdown');
   if (prev) { prev.remove(); if (prev._task === task.id) return; }
 
   const allTags = getAllTags();
@@ -4949,7 +5055,6 @@ function showFlujoTagDropdown(task, anchorEl) {
       });
       dd.appendChild(row);
     });
-    // Separador + nueva etiqueta
     const sep = document.createElement('div');
     sep.style.cssText = 'height:1px;background:var(--border);margin:4px 0;';
     dd.appendChild(sep);
@@ -4963,7 +5068,6 @@ function showFlujoTagDropdown(task, anchorEl) {
       dd.remove();
       closeFlujoPopover();
       openModal(task);
-      // Abrir sección avanzada después de que se abra el modal
       requestAnimationFrame(() => {
         setTimeout(() => {
           const advBody = document.getElementById('modal-adv-body');
@@ -4980,8 +5084,6 @@ function showFlujoTagDropdown(task, anchorEl) {
   }
 
   document.body.appendChild(dd);
-
-  // Posicionar debajo del ancla
   const rect = anchorEl.getBoundingClientRect();
   const ddW = 180;
   let left = rect.left;
@@ -4998,11 +5100,20 @@ function showFlujoTagDropdown(task, anchorEl) {
   }, 0);
 }
 
-function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter) {
+// ── buildFlujoElements: construye nodos con filtros completos ───────────────
+function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter, fStatus, fPriority, fType) {
   const els = [];
   const q = search.trim().toLowerCase();
+
   const visible = taskList.filter(t => {
-    if (hideDone && t.status === 'done') return false;
+    // Status: si hideDone está activo y no hay filtro de status específico, ocultamos done
+    if (fStatus === 'all') {
+      if (hideDone && t.status === 'done') return false;
+    } else {
+      if (t.status !== fStatus) return false;
+    }
+    if (fPriority !== 'all' && t.priority !== fPriority) return false;
+    if (fType !== 'all' && t.type !== fType) return false;
     if (!showNoLabel && (!t.tags || t.tags.length === 0)) return false;
     if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
     if (tagFilter && tagFilter.length > 0) {
@@ -5011,14 +5122,19 @@ function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter) 
     }
     return true;
   });
+
   const labelSet = new Set();
   visible.forEach(t => {
     if (t.tags && t.tags.length > 0) t.tags.forEach(tag => labelSet.add(tag));
     else labelSet.add('__none__');
   });
+
+  // Nodos raíz (etiquetas) — solo los que tienen tareas visibles
   labelSet.forEach(lbl => {
     els.push({ data: { id:'root::'+lbl, label: lbl==='__none__' ? 'Sin etiqueta' : lbl, nodeType:'root' }});
   });
+
+  // Nodos tarea
   visible.forEach(t => {
     const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
     lbls.forEach(lbl => {
@@ -5027,6 +5143,8 @@ function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter) 
       els.push({ data: { id:'e-r-'+nid, source:'root::'+lbl, target:nid, edgeType:'root' }});
     });
   });
+
+  // Aristas de dependencia
   visible.forEach(t => {
     if (!t.dependencies || !t.dependencies.length) return;
     const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
@@ -5042,13 +5160,15 @@ function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter) 
       });
     });
   });
+
   return els;
 }
 
+// ── Stylesheet Cytoscape ────────────────────────────────────────────────────
 function flujoStylesheet() {
   return [
-    { selector:'node[nodeType="root"]', style:{ 'background-color':'#1e1600','border-color':'#f0a500','border-width':2,'color':'#f0a500','label':'data(label)','font-family':'Space Mono, monospace','font-size':11,'font-weight':700,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'12px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':130 }},
-    { selector:'node[nodeType="task"]', style:{ 'background-color':'data(bgColor)','border-color':'data(borderColor)','border-width':2,'border-style':'data(borderStyle)','color':'data(textColor)','label':'data(label)','font-family':'DM Sans, sans-serif','font-size':11,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'9px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':150 }},
+    { selector:'node[nodeType="root"]', style:{ 'background-color':'#1e1600','border-color':'#f0a500','border-width':2,'color':'#f0a500','label':'data(label)','font-family':'Space Mono, monospace','font-size':12,'font-weight':700,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'14px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':150 }},
+    { selector:'node[nodeType="task"]', style:{ 'background-color':'data(bgColor)','border-color':'data(borderColor)','border-width':2,'border-style':'data(borderStyle)','color':'data(textColor)','label':'data(label)','font-family':'DM Sans, sans-serif','font-size':12,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'10px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':170 }},
     { selector:'node[nodeType="task"][status="done"]', style:{ 'opacity':0.55 }},
     { selector:'node:selected', style:{ 'border-color':'#f0a500','border-width':3 }},
     { selector:'edge[edgeType="root"]', style:{ 'line-color':'#2a2f3a','width':1.5,'target-arrow-color':'#2a2f3a','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8 }},
@@ -5058,14 +5178,14 @@ function flujoStylesheet() {
   ];
 }
 
+// ── Modo conexión ───────────────────────────────────────────────────────────
 function enterConnMode(srcNode) {
   flujoConnMode = true;
   flujoConnSrc  = srcNode;
   srcNode.addClass('conn-source');
   document.getElementById('flujo-cy').style.cursor = 'crosshair';
-  showToast('Solt\u00e1 sobre otra tarea para crear dependencia. Esc para cancelar.','ok');
+  showToast('Soltá sobre otra tarea para crear dependencia. Esc para cancelar.','ok');
 }
-
 function exitConnMode() {
   if (!flujoConnMode) return;
   flujoConnMode = false;
@@ -5075,6 +5195,87 @@ function exitConnMode() {
   if (cy) cy.style.cursor = '';
 }
 
+// ── Layout por cuadrantes ───────────────────────────────────────────────────
+// Calcula posiciones preset para que cada etiqueta tenga su zona exclusiva.
+// Cuadrantes en grilla de 2 columnas. El nodo-raíz va arriba centrado.
+// Las tareas se distribuyen en filas debajo del raíz.
+function computeQuadrantPositions(elements) {
+  const TASK_W = 200;   // ancho estimado por nodo tarea
+  const TASK_H = 50;    // alto estimado
+  const GAP_X  = 30;    // separación horizontal entre tareas dentro de cuadrante
+  const GAP_Y  = 40;    // separación vertical dentro de cuadrante
+  const ROOT_H = 42;    // alto del nodo raíz
+  const Q_PAD  = 60;    // padding entre cuadrantes
+  const COLS   = 2;     // columnas de cuadrantes
+
+  // Agrupar tareas por etiqueta
+  const groups = {};   // lbl → [element]
+  elements.forEach(el => {
+    if (!el.data || el.data.nodeType !== 'task') return;
+    const lbl = el.data.labelKey;
+    if (!groups[lbl]) groups[lbl] = [];
+    groups[lbl].push(el);
+  });
+
+  const labels = Object.keys(groups);
+  const positions = {};
+
+  // Calcular dimensiones de cada cuadrante
+  const qDims = labels.map(lbl => {
+    const n = groups[lbl].length;
+    const tasksPerRow = Math.max(1, Math.ceil(Math.sqrt(n)));
+    const rows = Math.ceil(n / tasksPerRow);
+    const w = tasksPerRow * (TASK_W + GAP_X) - GAP_X;
+    const h = ROOT_H + GAP_Y + rows * (TASK_H + GAP_Y);
+    return { lbl, n, tasksPerRow, rows, w, h };
+  });
+
+  // Posicionar cuadrantes en grilla 2 columnas
+  let colX = [0, 0];   // cursor X por columna
+  let colY = [0, 0];   // cursor Y por columna
+
+  qDims.forEach((dim, i) => {
+    const col = i % COLS;
+    const otherCol = 1 - col;
+
+    // Ancho de columna: máximo de todos los cuadrantes de esa columna
+    // Usamos colX como acumulador de offset horizontal (se recalcula abajo)
+  });
+
+  // Recalcular: primero obtener ancho máximo por columna
+  const colWidths = [0, 0];
+  qDims.forEach((dim, i) => {
+    const col = i % COLS;
+    if (dim.w > colWidths[col]) colWidths[col] = dim.w;
+  });
+
+  const colOffsetX = [0, colWidths[0] + Q_PAD * 2];
+  const rowCursorY = [0, 0];
+
+  qDims.forEach((dim, i) => {
+    const col = i % COLS;
+    const qx = colOffsetX[col];
+    const qy = rowCursorY[col];
+
+    // Posición del nodo raíz: centrado arriba del cuadrante
+    positions['root::' + dim.lbl] = { x: qx + dim.w / 2, y: qy + ROOT_H / 2 };
+
+    // Posicionar tareas en filas
+    groups[dim.lbl].forEach((el, j) => {
+      const row = Math.floor(j / dim.tasksPerRow);
+      const col2 = j % dim.tasksPerRow;
+      const tx = qx + col2 * (TASK_W + GAP_X) + TASK_W / 2;
+      const ty = qy + ROOT_H + GAP_Y + row * (TASK_H + GAP_Y) + TASK_H / 2;
+      positions[el.data.id] = { x: tx, y: ty };
+    });
+
+    rowCursorY[col] += dim.h + Q_PAD;
+  });
+
+  return positions;
+}
+
+// ── renderFlujo ─────────────────────────────────────────────────────────────
 function renderFlujo() {
   const container = document.getElementById('flujo-cy');
   const emptyDiv  = document.getElementById('flujo-empty');
@@ -5084,7 +5285,10 @@ function renderFlujo() {
   closeFlujoPopover();
   if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
 
-  const elements = buildFlujoElements(tasks, flujoSearch, flujoHideDone, flujoShowNoLabel, flujoTagFilter);
+  const elements = buildFlujoElements(
+    tasks, flujoSearch, flujoHideDone, flujoShowNoLabel,
+    flujoTagFilter, flujoFilterStatus, flujoFilterPriority, flujoFilterType
+  );
   const taskNodes = elements.filter(el => el.data && el.data.nodeType === 'task');
 
   if (taskNodes.length === 0) {
@@ -5095,56 +5299,38 @@ function renderFlujo() {
   container.style.display = 'block';
   emptyDiv.style.display  = 'none';
 
-  // Si el contenedor aún no tiene dimensiones, esperar al siguiente frame con tamaño real
   if (container.offsetHeight === 0) {
     const ro = new ResizeObserver((entries, obs) => {
       for (const entry of entries) {
-        if (entry.contentRect.height > 0) {
-          obs.disconnect();
-          renderFlujo();
-          break;
-        }
+        if (entry.contentRect.height > 0) { obs.disconnect(); renderFlujo(); break; }
       }
     });
     ro.observe(container);
     return;
   }
 
-  // ── Recuperar posiciones guardadas ──────────────────────────
+  // Calcular posiciones de cuadrante
+  const quadPositions = computeQuadrantPositions(elements);
+
+  // Intentar restaurar posiciones guardadas (override de cuadrante si existen)
   let savedPositions = {};
   try {
     const saved = localStorage.getItem('plordico_flujo_positions');
     if (saved) savedPositions = JSON.parse(saved);
   } catch(e) { /* silencioso */ }
 
-  // ── Calcular cuadrantes virtuales por etiqueta ───────────────
-  // Recolectar todas las etiquetas presentes en los elementos raíz
-  const rootNodes   = elements.filter(el => el.data && el.data.nodeType === 'root');
-  const labelList   = rootNodes.map(el => el.data.id.replace(/^root::/, ''));
-
-  // Parámetros de grilla de cuadrantes
-  const QUAD_W      = 620;   // ancho reservado por cuadrante
-  const QUAD_H      = 500;   // alto reservado por cuadrante
-  const QUAD_GAP_X  = 80;    // espacio horizontal entre cuadrantes
-  const QUAD_GAP_Y  = 100;   // espacio vertical entre cuadrantes
-  const COLS        = 2;     // columnas en la grilla
-
-  // Origen de cada cuadrante (esquina superior-izquierda)
-  const quadOrigins = {};
-  labelList.forEach((lbl, i) => {
-    const col = i % COLS;
-    const row = Math.floor(i / COLS);
-    quadOrigins[lbl] = {
-      x: col * (QUAD_W + QUAD_GAP_X),
-      y: row * (QUAD_H + QUAD_GAP_Y)
-    };
+  // Asignar posición final a cada elemento
+  const elementsWithPos = elements.map(el => {
+    if (!el.data || el.data.nodeType === undefined) return el; // aristas
+    const id = el.data.id;
+    const pos = savedPositions[id] || quadPositions[id];
+    if (pos) return { ...el, position: pos };
+    return el;
   });
 
-  // ── Inicializar cytoscape con posiciones predefinidas ────────
-  // Primero creamos el grafo sin layout (posiciones manuales)
   flujoCy = cytoscape({
     container,
-    elements,
+    elements: elementsWithPos,
     style: flujoStylesheet(),
     layout: { name: 'preset' },
     userZoomingEnabled: true,
@@ -5152,54 +5338,7 @@ function renderFlujo() {
     minZoom: 0.08, maxZoom: 3
   });
 
-  // ── Posicionar nodos en cuadrantes ───────────────────────────
-  // Para cada etiqueta: nodo raíz arriba-centro; tareas en grid debajo
-  const TASK_W       = 180;
-  const TASK_H       = 60;
-  const TASK_GAP_X   = 20;
-  const TASK_GAP_Y   = 20;
-  const TASKS_PER_ROW = 3;
-  const ROOT_Y_OFFSET = 30;   // distancia desde el top del cuadrante al nodo raíz
-  const TASKS_Y_START = 110;  // distancia desde el top del cuadrante al primer nodo tarea
-
-  labelList.forEach(lbl => {
-    const origin    = quadOrigins[lbl];
-    const rootId    = 'root::' + lbl;
-    const rootNode  = flujoCy.getElementById(rootId);
-
-    // Nodo raíz centrado horizontalmente en el cuadrante
-    const rootPos = {
-      x: origin.x + QUAD_W / 2,
-      y: origin.y + ROOT_Y_OFFSET
-    };
-
-    // Si ya había posición guardada para este nodo raíz, usarla
-    if (savedPositions[rootId]) {
-      rootNode.position(savedPositions[rootId]);
-    } else {
-      rootNode.position(rootPos);
-    }
-
-    // Nodos tarea de esta etiqueta
-    const taskNodesOfLabel = flujoCy.nodes('[nodeType="task"][labelKey="' + lbl + '"]');
-    let idx = 0;
-    taskNodesOfLabel.forEach(n => {
-      const nid = n.id();
-      if (savedPositions[nid]) {
-        n.position(savedPositions[nid]);
-      } else {
-        const col = idx % TASKS_PER_ROW;
-        const row = Math.floor(idx / TASKS_PER_ROW);
-        n.position({
-          x: origin.x + col * (TASK_W + TASK_GAP_X) + TASK_W / 2 + 10,
-          y: origin.y + TASKS_Y_START + row * (TASK_H + TASK_GAP_Y)
-        });
-      }
-      idx++;
-    });
-  });
-
-  // ── Guardar posiciones al soltar un nodo ─────────────────────
+  // Guardar posición al soltar nodo
   flujoCy.on('free', 'node', function() {
     try {
       const positions = {};
@@ -5209,32 +5348,23 @@ function renderFlujo() {
   });
 
   flujoCy.resize();
+  // Si hay filtro de etiquetas activo, hacer fit solo de los cuadrantes visibles
+  if (flujoTagFilter.length > 0) {
+    const filteredNodes = flujoCy.nodes().filter(n => {
+      const lbl = n.data('labelKey') || (n.data('nodeType') === 'root' ? n.data('id').replace('root::', '') : null);
+      if (!lbl) return false;
+      const tag = lbl === '__none__' ? '__none__' : lbl;
+      return flujoTagFilter.includes(tag) || n.data('nodeType') === 'root';
+    });
+    if (filteredNodes.length > 0) flujoCy.fit(filteredNodes, 60);
+    else flujoCy.fit(undefined, 40);
+  } else {
+    flujoCy.fit(undefined, 40);
+  }
 
-  // ── Zoom automático según filtro ─────────────────────────────
-  const doFit = () => {
-    if (!flujoCy) return;
-    if (flujoTagFilter.length > 0) {
-      // Fit solo sobre los nodos de los cuadrantes filtrados
-      const filteredIds = new Set();
-      flujoTagFilter.forEach(tag => {
-        filteredIds.add('root::' + tag);
-        flujoCy.nodes('[nodeType="task"][labelKey="' + tag + '"]').forEach(n => filteredIds.add(n.id()));
-      });
-      const targetNodes = flujoCy.nodes().filter(n => filteredIds.has(n.id()));
-      if (targetNodes.length > 0) {
-        flujoCy.fit(targetNodes, 60);
-      } else {
-        flujoCy.fit(undefined, 40);
-      }
-    } else {
-      flujoCy.fit(undefined, 40);
-    }
-  };
+  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
 
-  doFit();
-  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); doFit(); } });
-
-  // ── Event listeners (sin modificar) ──────────────────────────
+  // Eventos de nodos tarea
   flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
     if (flujoConnMode) {
       const tgtNode   = evt.target;
@@ -5268,13 +5398,12 @@ function renderFlujo() {
   flujoCy.on('mouseout', 'node[nodeType="task"]', function(evt) {
     evt.target.removeClass('conn-hover');
   });
-
   flujoCy.on('cxttap', 'node[nodeType="task"]', function(evt) {
     if (flujoConnMode) { exitConnMode(); return; }
     enterConnMode(evt.target);
   });
 
-  // Tap en nodo raíz → nueva tarea con esa etiqueta preseleccionada
+  // Tap en nodo raíz → nueva tarea con esa etiqueta
   flujoCy.on('tap', 'node[nodeType="root"]', function(evt) {
     const lbl = evt.target.data('label');
     const tag = (lbl === 'Sin etiqueta') ? null : lbl;
@@ -5296,54 +5425,111 @@ function renderFlujo() {
   document.addEventListener('keydown', escFlujo);
 }
 
+// ── Sidebar: toggle colapso ─────────────────────────────────────────────────
+document.getElementById('flujo-sidebar-toggle').addEventListener('click', () => {
+  flujoSidebarOpen = !flujoSidebarOpen;
+  const sb = document.getElementById('flujo-sidebar');
+  const icon = document.getElementById('flujo-sidebar-toggle-icon');
+  if (flujoSidebarOpen) {
+    sb.classList.remove('collapsed');
+    icon.innerHTML = '<polyline points="15 18 9 12 15 6"/>';
+  } else {
+    sb.classList.add('collapsed');
+    icon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
+  }
+  // Forzar resize de cytoscape después de la animación
+  setTimeout(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } }, 250);
+});
+
+// ── Sidebar: filtros de etiquetas ───────────────────────────────────────────
+function renderFlujoTagFilter() {
+  const list = document.getElementById('flujo-tag-list');
+  if (!list) return;
+  const allTags = getAllTags();
+  list.innerHTML = '';
+
+  // Contar tareas por etiqueta (respetando otros filtros activos)
+  allTags.forEach(tag => {
+    const count = tasks.filter(t => (t.tags || []).includes(tag)).length;
+    const isActive = flujoTagFilter.includes(tag);
+    const btn = document.createElement('button');
+    btn.className = 'flujo-tag-chip-sb' + (isActive ? ' active' : '');
+    btn.dataset.tag = tag;
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>'
+      + '<span>#&thinsp;'+escHtml(tag)+'</span>'
+      + '<span class="flujo-tag-count">'+count+'</span>';
+    btn.addEventListener('click', () => {
+      const idx = flujoTagFilter.indexOf(tag);
+      if (idx >= 0) flujoTagFilter.splice(idx, 1);
+      else flujoTagFilter.push(tag);
+      // Actualizar estado del chip "Todas"
+      document.getElementById('flujo-tag-all').classList.toggle('active', flujoTagFilter.length === 0);
+      renderFlujoTagFilter();
+      updateFlujoFocusBadges();
+      renderFlujo();
+    });
+    list.appendChild(btn);
+  });
+  // Asegurar estado del chip "Todas"
+  const allBtn = document.getElementById('flujo-tag-all');
+  if (allBtn) allBtn.classList.toggle('active', flujoTagFilter.length === 0);
+}
+
+// ── Topbar: badges de foco activo ───────────────────────────────────────────
+function updateFlujoFocusBadges() {
+  const wrap = document.getElementById('flujo-focus-badges');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (flujoTagFilter.length === 0) return;
+  flujoTagFilter.forEach(tag => {
+    const badge = document.createElement('span');
+    badge.className = 'flujo-focus-badge';
+    badge.innerHTML = '#&thinsp;'+escHtml(tag)
+      + '<button title="Quitar filtro">✕</button>';
+    badge.querySelector('button').addEventListener('click', () => {
+      flujoTagFilter = flujoTagFilter.filter(t => t !== tag);
+      renderFlujoTagFilter();
+      updateFlujoFocusBadges();
+      renderFlujo();
+    });
+    wrap.appendChild(badge);
+  });
+}
+
+// ── Sidebar: filtros de estado/prioridad/tipo ───────────────────────────────
+document.querySelectorAll('.flujo-filter-btn[data-ftype]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const ftype = btn.dataset.ftype;
+    const fval  = btn.dataset.fval;
+    // Desactivar hermanos
+    document.querySelectorAll('.flujo-filter-btn[data-ftype="'+ftype+'"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (ftype === 'status') {
+      flujoFilterStatus = fval;
+      // Si el usuario elige un estado específico, sincronizar el toggle "Mostrar completadas"
+      if (fval === 'done') flujoHideDone = false;
+      else if (fval === 'all') { /* no cambiar hideDone */ }
+    }
+    if (ftype === 'priority') flujoFilterPriority = fval;
+    if (ftype === 'tasktype') flujoFilterType = fval;
+    renderFlujo();
+  });
+});
+
+// ── Toggle "Sin etiqueta" ───────────────────────────────────────────────────
 document.getElementById('flujo-nolabel-wrap').addEventListener('click', () => {
   flujoShowNoLabel = !flujoShowNoLabel;
   document.getElementById('flujo-nolabel-switch').className = 'toggle-switch' + (flujoShowNoLabel ? ' on' : '');
   renderFlujoNoLabelPanel();
+  renderFlujo();
 });
 
-function renderFlujoTagFilter() {
-  const wrap = document.getElementById('flujo-tag-filter');
-  if (!wrap) return;
-  const allTags = getAllTags();
-  wrap.innerHTML = '';
-  if (allTags.length === 0) return;
-
-  // Chip "Todas" (limpia el filtro)
-  const allChip = document.createElement('button');
-  allChip.className = 'flujo-tag-chip' + (flujoTagFilter.length === 0 ? ' active' : '');
-  allChip.textContent = 'Todas';
-  allChip.addEventListener('click', () => {
-    flujoTagFilter = [];
-    renderFlujoTagFilter();
-    renderFlujo();
-  });
-  wrap.appendChild(allChip);
-
-  // Un chip por etiqueta (selección múltiple)
-  allTags.forEach(tag => {
-    const chip = document.createElement('button');
-    chip.className = 'flujo-tag-chip' + (flujoTagFilter.includes(tag) ? ' active' : '');
-    chip.textContent = '# ' + tag;
-    chip.addEventListener('click', () => {
-      const idx = flujoTagFilter.indexOf(tag);
-      if (idx >= 0) flujoTagFilter.splice(idx, 1);
-      else flujoTagFilter.push(tag);
-      renderFlujoTagFilter();
-      renderFlujo();
-    });
-    wrap.appendChild(chip);
-  });
-}
-
+// ── Panel sin etiqueta ──────────────────────────────────────────────────────
 function renderFlujoNoLabelPanel() {
   const panel = document.getElementById('flujo-nolabel-panel');
   const list  = document.getElementById('flujo-nolabel-list');
   if (!panel || !list) return;
-
   if (!flujoShowNoLabel) { panel.style.display = 'none'; return; }
-
-  // Tareas sin etiqueta, respetando el filtro hideDone y búsqueda
   const q = flujoSearch.trim().toLowerCase();
   const unlabeled = tasks.filter(t => {
     if (!t.tags || t.tags.length === 0) {
@@ -5353,7 +5539,6 @@ function renderFlujoNoLabelPanel() {
     }
     return false;
   });
-
   list.innerHTML = '';
   if (unlabeled.length === 0) {
     list.innerHTML = '<span style="font-size:13px;color:var(--text-faint);">No hay tareas sin etiqueta' + (flujoHideDone ? ' pendientes' : '') + '.</span>';
@@ -5364,79 +5549,56 @@ function renderFlujoNoLabelPanel() {
       row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:border-color .15s;';
       row.addEventListener('mouseenter', () => row.style.borderColor = 'var(--border-hi)');
       row.addEventListener('mouseleave', () => row.style.borderColor = 'var(--border)');
-
-      // Checkbox
-      const chk = document.createElement('div');
-      chk.style.cssText = 'width:16px;height:16px;border-radius:3px;border:1.5px solid '+(isDone?'var(--green)':'var(--border-hi)')+';background:'+(isDone?'var(--green)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-      chk.innerHTML = isDone ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0c0d0f" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '';
-      chk.addEventListener('click', async e => {
-        e.stopPropagation();
-        const newStatus = isDone ? 'pending' : 'done';
-        await db.collection('tasks').doc(t.id).update({ status: newStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => showToast('Error.','err'));
-      });
-
-      // Título
-      const title = document.createElement('span');
-      title.style.cssText = 'flex:1;font-size:13px;color:var(--text);' + (isDone ? 'text-decoration:line-through;color:var(--text-faint);' : '');
-      title.textContent = t.title;
-
-      // Prioridad pill
-      const pill = document.createElement('span');
-      pill.style.cssText = 'font-size:10px;padding:2px 6px;border-radius:10px;flex-shrink:0;background:'+(t.priority==='high'?'rgba(229,57,53,.18)':'rgba(66,133,244,.18)')+';color:'+(t.priority==='high'?'var(--red)':'var(--blue)')+';';
-      pill.textContent = t.priority === 'high' ? 'Alta' : 'Baja';
-
-      // Botón editar
-      const editBtn = document.createElement('button');
-      editBtn.title = 'Editar';
-      editBtn.style.cssText = 'width:20px;height:20px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:3px;';
-      editBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-      editBtn.addEventListener('click', e => { e.stopPropagation(); openModal(t); });
-
-      row.append(chk, title, pill, editBtn);
       row.addEventListener('click', () => openModal(t));
+      const dot = document.createElement('span');
+      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+(isDone?'var(--green)':t.priority==='high'?'var(--red)':'var(--blue)')+';opacity:'+(isDone?'.4':'1');
+      const title = document.createElement('span');
+      title.style.cssText = 'font-size:13px;color:'+(isDone?'var(--text-faint)':'var(--text)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+(isDone?'text-decoration:line-through;':'');
+      title.textContent = t.title;
+      row.append(dot, title);
       list.appendChild(row);
     });
   }
   panel.style.display = 'block';
 }
 
-document.getElementById('flujo-toggle-wrap').addEventListener('click', () => {
-  flujoHideDone = !flujoHideDone;
-  document.getElementById('flujo-toggle-switch').className = 'toggle-switch'+(!flujoHideDone?' on':'');
-  document.getElementById('flujo-toggle-label').textContent = !flujoHideDone ? 'Ocultar completadas' : 'Mostrar completadas';
-  renderFlujo();
-});
-
+// ── Búsqueda ────────────────────────────────────────────────────────────────
 document.getElementById('flujo-search-input').addEventListener('input', e => {
   flujoSearch = e.target.value;
-  document.getElementById('flujo-search-input-clear').classList.toggle('visible', !!flujoSearch);
+  const clearBtn = document.getElementById('flujo-search-input-clear');
+  if (clearBtn) clearBtn.style.display = flujoSearch ? 'block' : 'none';
   renderFlujo();
 });
-document.getElementById('flujo-search-input-clear').addEventListener('click',()=>{
-  const inp=document.getElementById('flujo-search-input'); inp.value=''; flujoSearch='';
-  document.getElementById('flujo-search-input-clear').classList.remove('visible');
+document.getElementById('flujo-search-input-clear').addEventListener('click', () => {
+  const inp = document.getElementById('flujo-search-input');
+  inp.value = ''; flujoSearch = '';
+  document.getElementById('flujo-search-input-clear').style.display = 'none';
   renderFlujo();
 });
 
-document.getElementById('fab-new-flujo').addEventListener('click', () => {
-  openModal(null);
+// ── Chip "Todas" las etiquetas ──────────────────────────────────────────────
+document.getElementById('flujo-tag-all').addEventListener('click', () => {
+  flujoTagFilter = [];
+  renderFlujoTagFilter();
+  updateFlujoFocusBadges();
+  renderFlujo();
 });
 
+// ── FABs ────────────────────────────────────────────────────────────────────
+document.getElementById('fab-new-flujo').addEventListener('click', () => { openModal(null); });
 document.getElementById('fab-new-tag-flujo').addEventListener('click', () => {
   openModal(null);
   requestAnimationFrame(() => {
-    // Expandir sección avanzada si está cerrada
     const advBody = document.getElementById('modal-adv-body');
     const advToggle = document.getElementById('modal-adv-toggle');
-    if (advBody && advBody.classList.contains('hidden') && advToggle) {
-      advToggle.click();
-    }
+    if (advBody && advBody.classList.contains('hidden') && advToggle) advToggle.click();
     setTimeout(() => {
       const tagInput = document.getElementById('tags-input');
       if (tagInput) { tagInput.scrollIntoView({behavior:'smooth', block:'center'}); tagInput.focus(); }
     }, 120);
   });
 });
+
 
 
 </script>
