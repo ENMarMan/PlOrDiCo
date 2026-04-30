@@ -1130,6 +1130,8 @@
           <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber)"></span>Estratégica</div>
           <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
           <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber);border-width:3px"></span>Tiene dependencias</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi);border-style:double;border-width:4px"></span>Es dependencia</div>
         </div>
         <div class="flujo-empty" id="flujo-empty" style="display:none;">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="6" y1="8" x2="11" y2="16"/><line x1="18" y1="8" x2="13" y2="16"/></svg>
@@ -4922,13 +4924,11 @@ function showGanttContextMenu(task, x, y) {
 let flujoHideDone    = true;
 let flujoSearch      = '';
 let flujoCy          = null;
-let flujoConnMode    = false;
-let flujoConnSrc     = null;
 let flujoShowNoLabel = false;
-let flujoTagFilter   = [];   // etiquetas seleccionadas; vacío = todas
-let flujoFilterStatus   = 'all';   // all | pending | in_progress | done
-let flujoFilterPriority = 'all';   // all | high | low
-let flujoFilterType     = 'all';   // all | strategic | operative
+let flujoTagFilter   = [];
+let flujoFilterStatus   = 'all';
+let flujoFilterPriority = 'all';
+let flujoFilterType     = 'all';
 let flujoSidebarOpen = true;
 
 // ── Helpers de color de nodo (sin cambios) ──────────────────────────────────
@@ -5123,39 +5123,70 @@ function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter, 
     return true;
   });
 
+  // Si hay filtro de etiquetas activo, solo mostramos esas etiquetas (no todas las de cada tarea)
+  const activeFilter = tagFilter && tagFilter.length > 0;
+
+  // Conjunto de etiquetas a renderizar: si hay filtro, solo las del filtro; si no, todas
   const labelSet = new Set();
   visible.forEach(t => {
-    if (t.tags && t.tags.length > 0) t.tags.forEach(tag => labelSet.add(tag));
-    else labelSet.add('__none__');
+    const tTags = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
+    if (activeFilter) {
+      // Solo añadir las etiquetas que estén en el filtro
+      tTags.forEach(tag => { if (tagFilter.includes(tag)) labelSet.add(tag); });
+      // Si la tarea no tiene etiqueta y el filtro no incluye '__none__', no se agrega nada
+    } else {
+      tTags.forEach(tag => labelSet.add(tag));
+    }
   });
 
-  // Nodos raíz (etiquetas) — solo los que tienen tareas visibles
+  // Nodos raíz (etiquetas)
   labelSet.forEach(lbl => {
     els.push({ data: { id:'root::'+lbl, label: lbl==='__none__' ? 'Sin etiqueta' : lbl, nodeType:'root' }});
   });
 
-  // Nodos tarea
+  // Precomputar IDs de tareas con dependencias (para marcar el nodo)
+  const taskIdsWithDeps = new Set(
+    taskList.filter(t => t.dependencies && t.dependencies.length > 0).map(t => t.id)
+  );
+  // También marcar tareas que son dependencia de otras (tiene dependientes)
+  const taskIdsAsDep = new Set();
+  taskList.forEach(t => {
+    (t.dependencies || []).forEach(depId => taskIdsAsDep.add(depId));
+  });
+
+  // Nodos tarea: solo bajo las etiquetas del labelSet
   visible.forEach(t => {
-    const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
+    const allLbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
+    // Si hay filtro, restringir a etiquetas del filtro; si no, todas
+    const lbls = activeFilter ? allLbls.filter(l => tagFilter.includes(l)) : allLbls;
+    const hasDeps   = taskIdsWithDeps.has(t.id);   // tiene tareas de las que depende
+    const isDepOf   = taskIdsAsDep.has(t.id);       // otras tareas dependen de ella
     lbls.forEach(lbl => {
       const nid = t.id+'::'+lbl;
-      els.push({ data: { id:nid, taskId:t.id, labelKey:lbl, label:t.title, status:t.status, priority:t.priority, type:t.type, nodeType:'task', bgColor:flujoNodeBg(t), borderColor:flujoNodeBorder(t), textColor:flujoNodeText(t), borderStyle:t.type==='strategic'?'solid':'dashed' }});
+      els.push({ data: {
+        id: nid, taskId: t.id, labelKey: lbl, label: t.title,
+        status: t.status, priority: t.priority, type: t.type, nodeType: 'task',
+        bgColor: flujoNodeBg(t), borderColor: flujoNodeBorder(t), textColor: flujoNodeText(t),
+        borderStyle: t.type==='strategic' ? 'solid' : 'dashed',
+        hasDeps: hasDeps ? 'yes' : 'no',
+        isDepOf: isDepOf ? 'yes' : 'no'
+      }});
       els.push({ data: { id:'e-r-'+nid, source:'root::'+lbl, target:nid, edgeType:'root' }});
     });
   });
 
-  // Aristas de dependencia
+  // Aristas de dependencia: solo entre nodos que existen en el grafo
+  const nodeIds = new Set(els.filter(e => e.data && e.data.nodeType === 'task').map(e => e.data.id));
   visible.forEach(t => {
     if (!t.dependencies || !t.dependencies.length) return;
-    const lbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
+    const allLbls = (t.tags && t.tags.length > 0) ? t.tags : ['__none__'];
+    const lbls = activeFilter ? allLbls.filter(l => tagFilter.includes(l)) : allLbls;
     lbls.forEach(lbl => {
       const tgt = t.id+'::'+lbl;
+      if (!nodeIds.has(tgt)) return;
       t.dependencies.forEach(depId => {
-        const depTask = taskList.find(x => x.id === depId);
-        if (!depTask) return;
-        const depLbls = (depTask.tags && depTask.tags.length > 0) ? depTask.tags : ['__none__'];
-        if (!depLbls.includes(lbl)) return;
         const src = depId+'::'+lbl;
+        if (!nodeIds.has(src)) return;
         els.push({ data: { id:'e-d-'+src+'->'+tgt, source:src, target:tgt, edgeType:'dep' }});
       });
     });
@@ -5168,32 +5199,17 @@ function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter, 
 function flujoStylesheet() {
   return [
     { selector:'node[nodeType="root"]', style:{ 'background-color':'#1e1600','border-color':'#f0a500','border-width':2,'color':'#f0a500','label':'data(label)','font-family':'Space Mono, monospace','font-size':12,'font-weight':700,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'14px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':150 }},
-    { selector:'node[nodeType="task"]', style:{ 'background-color':'data(bgColor)','border-color':'data(borderColor)','border-width':2,'border-style':'data(borderStyle)','color':'data(textColor)','label':'data(label)','font-family':'DM Sans, sans-serif','font-size':12,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'10px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':170 }},
+    { selector:'node[nodeType="task"]', style:{ 'background-color':'data(bgColor)','border-color':'data(borderColor)','border-width':2,'border-style':'data(borderStyle)','color':'data(textColor)','label':'data(label)','font-family':'DM Sans, sans-serif','font-size':12,'text-valign':'center','text-halign':'center','width':'label','height':'label','padding':'10px 10px 10px 10px','shape':'round-rectangle','text-wrap':'wrap','text-max-width':170 }},
+    { selector:'node[nodeType="task"][hasDeps="yes"]', style:{ 'border-width':3,'border-color':'data(borderColor)','background-image':'data(url)' }},
     { selector:'node[nodeType="task"][status="done"]', style:{ 'opacity':0.55 }},
     { selector:'node:selected', style:{ 'border-color':'#f0a500','border-width':3 }},
     { selector:'edge[edgeType="root"]', style:{ 'line-color':'#2a2f3a','width':1.5,'target-arrow-color':'#2a2f3a','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8 }},
-    { selector:'edge[edgeType="dep"]', style:{ 'line-color':'#f0a500','line-style':'dashed','line-dash-pattern':[6,3],'width':1.5,'target-arrow-color':'#f0a500','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.8,'opacity':0.75 }},
-    { selector:'.conn-source', style:{ 'border-color':'#f0a500','border-width':3 }},
-    { selector:'.conn-hover',  style:{ 'border-color':'#3eb87a','border-width':3 }}
+    { selector:'edge[edgeType="dep"]', style:{ 'line-color':'#f0a500','line-style':'dashed','line-dash-pattern':[6,3],'width':1.8,'target-arrow-color':'#f0a500','target-arrow-shape':'triangle','curve-style':'bezier','arrow-scale':0.9,'opacity':0.85 }},
+    { selector:'.has-deps', style:{ 'border-color':'#f0a500','border-width':3 }},
+    { selector:'.is-dep-of', style:{ 'border-style':'double' }}
   ];
 }
 
-// ── Modo conexión ───────────────────────────────────────────────────────────
-function enterConnMode(srcNode) {
-  flujoConnMode = true;
-  flujoConnSrc  = srcNode;
-  srcNode.addClass('conn-source');
-  document.getElementById('flujo-cy').style.cursor = 'crosshair';
-  showToast('Soltá sobre otra tarea para crear dependencia. Esc para cancelar.','ok');
-}
-function exitConnMode() {
-  if (!flujoConnMode) return;
-  flujoConnMode = false;
-  if (flujoConnSrc) { flujoConnSrc.removeClass('conn-source'); flujoConnSrc = null; }
-  if (flujoCy) flujoCy.nodes().removeClass('conn-hover');
-  const cy = document.getElementById('flujo-cy');
-  if (cy) cy.style.cursor = '';
-}
 
 // ── Layout por cuadrantes ───────────────────────────────────────────────────
 // Calcula posiciones preset para que cada etiqueta tenga su zona exclusiva.
@@ -5281,7 +5297,6 @@ function renderFlujo() {
   const emptyDiv  = document.getElementById('flujo-empty');
   if (!container) return;
 
-  exitConnMode();
   closeFlujoPopover();
   if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
 
@@ -5353,8 +5368,7 @@ function renderFlujo() {
     const filteredNodes = flujoCy.nodes().filter(n => {
       const lbl = n.data('labelKey') || (n.data('nodeType') === 'root' ? n.data('id').replace('root::', '') : null);
       if (!lbl) return false;
-      const tag = lbl === '__none__' ? '__none__' : lbl;
-      return flujoTagFilter.includes(tag) || n.data('nodeType') === 'root';
+      return flujoTagFilter.includes(lbl) || n.data('nodeType') === 'root';
     });
     if (filteredNodes.length > 0) flujoCy.fit(filteredNodes, 60);
     else flujoCy.fit(undefined, 40);
@@ -5364,43 +5378,20 @@ function renderFlujo() {
 
   requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
 
+  // Aplicar clases visuales de dependencia a los nodos
+  flujoCy.nodes('[nodeType="task"]').forEach(node => {
+    if (node.data('hasDeps') === 'yes') node.addClass('has-deps');
+    if (node.data('isDepOf') === 'yes') node.addClass('is-dep-of');
+  });
+
   // Eventos de nodos tarea
   flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
-    if (flujoConnMode) {
-      const tgtNode   = evt.target;
-      if (tgtNode === flujoConnSrc) { exitConnMode(); return; }
-      const srcTaskId = flujoConnSrc.data('taskId');
-      const tgtTaskId = tgtNode.data('taskId');
-      if (!srcTaskId || !tgtTaskId) { exitConnMode(); return; }
-      exitConnMode();
-      const tgtTask = tasks.find(t => t.id === tgtTaskId);
-      if (!tgtTask) return;
-      const deps = Array.isArray(tgtTask.dependencies) ? [...tgtTask.dependencies] : [];
-      if (!deps.includes(srcTaskId)) {
-        deps.push(srcTaskId);
-        db.collection('tasks').doc(tgtTaskId).update({ dependencies:deps, updatedAt:firebase.firestore.FieldValue.serverTimestamp() })
-          .then(() => showToast('Dependencia creada.','ok'))
-          .catch(() => showToast('Error.','err'));
-      }
-      return;
-    }
     const taskId = evt.target.data('taskId');
     const task   = tasks.find(t => t.id === taskId);
     if (!task) return;
     const pos = evt.target.renderedPosition();
     const box = container.getBoundingClientRect();
     showFlujoPopover(task, { x: box.left + pos.x, y: box.top + pos.y });
-  });
-
-  flujoCy.on('mouseover', 'node[nodeType="task"]', function(evt) {
-    if (flujoConnMode && evt.target !== flujoConnSrc) evt.target.addClass('conn-hover');
-  });
-  flujoCy.on('mouseout', 'node[nodeType="task"]', function(evt) {
-    evt.target.removeClass('conn-hover');
-  });
-  flujoCy.on('cxttap', 'node[nodeType="task"]', function(evt) {
-    if (flujoConnMode) { exitConnMode(); return; }
-    enterConnMode(evt.target);
   });
 
   // Tap en nodo raíz → nueva tarea con esa etiqueta
@@ -5413,16 +5404,7 @@ function renderFlujo() {
   flujoCy.on('tap', function(evt) {
     if (evt.target !== flujoCy) return;
     closeFlujoPopover();
-    if (flujoConnMode) exitConnMode();
   });
-
-  const escFlujo = function(e) {
-    if (e.key === 'Escape' && flujoConnMode) exitConnMode();
-    if (!document.getElementById('panel-flujo').classList.contains('active')) {
-      document.removeEventListener('keydown', escFlujo);
-    }
-  };
-  document.addEventListener('keydown', escFlujo);
 }
 
 // ── Sidebar: toggle colapso ─────────────────────────────────────────────────
