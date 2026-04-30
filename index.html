@@ -666,6 +666,14 @@
     .flujo-empty p { font-size:13px;line-height:1.6; }
     .flujo-quadrant-label { position:absolute;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);opacity:.35;pointer-events:none;z-index:5; }
 
+    /* ── AUTOGUARDADO ────────────────────────────────── */
+    .autosave-dot { display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle;opacity:0;transition:opacity .2s;flex-shrink:0; }
+    .autosave-dot.pending { opacity:1;animation:autosave-pulse 1s ease-in-out infinite; }
+    .autosave-dot.saving  { opacity:1;background:var(--amber);animation:autosave-spin .6s linear infinite; }
+    .autosave-dot.saved   { opacity:1;background:var(--green);animation:none; }
+    @keyframes autosave-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+    @keyframes autosave-spin  { 0%{transform:scale(1)}50%{transform:scale(1.6)}100%{transform:scale(1)} }
+
   </style>
 </head>
 <body>
@@ -829,7 +837,7 @@
               <div style="display:flex;gap:8px;margin-left:auto">
                 <button class="btn-ghost hidden" id="sp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
                 <button class="btn-cancel" id="sp-btn-cancel">Cancelar</button>
-                <button class="btn-primary" id="sp-btn-save"><span id="sp-save-label">Guardar</span></button>
+                <button class="btn-primary" id="sp-btn-save"><span id="sp-save-label">Guardar</span><span class="autosave-dot" id="sp-autosave-dot"></span></button>
               </div>
             </div>
           </div>
@@ -1187,7 +1195,7 @@
     <div style="display:flex;gap:8px;margin-left:auto">
       <button class="btn-ghost hidden" id="gsp-btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
       <button class="btn-cancel" id="gsp-btn-cancel">Cancelar</button>
-      <button class="btn-primary" id="gsp-btn-save"><span id="gsp-save-label">Guardar</span></button>
+      <button class="btn-primary" id="gsp-btn-save"><span id="gsp-save-label">Guardar</span><span class="autosave-dot" id="gsp-autosave-dot"></span></button>
     </div>
   </div>
 </div>
@@ -1382,7 +1390,7 @@
       <div style="display:flex;gap:8px;margin-left:auto">
         <button class="btn-ghost hidden" id="btn-skip-task" title="Salta esta ocurrencia y crea la siguiente">⏭ Saltar</button>
         <button class="btn-cancel" id="btn-cancel">Cancelar</button>
-        <button class="btn-primary" id="btn-save"><span id="save-label">Guardar</span></button>
+        <button class="btn-primary" id="btn-save"><span id="save-label">Guardar</span><span class="autosave-dot" id="modal-autosave-dot"></span></button>
       </div>
     </div>
   </div>
@@ -1822,7 +1830,173 @@ function subscribeToTasks() {
   startReminderPolling();
 }
 
+// ── AUTOGUARDADO ──────────────────────────────────────────────────────────────
+// timers de debounce por formulario
+const _asTimers = { modal: null, split: null, ganttSplit: null };
+const AS_DELAY  = 2000; // ms
+
+// Actualizar estado visual del dot
+function asSetDot(formId, state) {
+  const ids = { modal:'modal-autosave-dot', split:'sp-autosave-dot', ganttSplit:'gsp-autosave-dot' };
+  const dot = document.getElementById(ids[formId]);
+  if (!dot) return;
+  dot.className = 'autosave-dot' + (state ? ' '+state : '');
+}
+
+// Construir payload de datos según el formulario
+function asBuildData(formId) {
+  if (formId === 'modal') {
+    const rec = recurrenceOn ? {
+      enabled:true, type:fRecType.value,
+      interval: fRecType.value==='daily' ? (parseInt(fRecInterval.value)||1) : null,
+      endDate: fRecEnd.value || null
+    } : null;
+    const rdDate = document.getElementById('f-reminder-date');
+    const rdHour = document.getElementById('f-reminder-hour');
+    const reminderData = (reminderOn && rdDate && rdHour && rdDate.value && rdHour.value)
+      ? { enabled:true, datetime:rdDate.value+'T'+rdHour.value+':00', snoozedUntil:null }
+      : { enabled:false, datetime:null, snoozedUntil:null };
+    const gStartEl = document.getElementById('f-gantt-start');
+    const gDaysEl  = document.getElementById('f-gantt-days');
+    let ganttData = { enabled:false, startDate:null, days:null };
+    let computedDue = fDue.value || null;
+    if (ganttOn && gStartEl && gStartEl.value) {
+      const gDays = Math.max(1, parseInt(gDaysEl ? gDaysEl.value : 1)||1);
+      const gStart = new Date(gStartEl.value+'T00:00:00');
+      const gEnd = new Date(gStart); gEnd.setDate(gEnd.getDate()+gDays-1);
+      const pad = n => String(n).padStart(2,'0');
+      computedDue = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
+      ganttData = { enabled:true, startDate:gStartEl.value, days:gDays };
+    }
+    return {
+      title: fTitle.value.trim(), description: fDesc.value.trim(),
+      priority: fPriority.value, type: fType.value, status: fStatus.value,
+      dueDate: computedDue, recurrence: rec,
+      tags:[...currentTags], dependencies:[...selectedDeps],
+      checklist: currentChecklist.filter(i=>i.text.trim()),
+      reminder: reminderData, gantt: ganttData,
+      uid: currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+  }
+
+  if (formId === 'split') {
+    const spRecTypeEl = document.getElementById('sp-f-rec-type');
+    const rec = splitRecurrenceOn ? {
+      enabled:true, type:spRecTypeEl.value,
+      interval: spRecTypeEl.value==='daily' ? (parseInt(document.getElementById('sp-f-rec-interval').value)||1) : null,
+      endDate: document.getElementById('sp-f-rec-end').value || null
+    } : null;
+    const spGStartEl = document.getElementById('sp-f-gantt-start');
+    const spGDaysEl  = document.getElementById('sp-f-gantt-days');
+    let spGanttData = { enabled:false, startDate:null, days:null };
+    let spComputedDue = document.getElementById('sp-f-due').value || null;
+    if (splitGanttOn && spGStartEl && spGStartEl.value) {
+      const gDays = Math.max(1, parseInt(spGDaysEl ? spGDaysEl.value : 1)||1);
+      const gStart = new Date(spGStartEl.value+'T00:00:00');
+      const gEnd = new Date(gStart); gEnd.setDate(gEnd.getDate()+gDays-1);
+      const pad = n => String(n).padStart(2,'0');
+      spComputedDue = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
+      spGanttData = { enabled:true, startDate:spGStartEl.value, days:gDays };
+    }
+    return {
+      title: (document.getElementById('sp-f-title').value||'').trim(),
+      description: (document.getElementById('sp-f-desc').value||'').trim(),
+      priority: document.getElementById('sp-f-priority').value,
+      type: document.getElementById('sp-f-type').value,
+      status: document.getElementById('sp-f-status').value,
+      dueDate: spComputedDue, recurrence: rec,
+      tags:[...splitCurrentTags], dependencies:[...splitSelectedDeps],
+      checklist: splitCurrentChecklist.filter(i=>i.text.trim()),
+      reminder: buildSpReminderData(), gantt: spGanttData,
+      uid: currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+  }
+
+  if (formId === 'ganttSplit') {
+    const gspRecTypeEl = document.getElementById('gsp-f-rec-type');
+    const rec = ganttSplitRecurrenceOn ? {
+      enabled:true, type:gspRecTypeEl.value,
+      interval: gspRecTypeEl.value==='daily' ? (parseInt(document.getElementById('gsp-f-rec-interval').value)||1) : null,
+      endDate: document.getElementById('gsp-f-rec-end').value || null
+    } : null;
+    const gspGStartEl = document.getElementById('gsp-f-gantt-start');
+    const gspGDaysEl  = document.getElementById('gsp-f-gantt-days');
+    let gspGanttData = { enabled:false, startDate:null, days:null };
+    let gspComputedDue = document.getElementById('gsp-f-due').value || null;
+    if (ganttSplitGanttOn && gspGStartEl && gspGStartEl.value) {
+      const gDays = Math.max(1, parseInt(gspGDaysEl ? gspGDaysEl.value : 1)||1);
+      const gStart = new Date(gspGStartEl.value+'T00:00:00');
+      const gEnd = new Date(gStart); gEnd.setDate(gEnd.getDate()+gDays-1);
+      const pad = n => String(n).padStart(2,'0');
+      gspComputedDue = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
+      gspGanttData = { enabled:true, startDate:gspGStartEl.value, days:gDays };
+    }
+    const gspRemDateEl = document.getElementById('gsp-reminder-date');
+    const gspRemHourEl = document.getElementById('gsp-reminder-hour');
+    const gspReminderData = (ganttSplitReminderOn && gspRemDateEl && gspRemHourEl && gspRemDateEl.value && gspRemHourEl.value)
+      ? { enabled:true, datetime:gspRemDateEl.value+'T'+gspRemHourEl.value+':00', snoozedUntil:null }
+      : { enabled:false, datetime:null, snoozedUntil:null };
+    return {
+      title: (document.getElementById('gsp-f-title').value||'').trim(),
+      description: (document.getElementById('gsp-f-desc').value||'').trim(),
+      priority: document.getElementById('gsp-f-priority').value,
+      type: document.getElementById('gsp-f-type').value,
+      status: document.getElementById('gsp-f-status').value,
+      dueDate: gspComputedDue, recurrence: rec,
+      tags:[...ganttSplitCurrentTags], dependencies:[...ganttSplitSelectedDeps],
+      checklist: ganttSplitCurrentChecklist.filter(i=>i.text.trim()),
+      reminder: gspReminderData, gantt: gspGanttData,
+      uid: currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+  }
+  return null;
+}
+
+// Obtener el editingId del formulario correspondiente
+function asGetEditingId(formId) {
+  if (formId === 'modal')     return editingId;
+  if (formId === 'split')     return splitEditingId;
+  if (formId === 'ganttSplit') return ganttSplitEditingId;
+  return null;
+}
+
+// Guardar silenciosamente (sin cerrar el formulario, sin toast de éxito)
+async function autoSaveSilent(formId) {
+  const id = asGetEditingId(formId);
+  if (!id) return; // solo para tareas existentes
+  const data = asBuildData(formId);
+  if (!data || !data.title) return; // sin título no guardamos
+  asSetDot(formId, 'saving');
+  try {
+    await fsUpdate('tasks', id, data);
+    asSetDot(formId, 'saved');
+    // Apagar el dot "saved" después de 2s
+    setTimeout(() => asSetDot(formId, ''), 2000);
+  } catch(e) {
+    asSetDot(formId, 'pending'); // si falla, volvemos a pending
+  }
+}
+
+// Disparar el debounce para un formulario
+function asSchedule(formId) {
+  if (!asGetEditingId(formId)) return; // solo si es edición
+  asSetDot(formId, 'pending');
+  clearTimeout(_asTimers[formId]);
+  _asTimers[formId] = setTimeout(() => autoSaveSilent(formId), AS_DELAY);
+}
+
+// Cancelar timer pendiente (llamar al cerrar o al guardar manualmente)
+function asClear(formId) {
+  clearTimeout(_asTimers[formId]);
+  _asTimers[formId] = null;
+  asSetDot(formId, '');
+}
+
+// Enganche en los save* existentes: cancelar timer antes de guardar manualmente
+// (asClear se llama directamente dentro de cada saveX — ver abajo)
+
 async function saveTask() {
+  asClear('modal');
   const title = fTitle.value.trim();
   if (!title) { fTitle.focus(); showToast('El título es obligatorio.', 'err'); return; }
   btnSave.disabled = true; saveLabel.innerHTML = '<span class="spinner"></span>';
@@ -2300,6 +2474,7 @@ function openModal(task=null, prefillTags=null) {
 }
 
 function closeModal() {
+  asClear('modal');
   modalBackdrop.classList.remove('open');
   editingId=null;
   if (tagSelectorDropdown) { tagSelectorDropdown.classList.remove('open'); tagSelectorTrigger.classList.remove('open'); }
@@ -2731,6 +2906,15 @@ document.addEventListener('keydown', e => {
 });
 fTitle.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fDesc.focus(); } });
 
+// Autoguardado modal principal — listeners estáticos sobre el contenedor
+;(function() {
+  const modalForm = document.getElementById('modal-form') || document.getElementById('modal-backdrop');
+  if (!modalForm) return;
+  const scheduleModal = () => { if (editingId) asSchedule('modal'); };
+  modalForm.addEventListener('input',  scheduleModal, { capture: true });
+  modalForm.addEventListener('change', scheduleModal, { capture: true });
+})();
+
 
 // ── PANEL DIVIDIDO (Lista) ────────────────────────────────────────────────────
 const splitRight       = document.getElementById('list-split-right');
@@ -2791,6 +2975,7 @@ function openSplitPanel(task, focusField) {
 }
 
 function closeSplitPanel() {
+  asClear('split');
   splitRight.classList.remove('open');
   splitLeft.classList.remove('dimmed');
   document.getElementById('task-list').style.paddingRight = '';
@@ -2940,6 +3125,15 @@ function bindSplitFormEvents(task) {
   }
   bindSpReminderEvents(task);
   bindSpGanttEvents(task);
+
+  // Autoguardado — solo si es edición
+  if (splitEditingId) {
+    const spContainer = document.getElementById('sp-form-body') || splitPanelBody;
+    if (spContainer) {
+      spContainer.addEventListener('input',  () => asSchedule('split'), { capture: true });
+      spContainer.addEventListener('change', () => asSchedule('split'), { capture: true });
+    }
+  }
 }
 
 function spRenderTagsUI() {
@@ -3059,6 +3253,7 @@ function spRenderDepDropdown(excludeId) {
 }
 
 async function saveSplitTask() {
+  asClear('split');
   const titleEl = document.getElementById('sp-f-title');
   const title = (titleEl ? titleEl.value : '').trim();
   if (!title) { if(titleEl) titleEl.focus(); showToast('El t\u00edtulo es obligatorio.', 'err'); return; }
@@ -4115,6 +4310,7 @@ function openGanttSplitPanel(task) {
 }
 
 function closeGanttSplitPanel() {
+  asClear('ganttSplit');
   ganttSplitRight.classList.remove('open');
   ganttSplitEditingId = null;
 }
@@ -4274,6 +4470,15 @@ function bindGanttSplitFormEvents(task) {
       gspAdvToggle.classList.toggle('open',!isOpen);
     });
   }
+
+  // Autoguardado — solo si es edición
+  if (ganttSplitEditingId) {
+    const gspBody = document.getElementById('gantt-split-body') || ganttSplitRight;
+    if (gspBody) {
+      gspBody.addEventListener('input',  () => asSchedule('ganttSplit'), { capture: true });
+      gspBody.addEventListener('change', () => asSchedule('ganttSplit'), { capture: true });
+    }
+  }
 }
 
 function gspRenderChecklistUI() {
@@ -4386,6 +4591,7 @@ function gspRenderDepDropdown(excludeId){
 
 
 async function saveGanttSplitTask() {
+  asClear('ganttSplit');
   const titleEl = document.getElementById('gsp-f-title');
   const title = (titleEl ? titleEl.value : '').trim();
   if (!title) { if(titleEl) titleEl.focus(); showToast('El título es obligatorio.', 'err'); return; }
