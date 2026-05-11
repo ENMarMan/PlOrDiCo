@@ -379,6 +379,7 @@
     .reminder-eyebrow svg { width: 12px; height: 12px; flex-shrink: 0; }
     .reminder-title { font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; word-break: break-word; }
     .reminder-desc { font-size: 11px; color: var(--text-dim); line-height: 1.45; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .reminder-date-line { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-bottom: 8px; }
     .reminder-actions { display: flex; align-items: center; gap: 5px; }
     .reminder-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: var(--radius); font-size: 11px; font-weight: 500; cursor: pointer; transition: var(--tr); border: 1px solid; font-family: var(--sans); white-space: nowrap; }
     .reminder-btn-confirm { background: var(--green-dim); border-color: var(--green); color: var(--green); }
@@ -2419,7 +2420,7 @@ function openModal(task=null, prefillTags=null) {
     const rdDate = document.getElementById('f-reminder-date');
     if (rdDate) rdDate.value = '';
   }
-  renderTagsUI(); renderTagSuggestions(); renderDepDropdown(task?task.id:null); renderChecklistUI();
+  renderTagsUI(); renderTagSuggestions(''); renderDepDropdown(task?task.id:null); renderChecklistUI();
   // Gantt form en modal
   const gn = task && task.gantt ? task.gantt : null;
   ganttOn = !!(gn && gn.enabled);
@@ -2496,7 +2497,7 @@ function renderTagsUI() {
       p.innerHTML = escHtml(tag) + '<button class="tag-remove" type="button">\u00d7</button>';
       p.querySelector('.tag-remove').addEventListener('click', e => {
         e.stopPropagation();
-        currentTags = currentTags.filter(t => t !== tag); renderTagsUI(); renderTagSuggestions();
+        currentTags = currentTags.filter(t => t !== tag); renderTagsUI(); renderTagSuggestions('');
       });
       ddAssigned.appendChild(p);
     });
@@ -2520,21 +2521,23 @@ function renderTagsUI() {
   }
 }
 
-function renderTagSuggestions() {
+function renderTagSuggestions(filterText) {
   const suggestionsEl = document.getElementById('tag-suggestions');
   if (!suggestionsEl) return;
-  const existing = getAllTags().filter(t => !currentTags.includes(t));
+  const q = (filterText || '').trim().toLowerCase();
+  let existing = getAllTags().filter(t => !currentTags.includes(t));
+  if (q) existing = existing.filter(t => t.toLowerCase().includes(q));
   suggestionsEl.innerHTML = '';
-  const sec = document.getElementById('tag-dd-available-section');
   if (existing.length === 0) {
-    suggestionsEl.innerHTML = '<span class="tag-dd-empty">Sin etiquetas disponibles</span>';
+    suggestionsEl.innerHTML = '<span class="tag-dd-empty">' + (q ? 'Sin coincidencias' : 'Sin etiquetas disponibles') + '</span>';
   } else {
     existing.forEach(tag => {
       const btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'tag-suggestion'; btn.textContent = '+ ' + tag;
       btn.addEventListener('click', e => {
         e.stopPropagation();
-        if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); renderTagSuggestions(); }
+        if (!currentTags.includes(tag)) { currentTags.push(tag); renderTagsUI(); }
+        tagsInput.value = ''; renderTagSuggestions('');
       });
       suggestionsEl.appendChild(btn);
     });
@@ -2665,10 +2668,11 @@ fRecType.addEventListener('change', updateRecInterval);
 tagsInput.addEventListener('keydown',e=>{
   if((e.key==='Enter'||e.key===',')&&tagsInput.value.trim()){
     e.preventDefault(); const tag=tagsInput.value.trim().replace(/,/g,'');
-    if(tag&&!currentTags.includes(tag)){currentTags.push(tag);renderTagsUI();renderTagSuggestions();} tagsInput.value='';
-  } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();renderTagSuggestions();}
+    if(tag&&!currentTags.includes(tag)){currentTags.push(tag);renderTagsUI();} tagsInput.value=''; renderTagSuggestions('');
+  } else if(e.key==='Backspace'&&!tagsInput.value&&currentTags.length){currentTags.pop();renderTagsUI();renderTagSuggestions('');}
   else if(e.key==='Escape'){ tagSelectorDropdown.classList.remove('open'); tagSelectorTrigger.classList.remove('open'); }
 });
+tagsInput.addEventListener('input', () => { renderTagSuggestions(tagsInput.value); });
 tagSelectorTrigger.addEventListener('click', e => {
   const isOpen = tagSelectorDropdown.classList.contains('open');
   tagSelectorDropdown.classList.toggle('open', !isOpen);
@@ -3079,7 +3083,7 @@ function bindSplitFormEvents(task) {
   spRecType.addEventListener('change', () => { spRecIntervalGrp.classList.toggle('hidden', spRecType.value !== 'daily'); });
   spRenderChecklistUI();
   document.getElementById('sp-btn-add-check').addEventListener('click', spAddCheckItem);
-  spRenderTagsUI(); spRenderTagSuggestions();
+  spRenderTagsUI(); spRenderTagSuggestions('');
   const spTagsInput = document.getElementById('sp-tags-input');
   const spTagTrigger = document.getElementById('sp-tag-selector-trigger');
   const spTagDropdown = document.getElementById('sp-tag-selector-dropdown');
@@ -3104,12 +3108,13 @@ function bindSplitFormEvents(task) {
     if ((e.key==='Enter'||e.key===',') && spTagsInput.value.trim()) {
       e.preventDefault();
       const tag = spTagsInput.value.trim().replace(/,/g,'');
-      if (tag && !splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); }
-      spTagsInput.value = '';
+      if (tag && !splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); }
+      spTagsInput.value = ''; spRenderTagSuggestions('');
     } else if (e.key==='Backspace' && !spTagsInput.value && splitCurrentTags.length) {
-      splitCurrentTags.pop(); spRenderTagsUI(); spRenderTagSuggestions();
+      splitCurrentTags.pop(); spRenderTagsUI(); spRenderTagSuggestions('');
     } else if (e.key==='Escape' && spTagDropdown) { spTagDropdown.classList.remove('open'); spTagTrigger && spTagTrigger.classList.remove('open'); }
   });
+  if (spTagsInput) spTagsInput.addEventListener('input', () => { spRenderTagSuggestions(spTagsInput.value); });
   spRenderDepDropdown(task ? task.id : null);
   const titleEl = document.getElementById('sp-f-title');
   if (titleEl) titleEl.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); document.getElementById('sp-f-desc').focus(); } });
@@ -3150,7 +3155,7 @@ function spRenderTagsUI() {
       p.innerHTML = escHtml(tag) + '<button class="tag-remove" type="button">\u00d7</button>';
       p.querySelector('.tag-remove').addEventListener('click', e => {
         e.stopPropagation();
-        splitCurrentTags = splitCurrentTags.filter(t => t !== tag); spRenderTagsUI(); spRenderTagSuggestions();
+        splitCurrentTags = splitCurrentTags.filter(t => t !== tag); spRenderTagsUI(); spRenderTagSuggestions('');
       });
       ddAssigned.appendChild(p);
     });
@@ -3173,16 +3178,23 @@ function spRenderTagsUI() {
   }
 }
 
-function spRenderTagSuggestions() {
+function spRenderTagSuggestions(filterText) {
   const el = document.getElementById('sp-tag-suggestions'); if (!el) return;
-  const existing = getAllTags().filter(t => !splitCurrentTags.includes(t));
+  const q = (filterText || '').trim().toLowerCase();
+  let existing = getAllTags().filter(t => !splitCurrentTags.includes(t));
+  if (q) existing = existing.filter(t => t.toLowerCase().includes(q));
   el.innerHTML = '';
   if (existing.length === 0) {
-    el.innerHTML = '<span class="tag-dd-empty">Sin etiquetas disponibles</span>';
+    el.innerHTML = '<span class="tag-dd-empty">' + (q ? 'Sin coincidencias' : 'Sin etiquetas disponibles') + '</span>';
   } else {
     existing.forEach(tag => {
       const btn = document.createElement('button'); btn.type='button'; btn.className='tag-suggestion'; btn.textContent='+ '+tag;
-      btn.addEventListener('click', e => { e.stopPropagation(); if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); spRenderTagSuggestions(); } });
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!splitCurrentTags.includes(tag)) { splitCurrentTags.push(tag); spRenderTagsUI(); }
+        const spInp = document.getElementById('sp-tags-input'); if (spInp) spInp.value = '';
+        spRenderTagSuggestions('');
+      });
       el.appendChild(btn);
     });
   }
@@ -3876,6 +3888,23 @@ function showReminderPopup(task) {
   const stack = document.getElementById('reminder-stack');
   if (!stack || document.getElementById('reminder-popup-' + task.id)) return;
 
+  // Construir línea de fecha para mostrar en el popup
+  const pad2 = n => String(n).padStart(2,'0');
+  let reminderDateLine = '';
+  if (task.dueDate) {
+    const [dy, dm, dd] = task.dueDate.split('-').map(Number);
+    const dateObj = new Date(dy, dm - 1, dd);
+    const formatted = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    reminderDateLine = '<div class="reminder-date-line">\uD83D\uDCC5 Vence: ' + formatted + '</div>';
+  } else if (task.reminder && task.reminder.datetime) {
+    const [datePart, timePart] = task.reminder.datetime.split('T');
+    const [ry, rm, rd] = datePart.split('-').map(Number);
+    const dateObj = new Date(ry, rm - 1, rd);
+    const formatted = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+    const hour = timePart ? timePart.substring(0, 5) : '';
+    reminderDateLine = '<div class="reminder-date-line">\uD83D\uDCC5 ' + formatted + (hour ? ' \u00b7 ' + hour : '') + '</div>';
+  }
+
   const popup = document.createElement('div');
   popup.className = 'reminder-popup';
   popup.id = 'reminder-popup-' + task.id;
@@ -3884,6 +3913,7 @@ function showReminderPopup(task) {
     + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>'
     + 'Recordatorio</div>'
     + '<div class="reminder-title">' + escHtml(task.title) + '</div>'
+    + reminderDateLine
     + (task.description ? '<div class="reminder-desc">' + escHtml(task.description) + '</div>' : '')
     + '<div class="reminder-actions">'
     + '<button class="reminder-btn reminder-btn-confirm">\u2713 Confirmar</button>'
@@ -3895,7 +3925,7 @@ function showReminderPopup(task) {
     + '<button class="snooze-option" data-mins="30">30 minutos</button>'
     + '<button class="snooze-option" data-mins="60">1 hora</button>'
     + '</div></div>'
-    + '<button class="reminder-btn reminder-btn-edit">\u270e Modificar</button>'
+    + '<button class="reminder-btn reminder-btn-edit">\u2192 Ver</button>'
     + '</div>';
 
   stack.appendChild(popup);
@@ -4072,6 +4102,16 @@ function renderCalendar() {
       }
       return true;
     });
+
+    // Ordenar por prioridad (Opción B): high/strategic → high/operative → low/strategic → low/operative
+    const calPrioRank = e => {
+      const p = e.task.priority, tp = e.task.type;
+      if (p === 'high' && tp === 'strategic') return 0;
+      if (p === 'high')                       return 1;
+      if (tp === 'strategic')                 return 2;
+      return 3;
+    };
+    entries.sort((a, b) => calPrioRank(a) - calPrioRank(b));
 
     const tasksContainer = document.createElement('div');
     tasksContainer.className = 'cal-cell-tasks';
@@ -4404,7 +4444,7 @@ function bindGanttSplitFormEvents(task) {
   const gspAddChk=document.getElementById('gsp-btn-add-check');
   if(gspAddChk) gspAddChk.addEventListener('click',gspAddCheckItem);
 
-  gspRenderTagsUI(); gspRenderTagSuggestions();
+  gspRenderTagsUI(); gspRenderTagSuggestions('');
   const gspTagsInput=document.getElementById('gsp-tags-input');
   const gspTagTrigger=document.getElementById('gsp-tag-selector-trigger');
   const gspTagDropdown=document.getElementById('gsp-tag-selector-dropdown');
@@ -4429,12 +4469,13 @@ function bindGanttSplitFormEvents(task) {
     if((e.key==='Enter'||e.key===',')&&gspTagsInput.value.trim()){
       e.preventDefault();
       const tag=gspTagsInput.value.trim().replace(/,/g,'');
-      if(tag&&!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}
-      gspTagsInput.value='';
+      if(tag&&!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();}
+      gspTagsInput.value=''; gspRenderTagSuggestions('');
     } else if(e.key==='Backspace'&&!gspTagsInput.value&&ganttSplitCurrentTags.length){
-      ganttSplitCurrentTags.pop();gspRenderTagsUI();gspRenderTagSuggestions();
+      ganttSplitCurrentTags.pop();gspRenderTagsUI();gspRenderTagSuggestions('');
     } else if(e.key==='Escape'&&gspTagDropdown){gspTagDropdown.classList.remove('open');gspTagTrigger&&gspTagTrigger.classList.remove('open');}
   });
+  if(gspTagsInput) gspTagsInput.addEventListener('input',()=>{ gspRenderTagSuggestions(gspTagsInput.value); });
 
   const gspRemTgl=document.getElementById('gsp-reminder-toggle');
   ganttSplitReminderOn=!!(task&&task.reminder&&task.reminder.enabled);
@@ -4514,7 +4555,7 @@ function gspRenderTagsUI(){
       p.innerHTML=escHtml(tag)+'<button class="tag-remove" type="button">\u00d7</button>';
       p.querySelector('.tag-remove').addEventListener('click',e=>{
         e.stopPropagation();
-        ganttSplitCurrentTags=ganttSplitCurrentTags.filter(t=>t!==tag);gspRenderTagsUI();gspRenderTagSuggestions();
+        ganttSplitCurrentTags=ganttSplitCurrentTags.filter(t=>t!==tag);gspRenderTagsUI();gspRenderTagSuggestions('');
       });
       ddAssigned.appendChild(p);
     });
@@ -4536,16 +4577,23 @@ function gspRenderTagsUI(){
     }
   }
 }
-function gspRenderTagSuggestions(){
+function gspRenderTagSuggestions(filterText){
   const el=document.getElementById('gsp-tag-suggestions');if(!el)return;
-  const existing=getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t));
+  const q=(filterText||'').trim().toLowerCase();
+  let existing=getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t));
+  if(q) existing=existing.filter(t=>t.toLowerCase().includes(q));
   el.innerHTML='';
   if(existing.length===0){
-    el.innerHTML='<span class="tag-dd-empty">Sin etiquetas disponibles</span>';
+    el.innerHTML='<span class="tag-dd-empty">'+(q?'Sin coincidencias':'Sin etiquetas disponibles')+'</span>';
   }else{
     existing.forEach(tag=>{
       const btn=document.createElement('button');btn.type='button';btn.className='tag-suggestion';btn.textContent='+ '+tag;
-      btn.addEventListener('click',e=>{e.stopPropagation();if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();gspRenderTagSuggestions();}});
+      btn.addEventListener('click',e=>{
+        e.stopPropagation();
+        if(!ganttSplitCurrentTags.includes(tag)){ganttSplitCurrentTags.push(tag);gspRenderTagsUI();}
+        const gInp=document.getElementById('gsp-tags-input');if(gInp)gInp.value='';
+        gspRenderTagSuggestions('');
+      });
       el.appendChild(btn);
     });
   }
