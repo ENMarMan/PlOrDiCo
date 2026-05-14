@@ -67,6 +67,10 @@ service cloud.firestore {
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.uid;
     }
+    match /flujoLayouts/{userId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+    }
   }
 }
 ```
