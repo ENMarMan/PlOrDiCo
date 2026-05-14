@@ -5581,84 +5581,111 @@ function renderFlujo() {
   // Calcular posiciones de cuadrante
   const quadPositions = computeQuadrantPositions(elements);
 
-  // Intentar restaurar posiciones guardadas (override de cuadrante si existen)
-  let savedPositions = {};
-  try {
-    const saved = localStorage.getItem('plordico_flujo_positions');
-    if (saved) savedPositions = JSON.parse(saved);
-  } catch(e) { /* silencioso */ }
+  // Hash del conjunto actual de etiquetas para detectar cambios estructurales
+  const currentLabelHash = Array.from(
+    new Set(elements.filter(e => e.data && e.data.nodeType === 'task').map(e => e.data.labelKey))
+  ).sort().join('|');
 
-  // Asignar posición final a cada elemento
-  const elementsWithPos = elements.map(el => {
-    if (!el.data || el.data.nodeType === undefined) return el; // aristas
-    const id = el.data.id;
-    const pos = savedPositions[id] || quadPositions[id];
-    if (pos) return { ...el, position: pos };
-    return el;
-  });
-
-  flujoCy = cytoscape({
-    container,
-    elements: elementsWithPos,
-    style: flujoStylesheet(),
-    layout: { name: 'preset' },
-    userZoomingEnabled: true,
-    userPanningEnabled: true,
-    minZoom: 0.08, maxZoom: 3
-  });
-
-  // Guardar posición al soltar nodo
-  flujoCy.on('free', 'node', function() {
-    try {
-      const positions = {};
-      flujoCy.nodes().forEach(node => { positions[node.id()] = node.position(); });
-      localStorage.setItem('plordico_flujo_positions', JSON.stringify(positions));
-    } catch(e) { /* silencioso */ }
-  });
-
-  flujoCy.resize();
-  // Si hay filtro de etiquetas activo, hacer fit solo de los cuadrantes visibles
-  if (flujoTagFilter.length > 0) {
-    const filteredNodes = flujoCy.nodes().filter(n => {
-      const lbl = n.data('labelKey') || (n.data('nodeType') === 'root' ? n.data('id').replace('root::', '') : null);
-      if (!lbl) return false;
-      return flujoTagFilter.includes(lbl) || n.data('nodeType') === 'root';
+  // Función que recibe posiciones guardadas (o vacías) y construye el grafo
+  const buildAndMountCy = (savedPositions, savedHash) => {
+    const useSaved = savedHash === currentLabelHash && Object.keys(savedPositions).length > 0;
+    const elementsWithPos = elements.map(el => {
+      if (!el.data || el.data.nodeType === undefined) return el;
+      const id = el.data.id;
+      const pos = (useSaved && savedPositions[id]) ? savedPositions[id] : quadPositions[id];
+      if (pos) return { ...el, position: pos };
+      return el;
     });
-    if (filteredNodes.length > 0) flujoCy.fit(filteredNodes, 60);
-    else flujoCy.fit(undefined, 40);
+
+    if (flujoCy) { flujoCy.destroy(); flujoCy = null; }
+    flujoCy = cytoscape({
+      container,
+      elements: elementsWithPos,
+      style: flujoStylesheet(),
+      layout: { name: 'preset' },
+      userZoomingEnabled: true,
+      userPanningEnabled: true,
+      minZoom: 0.08, maxZoom: 3
+    });
+
+    // Guardar posiciones en Firestore al soltar un nodo
+    const uid = auth.currentUser ? auth.currentUser.uid : null;
+    flujoCy.on('free', 'node', function() {
+      if (!uid) return;
+      try {
+        const pos = {};
+        flujoCy.nodes().forEach(n => { pos[n.id()] = n.position(); });
+        db.collection('flujoLayouts').doc(uid).set({
+          positions: pos,
+          labelSetHash: currentLabelHash,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(() => {});
+      } catch(e) {}
+    });
+
+    flujoCy.resize();
+    // Si hay filtro de etiquetas activo, hacer fit solo de los cuadrantes visibles
+    if (flujoTagFilter.length > 0) {
+      const filteredNodes = flujoCy.nodes().filter(n => {
+        const lbl = n.data('labelKey') || (n.data('nodeType') === 'root' ? n.data('id').replace('root::', '') : null);
+        if (!lbl) return false;
+        return flujoTagFilter.includes(lbl) || n.data('nodeType') === 'root';
+      });
+      if (filteredNodes.length > 0) flujoCy.fit(filteredNodes, 60);
+      else flujoCy.fit(undefined, 40);
+    } else {
+      flujoCy.fit(undefined, 40);
+    }
+
+    requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
+
+    // Aplicar clases visuales de dependencia a los nodos
+    flujoCy.nodes('[nodeType="task"]').forEach(node => {
+      if (node.data('hasDeps') === 'yes') node.addClass('has-deps');
+      if (node.data('isDepOf') === 'yes') node.addClass('is-dep-of');
+    });
+
+    // Eventos de nodos tarea
+    flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
+      const taskId = evt.target.data('taskId');
+      const task   = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      const pos = evt.target.renderedPosition();
+      const box = container.getBoundingClientRect();
+      showFlujoPopover(task, { x: box.left + pos.x, y: box.top + pos.y });
+    });
+
+    // Tap en nodo raíz -> nueva tarea con esa etiqueta
+    flujoCy.on('tap', 'node[nodeType="root"]', function(evt) {
+      const lbl = evt.target.data('label');
+      const tag = (lbl === 'Sin etiqueta') ? null : lbl;
+      openModal(null, tag ? [tag] : []);
+    });
+
+    flujoCy.on('tap', function(evt) {
+      if (evt.target !== flujoCy) return;
+      closeFlujoPopover();
+    });
+
+    setTimeout(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } }, 250);
+  }; // fin buildAndMountCy
+
+  // Leer posiciones guardadas de Firestore y montar el grafo
+  const uid = auth.currentUser ? auth.currentUser.uid : null;
+  if (uid) {
+    db.collection('flujoLayouts').doc(uid).get()
+      .then(snap => {
+        if (snap.exists) {
+          const data = snap.data();
+          buildAndMountCy(data.positions || {}, data.labelSetHash || '');
+        } else {
+          buildAndMountCy({}, '');
+        }
+      })
+      .catch(() => { buildAndMountCy({}, ''); });
   } else {
-    flujoCy.fit(undefined, 40);
+    buildAndMountCy({}, '');
   }
-
-  requestAnimationFrame(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } });
-
-  // Aplicar clases visuales de dependencia a los nodos
-  flujoCy.nodes('[nodeType="task"]').forEach(node => {
-    if (node.data('hasDeps') === 'yes') node.addClass('has-deps');
-    if (node.data('isDepOf') === 'yes') node.addClass('is-dep-of');
-  });
-
-  // Eventos de nodos tarea
-  flujoCy.on('tap', 'node[nodeType="task"]', function(evt) {
-    const taskId = evt.target.data('taskId');
-    const task   = tasks.find(t => t.id === taskId);
-    if (!task) return;
-    const pos = evt.target.renderedPosition();
-    const box = container.getBoundingClientRect();
-    showFlujoPopover(task, { x: box.left + pos.x, y: box.top + pos.y });
-  });
-
-  // Tap en nodo raíz → nueva tarea con esa etiqueta
-  flujoCy.on('tap', 'node[nodeType="root"]', function(evt) {
-    const lbl = evt.target.data('label');
-    const tag = (lbl === 'Sin etiqueta') ? null : lbl;
-    openModal(null, tag ? [tag] : []);
-  });
-
-  flujoCy.on('tap', function(evt) {
-    if (evt.target !== flujoCy) return;
-    closeFlujoPopover();
-  });
 }
 
 // ── Sidebar: toggle colapso ─────────────────────────────────────────────────
