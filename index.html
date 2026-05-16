@@ -534,6 +534,39 @@
     .cal-more { font-family: var(--mono); font-size: 9px; color: var(--text-faint); padding: 1px 4px; border-radius: 3px; flex-shrink: 0; }
     @media (max-width: 680px) { .cal-grid-wrap { min-width: unset; } .cal-cell { min-height: 62px; max-height: 120px; } }
 
+    /* ── VISTA DÍA ───────────────────────────────────────── */
+    .cal-day-view { display: none; flex-direction: column; flex: 1; overflow: hidden; animation: calDayIn .18s ease; }
+    .cal-day-view.open { display: flex; }
+    @keyframes calDayIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+    .cal-day-header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .cal-day-back { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); }
+    .cal-day-back:hover { border-color: var(--amber); color: var(--amber); }
+    .cal-day-title { font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: .04em; color: var(--text); flex: 1; }
+    .cal-day-title span { color: var(--amber); }
+    .cal-day-new { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: var(--radius); border: none; background: var(--amber); color: var(--bg); font-size: 13px; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: var(--tr); }
+    .cal-day-new:hover { filter: brightness(1.1); }
+    .cal-day-scroll { flex: 1; overflow-y: auto; padding: 16px 20px 80px; }
+    .cal-day-scroll::-webkit-scrollbar { width: 4px; }
+    .cal-day-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .cal-day-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 60px 20px; color: var(--text-faint); text-align: center; }
+    .cal-day-empty svg { opacity: .2; }
+    .cal-day-empty p { font-size: 13px; }
+    .cal-day-count { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 12px; }
+    .cal-day-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 15px; margin-bottom: 8px; cursor: pointer; transition: var(--tr); display: flex; align-items: flex-start; gap: 12px; position: relative; overflow: hidden; }
+    .cal-day-card:hover { border-color: var(--border-hi); background: var(--surface-2); }
+    .cal-day-card.done-card { opacity: .5; }
+    .cal-day-card.done-card .cal-day-card-title { text-decoration: line-through; }
+    .cal-day-card-accent { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 14px; }
+    .cal-day-card-check { width: 17px; height: 17px; border-radius: 4px; border: 1.5px solid var(--border-hi); background: transparent; flex-shrink: 0; cursor: pointer; transition: var(--tr); display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+    .cal-day-card-check:hover { border-color: var(--green); }
+    .cal-day-card-check.checked { background: var(--green); border-color: var(--green); }
+    .cal-day-card-check.checked::after { content: '✓'; color: var(--bg); font-size: 10px; font-weight: 700; }
+    .cal-day-card-body { flex: 1; min-width: 0; }
+    .cal-day-card-title { font-size: 14px; font-weight: 500; line-height: 1.4; word-break: break-word; }
+    .cal-day-card-desc { font-size: 12px; color: var(--text-dim); margin-top: 3px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .cal-day-card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .cal-day-recurrent { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--text-faint); padding: 2px 6px; background: var(--surface-3); border-radius: 3px; }
+
     /* PANEL DIVIDIDO GANTT */
     #gantt-split-right { z-index: 260; } /* encima del panel lista */
 
@@ -1106,12 +1139,26 @@
         </label>
       </div>
     </div>
-    <div class="cal-scroll">
+    <div class="cal-scroll" id="cal-month-view">
       <div class="cal-grid-wrap">
         <div class="cal-weekdays" id="cal-weekdays"></div>
         <div class="cal-grid" id="cal-grid"></div>
       </div>
     </div>
+
+    <!-- VISTA DÍA -->
+    <div class="cal-day-view" id="cal-day-view">
+      <div class="cal-day-header">
+        <button class="cal-day-back" id="cal-day-back">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Volver al mes
+        </button>
+        <div class="cal-day-title" id="cal-day-title"></div>
+        <button class="cal-day-new" id="cal-day-new">+ Nueva tarea</button>
+      </div>
+      <div class="cal-day-scroll" id="cal-day-scroll"></div>
+    </div>
+
     <button class="fab" id="fab-new-calendario">+</button>
   </div>
 
@@ -3000,6 +3047,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if (tab.dataset.panel === 'lista') { renderListaTagFilters(); renderList(); }
     if (tab.dataset.panel === 'matriz') renderMatrix();
     if (tab.dataset.panel === 'calendario') renderCalendar();
+    if (tab.dataset.panel !== 'calendario' && calDayViewDate) closeDayView();
     if (tab.dataset.panel === 'gantt') renderGantt();
     if (tab.dataset.panel === 'flujo') {
       renderFlujoTagFilter();
@@ -4472,6 +4520,9 @@ function getRecDatesInRange(task, fromDate, toDate) {
 }
 
 function renderCalendar() {
+  // Si la vista día está activa, refrescarla también
+  if (calDayViewDate) renderDayView();
+
   const grid  = document.getElementById('cal-grid');
   const wdRow = document.getElementById('cal-weekdays');
   const label = document.getElementById('cal-month-label');
@@ -4560,14 +4611,20 @@ function renderCalendar() {
     dn.addEventListener('click', e => {
       e.stopPropagation();
       openModal(null);
-      setTimeout(() => { const el = document.getElementById('f-due'); if (el) el.value = dateStr; }, 60);
+      setTimeout(() => { const el = document.getElementById('f-due'); if (el) { el.value = dateStr; updateCompactDueBtn(); } }, 60);
     });
 
     // Click en celda vacía (fuera de tareas y número) → nueva tarea con esa fecha
     cell.addEventListener('click', e => {
       if (e.target.closest('.cal-task') || e.target.closest('.cal-day-num')) return;
       openModal(null);
-      setTimeout(() => { const el = document.getElementById('f-due'); if (el) el.value = dateStr; }, 60);
+      setTimeout(() => { const el = document.getElementById('f-due'); if (el) { el.value = dateStr; updateCompactDueBtn(); } }, 60);
+    });
+
+    // DOBLE CLIC en celda → vista día
+    cell.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      openDayView(dateStr);
     });
 
     // Drag & drop — cambiar fecha límite arrastrando entre celdas
@@ -4709,14 +4766,164 @@ function showCalDayMenu(dateStr, x, y) {
   }, 0);
 }
 
+// ── VISTA DÍA ──────────────────────────────────────────────────────────────
+let calDayViewDate = null; // dateStr activo en vista día
+
+function openDayView(dateStr) {
+  calDayViewDate = dateStr;
+  document.getElementById('cal-month-view').style.display = 'none';
+  const dayView = document.getElementById('cal-day-view');
+  dayView.classList.add('open');
+  document.getElementById('fab-new-calendario').style.display = 'none';
+  renderDayView();
+}
+
+function closeDayView() {
+  calDayViewDate = null;
+  document.getElementById('cal-month-view').style.display = '';
+  document.getElementById('cal-day-view').classList.remove('open');
+  document.getElementById('fab-new-calendario').style.display = '';
+}
+
+function renderDayView() {
+  if (!calDayViewDate) return;
+  const dateStr = calDayViewDate;
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const isToday = dateObj.getTime() === today.getTime();
+
+  const DAYS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const dayName  = DAYS[dateObj.getDay()];
+  const dayNum   = dateObj.getDate();
+  const monthName = MONTHS[dateObj.getMonth()];
+  const yearNum  = dateObj.getFullYear();
+
+  // Header
+  const titleEl = document.getElementById('cal-day-title');
+  titleEl.innerHTML = dayName + ', '
+    + (isToday ? '<span>' : '') + dayNum + ' de ' + monthName + ' ' + yearNum
+    + (isToday ? '</span>' : '');
+
+  // Construir lista de tareas para este día (incluyendo recurrentes)
+  const rangeTo = new Date(dateObj.getTime() + 86400000);
+  const entries = [];
+  tasks.forEach(task => {
+    if (task.dueDate === dateStr) {
+      entries.push({ task, isRecurrent: false });
+    } else if (task.recurrence && task.recurrence.enabled && task.dueDate && task.status !== 'done') {
+      const recDates = getRecDatesInRange(task, dateObj, rangeTo);
+      if (recDates.includes(dateStr)) entries.push({ task, isRecurrent: true });
+    }
+  });
+
+  // Filtrar completadas si corresponde
+  const visible = calShowDone ? entries : entries.filter(e => e.task.status !== 'done');
+
+  // Ordenar: alta/estratégica primero, luego por título
+  const rank = e => {
+    const p = e.task.priority, tp = e.task.type;
+    if (p === 'high' && tp === 'strategic') return 0;
+    if (p === 'high')   return 1;
+    if (tp === 'strategic') return 2;
+    return 3;
+  };
+  visible.sort((a, b) => rank(a) - rank(b));
+
+  const scroll = document.getElementById('cal-day-scroll');
+  scroll.innerHTML = '';
+
+  if (visible.length === 0) {
+    scroll.innerHTML =
+      '<div class="cal-day-empty">'
+      + '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+      + '<p>No hay tareas para este día.<br>Usá el botón <strong>+ Nueva tarea</strong> para agregar una.</p>'
+      + '</div>';
+    return;
+  }
+
+  const countEl = document.createElement('div');
+  countEl.className = 'cal-day-count';
+  countEl.textContent = visible.length + ' tarea' + (visible.length !== 1 ? 's' : '');
+  scroll.appendChild(countEl);
+
+  visible.forEach(({ task, isRecurrent }) => {
+    const accent = task.priority === 'high'
+      ? (task.type === 'strategic' ? 'var(--red)' : 'var(--orange)')
+      : (task.type === 'strategic' ? 'var(--amber)' : 'var(--border-hi)');
+    const isDone = task.status === 'done';
+
+    const card = document.createElement('div');
+    card.className = 'cal-day-card' + (isDone ? ' done-card' : '');
+
+    // Badge de estado
+    const statusMap = {
+      pending:     { cls: 'badge-pending',  label: 'Pendiente' },
+      in_progress: { cls: 'badge-progress', label: 'En curso'  },
+      done:        { cls: 'badge-done',     label: 'Completada'}
+    };
+    const st = statusMap[task.status] || statusMap.pending;
+    const prioLabel = task.priority === 'high' ? 'Alta' : 'Baja';
+    const prioCls   = task.priority === 'high' ? 'badge-high' : 'badge-low';
+    const typeLabel = task.type === 'strategic' ? 'Estratégica' : 'Operativa';
+    const typeCls   = task.type === 'strategic' ? 'badge-strategic' : 'badge-operative';
+    const tagsHtml  = (task.tags||[]).map(t => '<span class="task-tag">#' + escHtml(t) + '</span>').join('');
+    const recHtml   = isRecurrent
+      ? '<span class="cal-day-recurrent">↻ Recurrente</span>'
+      : '';
+
+    card.innerHTML =
+      '<div class="cal-day-card-accent" style="background:' + accent + '"></div>'
+      + '<div class="cal-day-card-check' + (isDone ? ' checked' : '') + '"></div>'
+      + '<div class="cal-day-card-body">'
+      +   '<div class="cal-day-card-title">' + escHtml(task.title) + '</div>'
+      +   (task.description ? '<div class="cal-day-card-desc">' + escHtml(task.description) + '</div>' : '')
+      +   '<div class="cal-day-card-meta">'
+      +     '<span class="badge ' + st.cls + '">' + st.label + '</span>'
+      +     '<span class="badge ' + prioCls + '">' + prioLabel + '</span>'
+      +     '<span class="badge ' + typeCls + '">' + typeLabel + '</span>'
+      +     tagsHtml
+      +     recHtml
+      +   '</div>'
+      + '</div>';
+
+    card.querySelector('.cal-day-card-check').addEventListener('click', e => {
+      e.stopPropagation();
+      toggleDone(task.id, task.status);
+    });
+    card.addEventListener('click', () => {
+      openModal(tasks.find(t => t.id === task.id) || task);
+    });
+    card.addEventListener('contextmenu', e => {
+      e.preventDefault(); e.stopPropagation();
+      showContextMenu(tasks.find(t => t.id === task.id) || task, e.clientX, e.clientY, true);
+    }, true);
+
+    scroll.appendChild(card);
+  });
+}
+
+// Controles vista día
+document.getElementById('cal-day-back').addEventListener('click', closeDayView);
+document.getElementById('cal-day-new').addEventListener('click', () => {
+  openModal(null);
+  setTimeout(() => {
+    const el = document.getElementById('f-due');
+    if (el) { el.value = calDayViewDate || ''; updateCompactDueBtn(); }
+  }, 60);
+});
+
 // Controles del calendario
 document.getElementById('cal-prev').addEventListener('click', () => {
+  if (calDayViewDate) closeDayView();
   calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar();
 });
 document.getElementById('cal-next').addEventListener('click', () => {
+  if (calDayViewDate) closeDayView();
   calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar();
 });
 document.getElementById('cal-today-btn').addEventListener('click', () => {
+  if (calDayViewDate) closeDayView();
   const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); renderCalendar();
 });
 document.getElementById('cal-toggle-wrap').addEventListener('click', () => {
