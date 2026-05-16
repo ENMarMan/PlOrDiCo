@@ -6678,7 +6678,7 @@ function renderResumen() {
 
   // Filtrar tareas completadas en el período por updatedAt
   const completadas = tasks.filter(t => {
-    if (t.status !== 'Completada') return false;
+    if (t.status !== 'done') return false;
     const d = tsToDate(t.updatedAt);
     if (!d) return false;
     return d >= dateFrom && d <= dateTo;
