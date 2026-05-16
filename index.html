@@ -512,7 +512,10 @@
     .cal-cell.other-month { opacity: .35; }
     .cal-cell.today { border-color: var(--amber); background: var(--amber-glow2); }
     .cal-cell.today .cal-day-num { color: var(--amber); }
-    .cal-day-num { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 1px; line-height: 1; flex-shrink: 0; }
+    .cal-day-num { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 1px; line-height: 1; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
+    .cal-day-zoom { width: 16px; height: 16px; border-radius: 3px; border: none; background: transparent; color: var(--text-faint); cursor: pointer; display: none; align-items: center; justify-content: center; padding: 0; transition: var(--tr); flex-shrink: 0; }
+    .cal-cell:hover .cal-day-zoom { display: flex; }
+    .cal-day-zoom:hover { color: var(--amber); background: var(--amber-glow); }
     .cal-task { display: flex; align-items: center; gap: 3px; padding: 2px 4px; border-radius: 3px; font-size: 10px; line-height: 1.3; cursor: pointer; transition: var(--tr); border: 1px solid transparent; }
     .cal-task:hover { filter: brightness(1.12); border-color: var(--border-hi); }
     .cal-task.t-done { opacity: .45; }
@@ -4577,7 +4580,22 @@ function renderCalendar() {
     cell.dataset.dateStr = dateStr;
 
     const dn = document.createElement('div');
-    dn.className = 'cal-day-num'; dn.textContent = cur.getDate();
+    dn.className = 'cal-day-num';
+
+    const dnNum = document.createElement('span');
+    dnNum.textContent = cur.getDate();
+    dn.appendChild(dnNum);
+
+    const zoomBtn = document.createElement('button');
+    zoomBtn.className = 'cal-day-zoom';
+    zoomBtn.title = 'Ver día';
+    zoomBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+    zoomBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      openDayView(dateStr);
+    });
+    dn.appendChild(zoomBtn);
+
     cell.appendChild(dn);
 
     let entries = (dateMap[dateStr] || []).filter(e => {
@@ -4608,23 +4626,17 @@ function renderCalendar() {
     cell.appendChild(tasksContainer);
 
     // Click en número del día → nueva tarea con esa fecha
-    dn.addEventListener('click', e => {
+    dnNum.addEventListener('click', e => {
       e.stopPropagation();
       openModal(null);
       setTimeout(() => { const el = document.getElementById('f-due'); if (el) { el.value = dateStr; updateCompactDueBtn(); } }, 60);
     });
 
-    // Click en celda vacía (fuera de tareas y número) → nueva tarea con esa fecha
+    // Click en celda vacía (fuera de tareas, número y zoom) → nueva tarea con esa fecha
     cell.addEventListener('click', e => {
       if (e.target.closest('.cal-task') || e.target.closest('.cal-day-num')) return;
       openModal(null);
       setTimeout(() => { const el = document.getElementById('f-due'); if (el) { el.value = dateStr; updateCompactDueBtn(); } }, 60);
-    });
-
-    // DOBLE CLIC en celda → vista día
-    cell.addEventListener('dblclick', e => {
-      e.stopPropagation();
-      openDayView(dateStr);
     });
 
     // Drag & drop — cambiar fecha límite arrastrando entre celdas
