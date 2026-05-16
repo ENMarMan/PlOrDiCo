@@ -154,15 +154,48 @@
       --theme-login-grad: rgba(107,140,239,.07);
     }
 
+    /* ── TEMA NEUTRO — Gris carbón + Azul pizarra ──────── */
+    [data-theme="neutro"] {
+      --bg:          #2b2b2b;
+      --surface:     #333333;
+      --surface-2:   #3a3a3a;
+      --surface-3:   #424242;
+      --border:      #4a4a4a;
+      --border-hi:   #585858;
+      --text:        #e8e8e8;
+      --text-dim:    #909090;
+      --text-faint:  #606060;
+      --accent:      #7aa8c7;
+      --accent-dim:  #243545;
+      --accent-glow: rgba(122,168,199,.1);
+      --accent-glow2:rgba(122,168,199,.06);
+      --amber:       #7aa8c7;
+      --amber-dim:   #243545;
+      --amber-glow:  rgba(122,168,199,.1);
+      --amber-glow2: rgba(122,168,199,.06);
+      --green:       #6abf8e;
+      --green-dim:   #1e3828;
+      --blue:        #7aa8c7;
+      --blue-dim:    #243545;
+      --red:         #c97070;
+      --red-dim:     #3a2020;
+      --red-glow:    rgba(201,112,112,.07);
+      --orange:      #c89060;
+      --orange-dim:  #3a2818;
+      --shadow:      0 4px 20px rgba(0,0,0,.35);
+      --theme-login-grad: rgba(122,168,199,.06);
+    }
+
     /* ── Selector de tema ───────────────────────────────── */
     .theme-switcher { display: flex; align-items: center; gap: 4px; padding: 3px 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; }
     .theme-btn { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: border-color .15s, transform .15s; flex-shrink: 0; position: relative; }
     .theme-btn:hover { transform: scale(1.15); }
     .theme-btn.active { border-color: var(--text); }
-    .theme-btn[data-theme-target="dark"]  { background: radial-gradient(circle at 40% 40%, #363c4a, #0c0d0f); }
-    .theme-btn[data-theme-target="slate"] { background: radial-gradient(circle at 40% 40%, #444e70, #1a1e2e); }
-    .theme-btn[data-theme-target="teal"]  { background: radial-gradient(circle at 40% 40%, #3ec9b0, #181e20); }
-    .theme-btn[data-theme-target="blue"]  { background: radial-gradient(circle at 40% 40%, #6b8cef, #171c2a); }
+    .theme-btn[data-theme-target="dark"]   { background: radial-gradient(circle at 40% 40%, #363c4a, #0c0d0f); }
+    .theme-btn[data-theme-target="slate"]  { background: radial-gradient(circle at 40% 40%, #444e70, #1a1e2e); }
+    .theme-btn[data-theme-target="teal"]   { background: radial-gradient(circle at 40% 40%, #3ec9b0, #181e20); }
+    .theme-btn[data-theme-target="blue"]   { background: radial-gradient(circle at 40% 40%, #6b8cef, #171c2a); }
+    .theme-btn[data-theme-target="neutro"] { background: radial-gradient(circle at 40% 40%, #7aa8c7, #2b2b2b); }
     .theme-label { font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin-right: 2px; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
@@ -837,10 +870,11 @@
       </span>
       <div class="theme-switcher" title="Cambiar tema de colores">
         <span class="theme-label">Tema</span>
-        <button class="theme-btn active" data-theme-target="dark"  title="Oscuro"></button>
-        <button class="theme-btn"        data-theme-target="slate" title="Slate"></button>
-        <button class="theme-btn"        data-theme-target="teal"  title="Teal"></button>
-        <button class="theme-btn"        data-theme-target="blue"  title="Blue"></button>
+        <button class="theme-btn active" data-theme-target="dark"   title="Oscuro"></button>
+        <button class="theme-btn"        data-theme-target="slate"  title="Slate"></button>
+        <button class="theme-btn"        data-theme-target="teal"   title="Teal"></button>
+        <button class="theme-btn"        data-theme-target="blue"   title="Blue"></button>
+        <button class="theme-btn"        data-theme-target="neutro" title="Neutro"></button>
       </div>
       <button class="btn-ghost" id="btn-export" title="Exportar todas las tareas a JSON">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1531,7 +1565,7 @@
 // ── SISTEMA DE TEMAS ──────────────────────────────────────────────────────────
 (function() {
   const THEME_KEY = 'plordico_theme';
-  const validThemes = ['dark', 'slate', 'teal', 'blue'];
+  const validThemes = ['dark', 'slate', 'teal', 'blue', 'neutro'];
   const saved = localStorage.getItem(THEME_KEY) || 'dark';
   applyTheme(saved);
 
