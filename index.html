@@ -49,6 +49,8 @@
       --red-glow:    rgba(224,85,85,.08);
       --orange:      #e07830;
       --orange-dim:  #3d2210;
+      --indigo:      #7c6fcd;
+      --indigo-dim:  #2a2550;
       --radius:      5px;
       --radius-lg:   10px;
       --mono:        'Space Mono', monospace;
@@ -86,6 +88,8 @@
       --red-glow:    rgba(201,112,112,.07);
       --orange:      #c89060;
       --orange-dim:  #3a2818;
+      --indigo:      #9d94d8;
+      --indigo-dim:  #33305a;
       --shadow:      0 4px 20px rgba(0,0,0,.35);
       --theme-login-grad: rgba(122,168,199,.06);
     }
@@ -118,6 +122,8 @@
       --red-glow:    rgba(192,80,80,.07);
       --orange:      #c07840;
       --orange-dim:  #fceede;
+      --indigo:      #6055b0;
+      --indigo-dim:  #e8e6f8;
       --shadow:      0 4px 20px rgba(0,0,0,.1);
       --theme-login-grad: rgba(90,143,173,.06);
     }
@@ -639,30 +645,43 @@
     .ctx-tag-row:hover { background: var(--surface-2); color: var(--text); }
     .ctx-tag-row input[type=checkbox] { accent-color: var(--amber); width: 12px; height: 12px; flex-shrink: 0; pointer-events: none; }
 
-    /* ── CHIPS DE ESTADO / PRIORIDAD / TIPO ─────────────── */
-    .field-chips-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .field-chips-group { display: flex; align-items: center; gap: 3px; }
-    .field-chips-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
-    .fchip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); cursor: pointer; transition: var(--tr); white-space: nowrap; user-select: none; }
-    .fchip:hover { border-color: var(--border-hi); color: var(--text); }
-    .fchip.active-pending   { background: var(--surface-3);  border-color: var(--border-hi); color: var(--text); }
-    .fchip.active-progress  { background: var(--blue-dim);   border-color: var(--blue);      color: var(--blue); }
-    .fchip.active-done      { background: var(--green-dim);  border-color: var(--green);     color: var(--green); }
-    .fchip.active-high      { background: var(--red-dim);    border-color: var(--red);       color: var(--red); }
-    .fchip.active-low       { background: var(--blue-dim);   border-color: var(--blue);      color: var(--blue); }
-    .fchip.active-strategic { background: var(--amber-dim);  border-color: var(--amber);     color: var(--amber); }
-    .fchip.active-operative { background: var(--surface-3);  border-color: var(--border-hi); color: var(--text); }
+    /* ── SEGMENTED CONTROLS (prioridad | tipo | estado) ──── */
+    .field-chips-row { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; width: 100%; }
+    .field-chips-group { display: flex; align-items: stretch; flex: 1; min-width: 0; }
+    .field-chips-sep { width: 1px; height: auto; background: var(--border); margin: 0 1px; flex-shrink: 0; align-self: stretch; }
+    /* fchip ahora es un segmento unido */
+    .fchip { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 5px 0; flex: 1; min-width: 0; font-size: 11.5px; font-weight: 500; border: 1px solid var(--border); border-right-width: 0; background: var(--surface-2); color: var(--text-dim); cursor: pointer; transition: var(--tr); white-space: nowrap; user-select: none; overflow: hidden; text-overflow: ellipsis; }
+    .fchip:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+    .fchip:last-child  { border-radius: 0 var(--radius) var(--radius) 0; border-right-width: 1px; }
+    .fchip:only-child  { border-radius: var(--radius); border-right-width: 1px; }
+    .fchip:not(:last-child):hover { border-right-width: 0; }
+    .fchip:hover { border-color: var(--border-hi); color: var(--text); z-index: 1; position: relative; }
+    .fchip.active-pending   { background: var(--surface-3);  border-color: var(--border-hi); color: var(--text);   z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-pending + .fchip { border-left-width: 0; }
+    .fchip.active-progress  { background: var(--blue-dim);   border-color: var(--blue);      color: var(--blue);   z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-progress + .fchip { border-left-width: 0; }
+    .fchip.active-done      { background: var(--green-dim);  border-color: var(--green);     color: var(--green);  z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-done + .fchip { border-left-width: 0; }
+    .fchip.active-high      { background: var(--red-dim);    border-color: var(--red);       color: var(--red);    z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-high + .fchip { border-left-width: 0; }
+    .fchip.active-low       { background: var(--blue-dim);   border-color: var(--blue);      color: var(--blue);   z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-low + .fchip { border-left-width: 0; }
+    .fchip.active-strategic { background: var(--amber-dim);  border-color: var(--amber);     color: var(--amber);  z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-strategic + .fchip { border-left-width: 0; }
+    .fchip.active-operative { background: var(--indigo-dim); border-color: var(--indigo);    color: var(--indigo); z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-operative + .fchip { border-left-width: 0; }
 
     /* ── BOTONES COMPACTOS FECHA / RECURRENCIA ───────────── */
     .compact-fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .compact-wrap { position: relative; display: flex; }
     .compact-btn { display: flex; align-items: center; gap: 7px; width: 100%; padding: 7px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-size: 13px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
     .compact-btn:hover { border-color: var(--border-hi); color: var(--text); }
-    .compact-btn.has-value { border-color: var(--amber-dim); color: var(--text); }
+    .compact-btn.has-value { border-color: var(--amber-dim); color: var(--text); padding-right: 28px; }
     .compact-btn svg { flex-shrink: 0; opacity: .6; }
     .compact-btn-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .compact-btn-clear { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 13px; line-height: 1; padding: 0 0 0 2px; transition: var(--tr); flex-shrink: 0; display: none; }
-    .compact-btn-clear:hover { color: var(--red); }
-    .compact-btn.has-value .compact-btn-clear { display: inline; }
+    .compact-btn-clear { position: absolute; right: 0; top: 0; bottom: 0; width: 26px; display: none; align-items: center; justify-content: center; background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 14px; line-height: 1; transition: var(--tr); border-radius: 0 var(--radius) var(--radius) 0; }
+    .compact-btn-clear:hover { color: var(--red); background: var(--red-glow); }
+    .compact-btn.has-value ~ .compact-btn-clear { display: flex; }
 
     /* Panel expandible de recurrencia compacta */
     .compact-expand { display: none; flex-direction: column; gap: 10px; padding: 12px; background: var(--surface-2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); margin-top: -4px; }
@@ -1502,20 +1521,24 @@
       <div class="compact-fields-row">
         <!-- Fecha límite -->
         <div style="position:relative">
-          <button type="button" class="compact-btn" id="f-due-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span class="compact-btn-label" id="f-due-label">Sin fecha límite</span>
-            <button type="button" class="compact-btn-clear" id="f-due-clear" title="Quitar fecha" tabindex="-1">✕</button>
-          </button>
+          <div class="compact-wrap">
+            <button type="button" class="compact-btn" id="f-due-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span class="compact-btn-label" id="f-due-label">Sin fecha límite</span>
+            </button>
+            <button type="button" class="compact-btn-clear" id="f-due-clear" title="Quitar fecha">✕</button>
+          </div>
           <input type="date" id="f-due" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;" />
         </div>
         <!-- Recurrencia -->
         <div style="position:relative">
-          <button type="button" class="compact-btn" id="f-rec-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
-            <span class="compact-btn-label" id="f-rec-label">Sin recurrencia</span>
-            <button type="button" class="compact-btn-clear" id="f-rec-clear" title="Quitar recurrencia" tabindex="-1">✕</button>
-          </button>
+          <div class="compact-wrap">
+            <button type="button" class="compact-btn" id="f-rec-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+              <span class="compact-btn-label" id="f-rec-label">Sin recurrencia</span>
+            </button>
+            <button type="button" class="compact-btn-clear" id="f-rec-clear" title="Quitar recurrencia">✕</button>
+          </div>
           <div class="compact-expand" id="f-rec-expand">
             <div>
               <div class="form-label" style="margin-bottom:5px">Frecuencia</div>
@@ -2703,7 +2726,7 @@ function openModal(task=null, prefillTags=null) {
     if(fRecInterval) fRecInterval.value=rec.interval||1;
     if(fRecEnd)      fRecEnd.value=rec.endDate||'';
     updateRecInterval();
-    if(recExpand) recExpand.classList.add('open');
+    if(recExpand) recExpand.classList.remove('open');
   } else {
     if(fRecType)     fRecType.value='workdays';
     if(fRecInterval) fRecInterval.value=1;
@@ -3477,20 +3500,24 @@ function buildSplitFormHTML(task) {
     // Fecha límite + Recurrencia compactas
     + '<div class="compact-fields-row">'
     +   '<div style="position:relative">'
+    +     '<div class="compact-wrap">'
     +     '<button type="button" class="compact-btn' + (spDueVal ? ' has-value' : '') + '" id="sp-f-due-btn">'
     +     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
     +     '<span class="compact-btn-label" id="sp-f-due-label">' + spDueLbl(spDueVal) + '</span>'
-    +     '<button type="button" class="compact-btn-clear" id="sp-f-due-clear" title="Quitar fecha" tabindex="-1">\u2715</button>'
     +     '</button>'
+    +     '<button type="button" class="compact-btn-clear" id="sp-f-due-clear" title="Quitar fecha">\u2715</button>'
+    +     '</div>'
     +     '<input type="date" id="sp-f-due" value="' + spDueVal + '" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;" />'
     +   '</div>'
     +   '<div style="position:relative">'
+    +     '<div class="compact-wrap">'
     +     '<button type="button" class="compact-btn' + (recOn ? ' has-value' : '') + '" id="sp-f-rec-btn">'
     +     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>'
     +     '<span class="compact-btn-label" id="sp-f-rec-label">' + spRecLbl() + '</span>'
-    +     '<button type="button" class="compact-btn-clear" id="sp-f-rec-clear" title="Quitar recurrencia" tabindex="-1">\u2715</button>'
     +     '</button>'
-    +     '<div class="compact-expand' + (recOn ? ' open' : '') + '" id="sp-f-rec-expand">'
+    +     '<button type="button" class="compact-btn-clear" id="sp-f-rec-clear" title="Quitar recurrencia">\u2715</button>'
+    +     '</div>'
+    +     '<div class="compact-expand" id="sp-f-rec-expand">'
     +       '<div><div class="form-label" style="margin-bottom:5px">Frecuencia</div>'
     +       '<select class="form-select" id="sp-f-rec-type" style="font-size:13px;padding:6px 28px 6px 9px;">'
     +       '<option value="workdays"' + (recType==='workdays' ? ' selected' : '') + '>D\u00edas laborales (Lun\u2013Vie)</option>'
@@ -5119,12 +5146,32 @@ function buildGanttSplitFormHTML(task) {
   let remHourOpts='';
   for (let h=0;h<24;h++) { const v=String(h).padStart(2,'0')+':00'; remHourOpts+='<option value="'+v+'"'+(remHour===v?' selected':'')+'>'+v+'</option>'; }
 
+  const gspPriority = task ? (task.priority || 'low') : 'low';
+  const gspType     = task ? (task.type     || 'operative') : 'operative';
+  const gspStatus   = task ? (task.status   || 'pending') : 'pending';
   let html = '<div class="form-group"><label class="form-label">T\u00edtulo *</label><input type="text" class="form-input" id="gsp-f-title" placeholder="\u00bfQu\u00e9 hay que hacer?" maxlength="120" value="' + titleVal + '" /></div>'
     + '<div class="form-group"><label class="form-label">Descripci\u00f3n</label><textarea class="form-textarea" id="gsp-f-desc" placeholder="Detalle opcional\u2026">' + descVal + '</textarea></div>'
-    + '<div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-select" id="gsp-f-priority"><option value="high"' + ((!task||task.priority==='high')?' selected':'') + '>Alta</option><option value="low"' + (task&&task.priority==='low'?' selected':'') + '>Baja</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-type"><option value="strategic"' + (task&&task.type==='strategic'?' selected':'') + '>Estrat\u00e9gica</option><option value="operative"' + ((!task||task.type==='operative')?' selected':'') + '>Operativa</option></select></div></div>'
-    + '<div class="form-row"><div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="gsp-f-status"><option value="pending"' + ((!task||task.status==='pending')?' selected':'') + '>Pendiente</option><option value="in_progress"' + (task&&task.status==='in_progress'?' selected':'') + '>En curso</option><option value="done"' + (task&&task.status==='done'?' selected':'') + '>Completada</option></select></div>'
-    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div></div>'
+    + '<div class="field-chips-row">'
+    +   '<div class="field-chips-group">'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspPriority==='high' ? 'active-high' : '') + '" data-gsp-field="priority" data-gsp-val="high">Alta</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspPriority==='low'  ? 'active-low'  : '') + '" data-gsp-field="priority" data-gsp-val="low">Baja</button>'
+    +   '</div>'
+    +   '<div class="field-chips-sep"></div>'
+    +   '<div class="field-chips-group">'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspType==='strategic' ? 'active-strategic' : '') + '" data-gsp-field="type" data-gsp-val="strategic">Estrat\u00e9gica</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspType==='operative' ? 'active-operative' : '') + '" data-gsp-field="type" data-gsp-val="operative">Operativa</button>'
+    +   '</div>'
+    +   '<div class="field-chips-sep"></div>'
+    +   '<div class="field-chips-group">'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='pending'     ? 'active-pending'  : '') + '" data-gsp-field="status" data-gsp-val="pending">Pendiente</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='in_progress' ? 'active-progress' : '') + '" data-gsp-field="status" data-gsp-val="in_progress">En curso</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='done'        ? 'active-done'     : '') + '" data-gsp-field="status" data-gsp-val="done">Completada</button>'
+    +   '</div>'
+    + '</div>'
+    + '<select id="gsp-f-priority" style="display:none"><option value="high"' + (gspPriority==='high' ? ' selected' : '') + '>Alta</option><option value="low"' + (gspPriority==='low' ? ' selected' : '') + '>Baja</option></select>'
+    + '<select id="gsp-f-type" style="display:none"><option value="strategic"' + (gspType==='strategic' ? ' selected' : '') + '>Estrat\u00e9gica</option><option value="operative"' + (gspType==='operative' ? ' selected' : '') + '>Operativa</option></select>'
+    + '<select id="gsp-f-status" style="display:none"><option value="pending"' + (gspStatus==='pending' ? ' selected' : '') + '>Pendiente</option><option value="in_progress"' + (gspStatus==='in_progress' ? ' selected' : '') + '>En curso</option><option value="done"' + (gspStatus==='done' ? ' selected' : '') + '>Completada</option></select>'
+    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div>'
     + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="gsp-toggle-switch"></div><span class="toggle-label" id="gsp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
     + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="gsp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
     + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="gsp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
@@ -5156,6 +5203,21 @@ function buildGanttSplitFormHTML(task) {
 function bindGanttSplitFormEvents(task) {
   const titleEl = document.getElementById('gsp-f-title');
   if (titleEl) titleEl.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault(); document.getElementById('gsp-f-desc').focus();} });
+
+  // Segmented controls prioridad / tipo / estado
+  document.querySelectorAll('.gsp-fchip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const field = chip.dataset.gspField;
+      const val   = chip.dataset.gspVal;
+      const sel   = document.getElementById('gsp-f-' + field);
+      if (sel) sel.value = val;
+      document.querySelectorAll('.gsp-fchip[data-gsp-field="'+field+'"]').forEach(c => {
+        c.classList.remove('active-pending','active-progress','active-done','active-high','active-low','active-strategic','active-operative');
+      });
+      const cls = { pending:'active-pending', in_progress:'active-progress', done:'active-done', high:'active-high', low:'active-low', strategic:'active-strategic', operative:'active-operative' }[val] || '';
+      if (cls) chip.classList.add(cls);
+    });
+  });
 
   const gspRecToggle=document.getElementById('gsp-recurrence-toggle');
   const gspToggleSw=document.getElementById('gsp-toggle-switch');
