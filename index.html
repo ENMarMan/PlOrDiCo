@@ -1015,7 +1015,7 @@
             <div class="msb-label">Estado</div>
             <button class="msb-chip active" data-lf-status="all">Todas</button>
             <button class="msb-chip" data-lf-status="pending"><span class="dot" style="background:var(--text-dim)"></span>Pendientes</button>
-            <button class="msb-chip" data-lf-status="in_progress"><span class="dot" style="background:var(--blue)"></span>En curso</button>
+            <button class="msb-chip" data-lf-status="in_progress"><span class="dot" style="background:var(--blue)"></span>Curso</button>
             <button class="msb-chip" data-lf-status="done"><span class="dot" style="background:var(--green)"></span>Completadas</button>
           </div>
           <div class="msb-section">
@@ -1502,14 +1502,14 @@
         </div>
         <div class="field-chips-sep"></div>
         <div class="field-chips-group">
-          <button type="button" class="fchip" id="fchip-strategic" data-field="type" data-val="strategic">Estratégica</button>
-          <button type="button" class="fchip" id="fchip-operative" data-field="type" data-val="operative">Operativa</button>
+          <button type="button" class="fchip" id="fchip-strategic" data-field="type" data-val="strategic">Estrat.</button>
+          <button type="button" class="fchip" id="fchip-operative" data-field="type" data-val="operative">Operat.</button>
         </div>
         <div class="field-chips-sep"></div>
         <div class="field-chips-group">
-          <button type="button" class="fchip" id="fchip-pending"     data-field="status" data-val="pending">Pendiente</button>
-          <button type="button" class="fchip" id="fchip-in_progress" data-field="status" data-val="in_progress">En curso</button>
-          <button type="button" class="fchip" id="fchip-done"        data-field="status" data-val="done">Completada</button>
+          <button type="button" class="fchip" id="fchip-pending"     data-field="status" data-val="pending">Pend.</button>
+          <button type="button" class="fchip" id="fchip-in_progress" data-field="status" data-val="in_progress">Curso</button>
+          <button type="button" class="fchip" id="fchip-done"        data-field="status" data-val="done">✓</button>
         </div>
       </div>
       <!-- Campos ocultos para compatibilidad con el JS existente -->
@@ -3483,14 +3483,14 @@ function buildSplitFormHTML(task) {
     +   '</div>'
     +   '<div class="field-chips-sep"></div>'
     +   '<div class="field-chips-group">'
-    +     '<button type="button" class="fchip sp-fchip ' + (spType==='strategic' ? 'active-strategic' : '') + '" data-sp-field="type" data-sp-val="strategic">Estrat\u00e9gica</button>'
-    +     '<button type="button" class="fchip sp-fchip ' + (spType==='operative' ? 'active-operative' : '') + '" data-sp-field="type" data-sp-val="operative">Operativa</button>'
+    +     '<button type="button" class="fchip sp-fchip ' + (spType==='strategic' ? 'active-strategic' : '') + '" data-sp-field="type" data-sp-val="strategic">Estrat.</button>'
+    +     '<button type="button" class="fchip sp-fchip ' + (spType==='operative' ? 'active-operative' : '') + '" data-sp-field="type" data-sp-val="operative">Operat.</button>'
     +   '</div>'
     +   '<div class="field-chips-sep"></div>'
     +   '<div class="field-chips-group">'
-    +     '<button type="button" class="fchip sp-fchip ' + (spStatus==='pending'     ? 'active-pending'  : '') + '" data-sp-field="status" data-sp-val="pending">Pendiente</button>'
-    +     '<button type="button" class="fchip sp-fchip ' + (spStatus==='in_progress' ? 'active-progress' : '') + '" data-sp-field="status" data-sp-val="in_progress">En curso</button>'
-    +     '<button type="button" class="fchip sp-fchip ' + (spStatus==='done'        ? 'active-done'     : '') + '" data-sp-field="status" data-sp-val="done">Completada</button>'
+    +     '<button type="button" class="fchip sp-fchip ' + (spStatus==='pending'     ? 'active-pending'  : '') + '" data-sp-field="status" data-sp-val="pending">Pend.</button>'
+    +     '<button type="button" class="fchip sp-fchip ' + (spStatus==='in_progress' ? 'active-progress' : '') + '" data-sp-field="status" data-sp-val="in_progress">Curso</button>'
+    +     '<button type="button" class="fchip sp-fchip ' + (spStatus==='done'        ? 'active-done'     : '') + '" data-sp-field="status" data-sp-val="done">✓</button>'
     +   '</div>'
     + '</div>'
     // Selects ocultos compatibilidad
@@ -5158,24 +5158,56 @@ function buildGanttSplitFormHTML(task) {
     +   '</div>'
     +   '<div class="field-chips-sep"></div>'
     +   '<div class="field-chips-group">'
-    +     '<button type="button" class="fchip gsp-fchip ' + (gspType==='strategic' ? 'active-strategic' : '') + '" data-gsp-field="type" data-gsp-val="strategic">Estrat\u00e9gica</button>'
-    +     '<button type="button" class="fchip gsp-fchip ' + (gspType==='operative' ? 'active-operative' : '') + '" data-gsp-field="type" data-gsp-val="operative">Operativa</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspType==='strategic' ? 'active-strategic' : '') + '" data-gsp-field="type" data-gsp-val="strategic">Estrat.</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspType==='operative' ? 'active-operative' : '') + '" data-gsp-field="type" data-gsp-val="operative">Operat.</button>'
     +   '</div>'
     +   '<div class="field-chips-sep"></div>'
     +   '<div class="field-chips-group">'
-    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='pending'     ? 'active-pending'  : '') + '" data-gsp-field="status" data-gsp-val="pending">Pendiente</button>'
-    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='in_progress' ? 'active-progress' : '') + '" data-gsp-field="status" data-gsp-val="in_progress">En curso</button>'
-    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='done'        ? 'active-done'     : '') + '" data-gsp-field="status" data-gsp-val="done">Completada</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='pending'     ? 'active-pending'  : '') + '" data-gsp-field="status" data-gsp-val="pending">Pend.</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='in_progress' ? 'active-progress' : '') + '" data-gsp-field="status" data-gsp-val="in_progress">Curso</button>'
+    +     '<button type="button" class="fchip gsp-fchip ' + (gspStatus==='done'        ? 'active-done'     : '') + '" data-gsp-field="status" data-gsp-val="done">✓</button>'
     +   '</div>'
     + '</div>'
     + '<select id="gsp-f-priority" style="display:none"><option value="high"' + (gspPriority==='high' ? ' selected' : '') + '>Alta</option><option value="low"' + (gspPriority==='low' ? ' selected' : '') + '>Baja</option></select>'
     + '<select id="gsp-f-type" style="display:none"><option value="strategic"' + (gspType==='strategic' ? ' selected' : '') + '>Estrat\u00e9gica</option><option value="operative"' + (gspType==='operative' ? ' selected' : '') + '>Operativa</option></select>'
     + '<select id="gsp-f-status" style="display:none"><option value="pending"' + (gspStatus==='pending' ? ' selected' : '') + '>Pendiente</option><option value="in_progress"' + (gspStatus==='in_progress' ? ' selected' : '') + '>En curso</option><option value="done"' + (gspStatus==='done' ? ' selected' : '') + '>Completada</option></select>'
-    + '<div class="form-group"><label class="form-label">Fecha l\u00edmite</label><input type="date" class="form-input" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" /></div>'
-    + '<div class="form-group"><label class="form-label">Recurrencia</label><div class="recurrence-box"><div class="recurrence-toggle" id="gsp-recurrence-toggle"><div class="toggle-switch' + (recOn?' on':'') + '" id="gsp-toggle-switch"></div><span class="toggle-label" id="gsp-toggle-label">' + (recOn?'Con recurrencia':'Sin recurrencia') + '</span></div>'
-    + '<div class="recurrence-options' + (recOn?'':' hidden') + '" id="gsp-recurrence-options"><div class="recurrence-grid"><div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="gsp-f-rec-type"><option value="workdays"' + (recType==='workdays'?' selected':'') + '>D\u00edas laborales (Lun\u2013Vie)</option><option value="daily"' + (recType==='daily'?' selected':'') + '>Cada N d\u00edas</option><option value="weekly"' + (recType==='weekly'?' selected':'') + '>Semanal</option><option value="monthly"' + (recType==='monthly'?' selected':'') + '>Mensual</option><option value="yearly"' + (recType==='yearly'?' selected':'') + '>Anual</option></select></div>'
-    + '<div class="form-group' + (recType!=='daily'?' hidden':'') + '" id="gsp-rec-interval-group"><label class="form-label">Cada cu\u00e1ntos d\u00edas</label><input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" /></div></div>'
-    + '<div class="form-group"><label class="form-label">Fin de recurrencia <span class="form-hint">(opcional)</span></label><input type="date" class="form-input" id="gsp-f-rec-end" value="' + recEnd + '" /></div></div></div></div>'
+    // Fecha límite + Recurrencia compactas (igual que Lista)
+    + '<div class="compact-fields-row">'
+    +   '<div style="position:relative">'
+    +     '<div class="compact-wrap">'
+    +     '<button type="button" class="compact-btn' + (task&&task.dueDate ? ' has-value' : '') + '" id="gsp-f-due-btn">'
+    +     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+    +     '<span class="compact-btn-label" id="gsp-f-due-label">' + (task&&task.dueDate ? (()=>{ const d=new Date(task.dueDate+'T00:00:00'); return d.toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'}); })() : 'Sin fecha l\u00edmite') + '</span>'
+    +     '</button>'
+    +     '<button type="button" class="compact-btn-clear" id="gsp-f-due-clear" title="Quitar fecha">\u2715</button>'
+    +     '</div>'
+    +     '<input type="date" id="gsp-f-due" value="' + (task&&task.dueDate?task.dueDate:'') + '" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;" />'
+    +   '</div>'
+    +   '<div style="position:relative">'
+    +     '<div class="compact-wrap">'
+    +     '<button type="button" class="compact-btn' + (recOn ? ' has-value' : '') + '" id="gsp-f-rec-btn">'
+    +     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>'
+    +     '<span class="compact-btn-label" id="gsp-f-rec-label">' + ({workdays:'D\u00edas laborales',daily:'Cada '+(recInterval)+' d\u00edas',weekly:'Semanal',monthly:'Mensual',yearly:'Anual'}[recType]||'Sin recurrencia') + '</span>'
+    +     '</button>'
+    +     '<button type="button" class="compact-btn-clear" id="gsp-f-rec-clear" title="Quitar recurrencia">\u2715</button>'
+    +     '</div>'
+    +     '<div class="compact-expand" id="gsp-f-rec-expand">'
+    +       '<div><div class="form-label" style="margin-bottom:5px">Frecuencia</div>'
+    +       '<select class="form-select" id="gsp-f-rec-type" style="font-size:13px;padding:6px 28px 6px 9px;">'
+    +       '<option value="workdays"' + (recType==='workdays' ? ' selected' : '') + '>D\u00edas laborales (Lun\u2013Vie)</option>'
+    +       '<option value="daily"'    + (recType==='daily'    ? ' selected' : '') + '>Cada N d\u00edas</option>'
+    +       '<option value="weekly"'   + (recType==='weekly'   ? ' selected' : '') + '>Semanal</option>'
+    +       '<option value="monthly"'  + (recType==='monthly'  ? ' selected' : '') + '>Mensual</option>'
+    +       '<option value="yearly"'   + (recType==='yearly'   ? ' selected' : '') + '>Anual</option>'
+    +       '</select></div>'
+    +       '<div class="' + (recType!=='daily' ? 'hidden' : '') + '" id="gsp-rec-interval-group">'
+    +       '<div class="form-label" style="margin-bottom:5px">Cada cu\u00e1ntos d\u00edas</div>'
+    +       '<input type="number" class="form-input" id="gsp-f-rec-interval" value="' + recInterval + '" min="1" max="365" style="font-size:13px;padding:6px 9px;" /></div>'
+    +       '<div><div class="form-label" style="margin-bottom:5px">Fin de recurrencia <span style="font-size:11px;color:var(--text-faint);font-family:var(--sans);text-transform:none;letter-spacing:0">(opcional)</span></div>'
+    +       '<input type="date" class="form-input" id="gsp-f-rec-end" value="' + recEnd + '" style="font-size:13px;padding:6px 9px;" /></div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>'
     + '<div class="form-group"><label class="form-label">Etiquetas</label><div class="tag-selector" id="gsp-tag-selector"><div class="tag-selector-trigger" id="gsp-tag-selector-trigger"><div class="tag-selector-pills" id="gsp-tag-selector-pills"><span class="tag-selector-placeholder" id="gsp-tag-selector-placeholder">Sin etiquetas</span></div><span class="tag-selector-arrow">\u25be</span></div><div class="tag-selector-dropdown" id="gsp-tag-selector-dropdown"><div class="tag-selector-input-row"><input type="text" class="tags-text-input" id="gsp-tags-input" placeholder="Nueva etiqueta\u2026 Enter o coma" maxlength="30" /></div><div id="gsp-tag-dd-assigned-section" style="display:none"><div class="tag-dd-section-label">Asignadas</div><div class="tag-dd-pills" id="gsp-tag-dd-assigned"></div></div><div id="gsp-tag-dd-available-section"><div class="tag-dd-section-label">Disponibles</div><div class="tag-dd-suggestions" id="gsp-tag-suggestions"></div></div></div></div></div>';
 
   const advHasData = !!(task && (
@@ -5219,23 +5251,73 @@ function bindGanttSplitFormEvents(task) {
     });
   });
 
-  const gspRecToggle=document.getElementById('gsp-recurrence-toggle');
-  const gspToggleSw=document.getElementById('gsp-toggle-switch');
-  const gspToggleLbl=document.getElementById('gsp-toggle-label');
-  const gspRecOpts=document.getElementById('gsp-recurrence-options');
-  const gspRecIntGrp=document.getElementById('gsp-rec-interval-group');
-  const gspRecType=document.getElementById('gsp-f-rec-type');
+  // Fecha límite compacta Gantt
+  const gspDueBtn   = document.getElementById('gsp-f-due-btn');
+  const gspDueInput = document.getElementById('gsp-f-due');
+  const gspDueLbl   = document.getElementById('gsp-f-due-label');
+  const gspDueClear = document.getElementById('gsp-f-due-clear');
+  function gspUpdateDueBtn() {
+    if (!gspDueBtn || !gspDueLbl) return;
+    gspDueBtn.classList.toggle('has-value', !!(gspDueInput && gspDueInput.value));
+    if (gspDueInput && gspDueInput.value) {
+      const d = new Date(gspDueInput.value + 'T00:00:00');
+      gspDueLbl.textContent = d.toLocaleDateString('es-AR', {day:'2-digit', month:'short', year:'numeric'});
+    } else {
+      gspDueLbl.textContent = 'Sin fecha l\u00edmite';
+    }
+  }
+  if (gspDueBtn && gspDueInput) {
+    gspDueBtn.addEventListener('click', () => { gspDueInput.showPicker ? gspDueInput.showPicker() : gspDueInput.click(); });
+    gspDueInput.addEventListener('change', gspUpdateDueBtn);
+    if (gspDueClear) gspDueClear.addEventListener('click', e => { e.stopPropagation(); gspDueInput.value = ''; gspUpdateDueBtn(); });
+  }
+  // Recurrencia compacta Gantt
+  const gspRecBtn    = document.getElementById('gsp-f-rec-btn');
+  const gspRecExpand = document.getElementById('gsp-f-rec-expand');
+  const gspRecClear  = document.getElementById('gsp-f-rec-clear');
+  const gspRecType   = document.getElementById('gsp-f-rec-type');
+  const gspRecIntGrp = document.getElementById('gsp-rec-interval-group');
   ganttSplitRecurrenceOn = !!(task && task.recurrence && task.recurrence.enabled);
-  if (gspRecToggle) {
-    gspRecToggle.addEventListener('click',()=>{
-      ganttSplitRecurrenceOn=!ganttSplitRecurrenceOn;
-      gspToggleSw.className='toggle-switch'+(ganttSplitRecurrenceOn?' on':'');
-      gspToggleLbl.textContent=ganttSplitRecurrenceOn?'Con recurrencia':'Sin recurrencia';
-      gspRecOpts.classList.toggle('hidden',!ganttSplitRecurrenceOn);
-      if (ganttSplitRecurrenceOn) gspRecIntGrp.classList.toggle('hidden',gspRecType.value!=='daily');
+  function gspUpdateRecBtn() {
+    const lbl = document.getElementById('gsp-f-rec-label');
+    if (!lbl) return;
+    if (!ganttSplitRecurrenceOn) { lbl.textContent = 'Sin recurrencia'; if(gspRecBtn) gspRecBtn.classList.remove('has-value'); return; }
+    const t = gspRecType ? gspRecType.value : 'workdays';
+    const i = document.getElementById('gsp-f-rec-interval') ? document.getElementById('gsp-f-rec-interval').value : 1;
+    lbl.textContent = {workdays:'D\u00edas laborales',daily:'Cada '+i+' d\u00edas',weekly:'Semanal',monthly:'Mensual',yearly:'Anual'}[t]||t;
+    if (gspRecBtn) gspRecBtn.classList.add('has-value');
+  }
+  if (gspRecBtn && gspRecExpand) {
+    gspRecBtn.addEventListener('click', () => {
+      const isOpen = gspRecExpand.classList.contains('open');
+      if (!isOpen) {
+        ganttSplitRecurrenceOn = true;
+        gspRecExpand.classList.add('open');
+        if (gspRecIntGrp) gspRecIntGrp.classList.toggle('hidden', gspRecType && gspRecType.value !== 'daily');
+        gspUpdateRecBtn();
+      } else {
+        gspRecExpand.classList.remove('open');
+      }
+    });
+    if (gspRecClear) gspRecClear.addEventListener('click', e => {
+      e.stopPropagation();
+      ganttSplitRecurrenceOn = false;
+      gspRecExpand.classList.remove('open');
+      if (gspRecType) gspRecType.value = 'workdays';
+      const gspRI = document.getElementById('gsp-f-rec-interval'); if (gspRI) gspRI.value = 1;
+      const gspRE = document.getElementById('gsp-f-rec-end');      if (gspRE) gspRE.value = '';
+      if (gspRecIntGrp) gspRecIntGrp.classList.add('hidden');
+      gspUpdateRecBtn();
     });
   }
-  if (gspRecType) gspRecType.addEventListener('change',()=>{gspRecIntGrp.classList.toggle('hidden',gspRecType.value!=='daily');});
+  if (gspRecType) {
+    gspRecType.addEventListener('change', () => {
+      if (gspRecIntGrp) gspRecIntGrp.classList.toggle('hidden', gspRecType.value !== 'daily');
+      gspUpdateRecBtn();
+    });
+  }
+  const gspRecIntervalInput = document.getElementById('gsp-f-rec-interval');
+  if (gspRecIntervalInput) gspRecIntervalInput.addEventListener('input', gspUpdateRecBtn);
 
   gspRenderChecklistUI();
   const gspAddChk=document.getElementById('gsp-btn-add-check');
