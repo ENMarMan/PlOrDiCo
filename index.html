@@ -2826,7 +2826,10 @@ function openModal(task=null, prefillTags=null) {
     });
   }
 
-  // Sección avanzada: abrir si la tarea ya tiene datos avanzados
+  // Sección avanzada: arranca siempre replegada, sin importar si la tarea
+  // tiene datos avanzados. El indicador ámbar en el botón avisa que hay
+  // algo ahí adentro (etiquetas, recurrencia, checklist, recordatorio o
+  // dependencias) sin forzar el despliegue del modal.
   const hasAdv = !!(task && (
     (task.checklist && task.checklist.length) ||
     (task.recurrence && task.recurrence.enabled) ||
@@ -2837,8 +2840,8 @@ function openModal(task=null, prefillTags=null) {
   const modalAdvToggle = document.getElementById('modal-adv-toggle');
   const modalAdvBody   = document.getElementById('modal-adv-body');
   if (modalAdvToggle && modalAdvBody) {
-    modalAdvBody.classList.toggle('hidden', !hasAdv);
-    modalAdvToggle.classList.toggle('open', hasAdv);
+    modalAdvBody.classList.add('hidden');
+    modalAdvToggle.classList.remove('open');
     modalAdvToggle.classList.toggle('has-data', hasAdv);
     // Reasignar listener sin duplicar
     const newToggle = modalAdvToggle.cloneNode(true);
