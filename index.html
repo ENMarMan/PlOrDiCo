@@ -632,6 +632,14 @@
     .ctx-section:last-child { border-bottom: none; }
     .ctx-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); padding: 4px 12px 2px; }
     .ctx-item { display: flex; align-items: center; gap: 7px; width: 100%; padding: 5px 12px; background: none; border: none; color: var(--text-dim); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: var(--tr); text-align: left; }
+    .ctx-menu.proj-preview { max-width: 260px; }
+    .proj-preview-body { padding: 10px 13px; }
+    .proj-preview-badge { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 6px; }
+    .proj-preview-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .proj-preview-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; white-space: pre-wrap; }
+    .proj-preview-meta { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+    .proj-preview-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+    .proj-preview-note { font-size: 11px; color: var(--text-faint); line-height: 1.4; padding-top: 8px; border-top: 1px solid var(--border); }
     .ctx-item:hover { background: var(--surface-2); color: var(--text); }
     .ctx-item.active { color: var(--amber); }
     .ctx-item svg { width: 12px; height: 12px; flex-shrink: 0; color: var(--text-faint); }
@@ -3962,6 +3970,47 @@ function closeCtxMenu() {
   if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; ctxTask = null; }
 }
 
+// Vista de solo lectura para una ocurrencia proyectada de una tarea recurrente
+// (no existe como documento en Firestore todavía). A propósito NO reutiliza
+// openModal ni showContextMenu: esos permiten editar/completar/borrar la
+// tarea real, y esta vista tiene que ser puramente informativa.
+function showProjectionPreview(task, dateStr, x, y) {
+  closeCtxMenu();
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu proj-preview';
+  ctxMenu = menu;
+
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const prioLabel = task.priority === 'high' ? 'Alta' : 'Baja';
+  const typeLabel = task.type === 'strategic' ? 'Estrat\u00e9gica' : 'Operativa';
+  const fecha = new Date(dateStr + 'T00:00:00').toLocaleDateString('es-AR', { day:'2-digit', month:'long', year:'numeric' });
+  const tagsHtml = (task.tags||[]).map(t => '<span class="task-tag">#' + esc(t) + '</span>').join('');
+
+  menu.innerHTML =
+    '<div class="proj-preview-body">'
+    + '<div class="proj-preview-badge">\u21ba Ocurrencia proyectada</div>'
+    + '<div class="proj-preview-title">' + esc(task.title) + '</div>'
+    + (task.description ? '<div class="proj-preview-desc">' + esc(task.description) + '</div>' : '')
+    + '<div class="proj-preview-meta">' + prioLabel + ' \u00b7 ' + typeLabel + '</div>'
+    + (tagsHtml ? '<div class="proj-preview-tags">' + tagsHtml + '</div>' : '')
+    + '<div class="proj-preview-note">Proyectada para el ' + fecha + '. Todav\u00eda no existe como tarea: se crea autom\u00e1ticamente al completar la ocurrencia actual. Es de solo lectura \u2014 para verla o editarla and\u00e1 a Lista, Matriz o su fecha real en el Calendario.</div>'
+    + '</div>';
+
+  document.body.appendChild(menu);
+  const mw = menu.offsetWidth || 240, mh = menu.offsetHeight || 160;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let left = x, top = y;
+  if (left + mw > vw - 8) left = vw - mw - 8;
+  if (top + mh > vh - 8)  top = vh - mh - 8;
+  if (left < 8) left = 8; if (top < 8) top = 8;
+  menu.style.left = left + 'px'; menu.style.top = top + 'px';
+
+  setTimeout(() => {
+    document.addEventListener('click', function ch(e){ if(!menu.contains(e.target)){closeCtxMenu();document.removeEventListener('click',ch);} });
+    document.addEventListener('contextmenu', function ch2(e){ if(!menu.contains(e.target)){closeCtxMenu();document.removeEventListener('contextmenu',ch2);} });
+  }, 0);
+}
+
 function showContextMenu(task, x, y, fromMatrix) {
   closeCtxMenu();
   ctxTask = task;
@@ -4882,11 +4931,19 @@ function buildCalTask(task, isRecurrent, dateStr, today) {
   }
   el.addEventListener('click', e => {
     e.stopPropagation();
-    openModal(tasks.find(t => t.id === task.id) || task);
+    if (isRecurrent) {
+      showProjectionPreview(tasks.find(t => t.id === task.id) || task, dateStr, e.clientX, e.clientY);
+    } else {
+      openModal(tasks.find(t => t.id === task.id) || task);
+    }
   });
   el.addEventListener('contextmenu', e => {
     e.preventDefault(); e.stopPropagation();
-    showContextMenu(tasks.find(t => t.id === task.id) || task, e.clientX, e.clientY, true);
+    if (isRecurrent) {
+      showProjectionPreview(tasks.find(t => t.id === task.id) || task, dateStr, e.clientX, e.clientY);
+    } else {
+      showContextMenu(tasks.find(t => t.id === task.id) || task, e.clientX, e.clientY, true);
+    }
   }, true);
 
   return el;
@@ -5058,11 +5115,19 @@ function renderDayView() {
       });
     }
     card.addEventListener('click', () => {
-      openModal(tasks.find(t => t.id === task.id) || task);
+      if (isRecurrent) {
+        showProjectionPreview(tasks.find(t => t.id === task.id) || task, dateStr, window.innerWidth/2 - 110, window.innerHeight/2 - 80);
+      } else {
+        openModal(tasks.find(t => t.id === task.id) || task);
+      }
     });
     card.addEventListener('contextmenu', e => {
       e.preventDefault(); e.stopPropagation();
-      showContextMenu(tasks.find(t => t.id === task.id) || task, e.clientX, e.clientY, true);
+      if (isRecurrent) {
+        showProjectionPreview(tasks.find(t => t.id === task.id) || task, dateStr, e.clientX, e.clientY);
+      } else {
+        showContextMenu(tasks.find(t => t.id === task.id) || task, e.clientX, e.clientY, true);
+      }
     }, true);
 
     scroll.appendChild(card);
