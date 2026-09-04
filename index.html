@@ -75,10 +75,10 @@
       --accent-dim:  #243545;
       --accent-glow: rgba(122,168,199,.1);
       --accent-glow2:rgba(122,168,199,.06);
-      --amber:       #7aa8c7;
-      --amber-dim:   #243545;
-      --amber-glow:  rgba(122,168,199,.1);
-      --amber-glow2: rgba(122,168,199,.06);
+      --amber:       #b8975a;
+      --amber-dim:   #3a3020;
+      --amber-glow:  rgba(184,151,90,.1);
+      --amber-glow2: rgba(184,151,90,.06);
       --green:       #6abf8e;
       --green-dim:   #1e3828;
       --blue:        #7aa8c7;
@@ -109,10 +109,10 @@
       --accent-dim:  #daeaf4;
       --accent-glow: rgba(90,143,173,.1);
       --accent-glow2:rgba(90,143,173,.06);
-      --amber:       #5a8fad;
-      --amber-dim:   #daeaf4;
-      --amber-glow:  rgba(90,143,173,.1);
-      --amber-glow2: rgba(90,143,173,.06);
+      --amber:       #a8863a;
+      --amber-dim:   #f5ecd8;
+      --amber-glow:  rgba(168,134,58,.1);
+      --amber-glow2: rgba(168,134,58,.06);
       --green:       #3d9e6a;
       --green-dim:   #d4f0e3;
       --blue:        #5a8fad;
@@ -241,7 +241,7 @@
     .badge-strategic { background: var(--amber-dim);  color: var(--amber);  }
     .badge-operative { background: var(--surface-3);  color: var(--text-dim); }
     .badge-pending   { background: var(--surface-3);  color: var(--text-dim); }
-    .badge-progress  { background: var(--blue-dim);   color: var(--blue);   }
+    .badge-progress  { background: var(--indigo-dim); color: var(--indigo); }
     .badge-done      { background: var(--green-dim);  color: var(--green);  }
     .task-tag { display: inline-flex; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 500; background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(240,165,0,.2); }
     .task-due { font-family: var(--mono); font-size: 10px; color: var(--text-faint); display: flex; align-items: center; gap: 3px; }
@@ -408,8 +408,8 @@
     .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 480px; }
     .matrix-quadrant { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); display: flex; flex-direction: column; height: 360px; }
     .matrix-quadrant.q1 { border-top: 2px solid var(--red); }
-    .matrix-quadrant.q2 { border-top: 2px solid var(--amber); }
-    .matrix-quadrant.q3 { border-top: 2px solid var(--orange); }
+    .matrix-quadrant.q2 { border-top: 2px solid var(--orange); }
+    .matrix-quadrant.q3 { border-top: 2px solid var(--blue); }
     .matrix-quadrant.q4 { border-top: 2px solid var(--border-hi); }
     .matrix-q-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .matrix-q-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -526,9 +526,11 @@
     .cal-task:hover { filter: brightness(1.12); border-color: var(--border-hi); }
     .cal-task.t-done { opacity: .45; }
     .cal-task.t-done .cal-task-title { text-decoration: line-through; }
-    .cal-task.t-overdue { background: var(--red-dim); }
+    .cal-task.t-overdue { border-color: var(--red-dim); }
     .cal-task.t-overdue .cal-task-title { color: var(--red); }
-    .cal-task.t-recurrent { background: var(--surface-3); }
+    .cal-task.t-recurrent { border-style: dashed; border-color: var(--border-hi); opacity: .75; cursor: default; }
+    .cal-task.t-recurrent:hover { filter: none; }
+    .cal-task-proj-icon { flex-shrink: 0; font-size: 9px; color: var(--text-faint); line-height: 1; }
     .cal-task.dragging { opacity: .35; pointer-events: none; }
     .cal-cell.drag-over { border-color: var(--amber); background: var(--amber-glow2); box-shadow: inset 0 0 0 1px var(--amber); }
     .cal-task-accent { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 10px; }
@@ -658,7 +660,7 @@
     .fchip:hover { border-color: var(--border-hi); color: var(--text); z-index: 1; position: relative; }
     .fchip.active-pending   { background: var(--surface-3);  border-color: var(--border-hi); color: var(--text);   z-index: 1; position: relative; border-right-width: 1px; }
     .fchip.active-pending + .fchip { border-left-width: 0; }
-    .fchip.active-progress  { background: var(--blue-dim);   border-color: var(--blue);      color: var(--blue);   z-index: 1; position: relative; border-right-width: 1px; }
+    .fchip.active-progress  { background: var(--indigo-dim); border-color: var(--indigo);    color: var(--indigo); z-index: 1; position: relative; border-right-width: 1px; }
     .fchip.active-progress + .fchip { border-left-width: 0; }
     .fchip.active-done      { background: var(--green-dim);  border-color: var(--green);     color: var(--green);  z-index: 1; position: relative; border-right-width: 1px; }
     .fchip.active-done + .fchip { border-left-width: 0; }
@@ -1015,7 +1017,7 @@
             <div class="msb-label">Estado</div>
             <button class="msb-chip active" data-lf-status="all">Todas</button>
             <button class="msb-chip" data-lf-status="pending"><span class="dot" style="background:var(--text-dim)"></span>Pendientes</button>
-            <button class="msb-chip" data-lf-status="in_progress"><span class="dot" style="background:var(--blue)"></span>Curso</button>
+            <button class="msb-chip" data-lf-status="in_progress"><span class="dot" style="background:var(--indigo)"></span>Curso</button>
             <button class="msb-chip" data-lf-status="done"><span class="dot" style="background:var(--green)"></span>Completadas</button>
           </div>
           <div class="msb-section">
@@ -1108,7 +1110,7 @@
             <span class="dot" style="background:var(--text-dim)"></span>Pendientes
           </button>
           <button class="msb-chip" data-mf-status="in_progress">
-            <span class="dot" style="background:var(--blue)"></span>En curso
+            <span class="dot" style="background:var(--indigo)"></span>En curso
           </button>
           <button class="msb-chip" data-mf-status="done">
             <span class="dot" style="background:var(--green)"></span>Completadas
@@ -1374,10 +1376,10 @@
         <div id="flujo-cy"></div>
         <div class="flujo-legend" id="flujo-legend">
           <div class="flujo-legend-title">Referencia</div>
-          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--red)"></span>Alta prioridad</div>
-          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--blue)"></span>Baja prioridad</div>
-          <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber)"></span>Estratégica</div>
-          <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi)"></span>Operativa</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--red)"></span>Alta · Estratégica</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--orange)"></span>Alta · Operativa</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--blue)"></span>Baja · Estratégica</div>
+          <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--border-hi)"></span>Baja · Operativa</div>
           <div class="flujo-legend-row"><span class="flujo-legend-dot" style="background:var(--green);opacity:.4"></span>Completada</div>
           <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--amber);border-width:3px"></span>Tiene dependencias</div>
           <div class="flujo-legend-row"><span class="flujo-legend-box" style="border-color:var(--border-hi);border-style:double;border-width:4px"></span>Es dependencia</div>
@@ -1713,6 +1715,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.theme-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       window.applyTheme(this.dataset.themeTarget);
+      if (typeof renderFlujo === 'function' && document.querySelector('.nav-tab[data-panel="flujo"].active')) {
+        renderFlujo();
+      }
     });
   });
   // Marcar el botón activo según tema guardado
@@ -1974,6 +1979,37 @@ function hasPendingDeps(task) {
 function recLabel(rec) {
   if (!rec||!rec.enabled) return null;
   return { workdays:'Días lab.', daily:`Cada ${rec.interval||1}d`, weekly:'Semanal', monthly:'Mensual', yearly:'Anual' }[rec.type] || rec.type;
+}
+// ── CÓDIGO DE COLOR ÚNICO POR PRIORIDAD × TIPO ─────────────────────────────
+// Fuente única de verdad para el color de acento de una tarea, usado en
+// Matriz, Lista, Calendario y Flujo. Alta+Estratégica=rojo, Alta+Operativa=
+// naranja, Baja+Estratégica=celeste, Baja+Operativa=gris.
+function taskAccentColor(task) {
+  if (task.priority === 'high') {
+    return task.type === 'strategic' ? 'var(--red)' : 'var(--orange)';
+  }
+  return task.type === 'strategic' ? 'var(--blue)' : 'var(--border-hi)';
+}
+// Resuelve una variable CSS (p.ej. '--red') a su valor real ya calculado
+// según el tema activo. Necesario para Cytoscape (Flujo), que dibuja en
+// canvas y no puede interpretar cadenas 'var(--x)' como lo hace el DOM.
+function themeColor(varName) {
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+// Variante de taskAccentColor que devuelve el color de fondo tenue
+// ('-dim') correspondiente, resuelto para Cytoscape.
+function taskAccentBg(task) {
+  if (task.priority === 'high') {
+    return task.type === 'strategic' ? themeColor('--red-dim') : themeColor('--orange-dim');
+  }
+  return task.type === 'strategic' ? themeColor('--blue-dim') : themeColor('--surface-3');
+}
+// Variante de taskAccentColor resuelta a valor real (para Cytoscape).
+function taskAccentColorResolved(task) {
+  if (task.priority === 'high') {
+    return task.type === 'strategic' ? themeColor('--red') : themeColor('--orange');
+  }
+  return task.type === 'strategic' ? themeColor('--blue') : themeColor('--border-hi');
 }
 function getAllTags() {
   const s = new Set(freeTags);
@@ -2597,7 +2633,7 @@ function renderList() {
 function buildCard(task) {
   const card = document.createElement('div');
   card.className = 'task-card' + (task.status==='done' ? ' done' : '');
-  const accent = task.priority==='high' ? 'var(--red)' : task.type==='strategic' ? 'var(--amber)' : 'var(--border)';
+  const accent = taskAccentColor(task);
   const due    = dueBadge(task.dueDate);
   const rl     = recLabel(task.recurrence);
   const sk     = task.status==='in_progress' ? 'progress' : task.status;
@@ -4290,9 +4326,7 @@ function renderMatrix() {
 function buildMCard(task) {
   const card = document.createElement('div');
   card.className = 'mcard' + (task.status === 'done' ? ' done' : '');
-  const accent = task.priority === 'high'
-    ? (task.type === 'strategic' ? 'var(--red)' : 'var(--orange)')
-    : (task.type === 'strategic' ? 'var(--amber)' : 'var(--border-hi)');
+  const accent = taskAccentColor(task);
   const due = dueBadge(task.dueDate);
   const rl  = recLabel(task.recurrence);
   const sk  = task.status === 'in_progress' ? 'progress' : task.status;
@@ -4797,9 +4831,7 @@ function renderCalendar() {
 }
 
 function buildCalTask(task, isRecurrent, dateStr, today) {
-  const accent = task.priority === 'high'
-    ? (task.type === 'strategic' ? 'var(--red)' : 'var(--orange)')
-    : (task.type === 'strategic' ? 'var(--amber)' : 'var(--border-hi)');
+  const accent = taskAccentColor(task);
   const dueDateObj = new Date(dateStr + 'T00:00:00');
   const isOverdue  = task.status !== 'done' && dueDateObj < today;
   const isDone     = task.status === 'done';
@@ -4809,31 +4841,45 @@ function buildCalTask(task, isRecurrent, dateStr, today) {
     + (isDone      ? ' t-done'      : '')
     + (isOverdue   ? ' t-overdue'   : '')
     + (isRecurrent ? ' t-recurrent' : '');
-  el.draggable = true;
-  el.addEventListener('dragstart', e => {
-    e.stopPropagation();
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('taskId', task.id);
-    e.dataTransfer.setData('sourceDateStr', dateStr);
-    setTimeout(() => el.classList.add('dragging'), 0);
-  });
-  el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  // Las fechas proyectadas de recurrencia (isRecurrent=true) no son documentos
+  // reales en Firestore: son un cálculo visual para planificar. No se pueden
+  // arrastrar, tildar ni borrar desde acá — solo se puede ver/abrir la tarea
+  // real (que vive en su propia fecha de vencimiento).
+  el.draggable = !isRecurrent;
+  if (!isRecurrent) {
+    el.addEventListener('dragstart', e => {
+      e.stopPropagation();
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('taskId', task.id);
+      e.dataTransfer.setData('sourceDateStr', dateStr);
+      setTimeout(() => el.classList.add('dragging'), 0);
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  }
 
-  el.innerHTML =
-    '<div class="cal-task-accent" style="background:' + accent + '"></div>'
-    + '<div class="cal-task-check' + (isDone ? ' checked' : '') + '"></div>'
-    + '<div class="cal-task-title">' + escHtml(task.title) + '</div>'
-    + '<button class="cal-task-del" title="Eliminar">\u00d7</button>';
+  if (isRecurrent) {
+    el.title = 'Próxima ocurrencia proyectada · aún no existe como tarea — se crea al completar la anterior';
+    el.innerHTML =
+      '<div class="cal-task-accent" style="background:' + accent + '"></div>'
+      + '<span class="cal-task-proj-icon">\u21ba</span>'
+      + '<div class="cal-task-title">' + escHtml(task.title) + '</div>';
+  } else {
+    el.innerHTML =
+      '<div class="cal-task-accent" style="background:' + accent + '"></div>'
+      + '<div class="cal-task-check' + (isDone ? ' checked' : '') + '"></div>'
+      + '<div class="cal-task-title">' + escHtml(task.title) + '</div>'
+      + '<button class="cal-task-del" title="Eliminar">\u00d7</button>';
 
-  el.querySelector('.cal-task-check').addEventListener('click', e => {
-    e.stopPropagation(); toggleDone(task.id, task.status);
-  });
-  el.querySelector('.cal-task-del').addEventListener('click', async e => {
-    e.stopPropagation();
-    if (!confirm('\u00bfEliminar "' + task.title + '"?')) return;
-    try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
-    catch(err) { showToast('Error.', 'err'); }
-  });
+    el.querySelector('.cal-task-check').addEventListener('click', e => {
+      e.stopPropagation(); toggleDone(task.id, task.status);
+    });
+    el.querySelector('.cal-task-del').addEventListener('click', async e => {
+      e.stopPropagation();
+      if (!confirm('\u00bfEliminar "' + task.title + '"?')) return;
+      try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+      catch(err) { showToast('Error.', 'err'); }
+    });
+  }
   el.addEventListener('click', e => {
     e.stopPropagation();
     openModal(tasks.find(t => t.id === task.id) || task);
@@ -4967,9 +5013,7 @@ function renderDayView() {
   scroll.appendChild(countEl);
 
   visible.forEach(({ task, isRecurrent }) => {
-    const accent = task.priority === 'high'
-      ? (task.type === 'strategic' ? 'var(--red)' : 'var(--orange)')
-      : (task.type === 'strategic' ? 'var(--amber)' : 'var(--border-hi)');
+    const accent = taskAccentColor(task);
     const isDone = task.status === 'done';
 
     const card = document.createElement('div');
@@ -4988,12 +5032,13 @@ function renderDayView() {
     const typeCls   = task.type === 'strategic' ? 'badge-strategic' : 'badge-operative';
     const tagsHtml  = (task.tags||[]).map(t => '<span class="task-tag">#' + escHtml(t) + '</span>').join('');
     const recHtml   = isRecurrent
-      ? '<span class="cal-day-recurrent">↻ Recurrente</span>'
+      ? '<span class="cal-day-recurrent">↻ Proyección — aún no existe</span>'
       : '';
+    if (isRecurrent) card.title = 'Próxima ocurrencia proyectada · se crea al completar la anterior';
 
     card.innerHTML =
       '<div class="cal-day-card-accent" style="background:' + accent + '"></div>'
-      + '<div class="cal-day-card-check' + (isDone ? ' checked' : '') + '"></div>'
+      + (isRecurrent ? '' : '<div class="cal-day-card-check' + (isDone ? ' checked' : '') + '"></div>')
       + '<div class="cal-day-card-body">'
       +   '<div class="cal-day-card-title">' + escHtml(task.title) + '</div>'
       +   (task.description ? '<div class="cal-day-card-desc">' + escHtml(task.description) + '</div>' : '')
@@ -5006,10 +5051,12 @@ function renderDayView() {
       +   '</div>'
       + '</div>';
 
-    card.querySelector('.cal-day-card-check').addEventListener('click', e => {
-      e.stopPropagation();
-      toggleDone(task.id, task.status);
-    });
+    if (!isRecurrent) {
+      card.querySelector('.cal-day-card-check').addEventListener('click', e => {
+        e.stopPropagation();
+        toggleDone(task.id, task.status);
+      });
+    }
     card.addEventListener('click', () => {
       openModal(tasks.find(t => t.id === task.id) || task);
     });
@@ -5731,9 +5778,7 @@ function renderGantt() {
     }
     const task=row.task;
     if (task.status==='done') tr.classList.add('done-row');
-    const accent=task.priority==='high'
-      ?(task.type==='strategic'?'var(--red)':'var(--orange)')
-      :(task.type==='strategic'?'var(--amber)':'var(--border-hi)');
+    const accent=taskAccentColor(task);
 
     // Celda label
     const tdLabel=document.createElement('td');
@@ -6066,12 +6111,12 @@ let flujoSidebarOpen = true;
 
 // ── Helpers de color de nodo (sin cambios) ──────────────────────────────────
 function flujoNodeBg(task) {
-  if (task.status === 'done') return '#1a2e1f';
-  return task.priority === 'high' ? '#2a1212' : '#122030';
+  if (task.status === 'done') return themeColor('--green-dim');
+  return taskAccentBg(task);
 }
 function flujoNodeBorder(task) {
-  if (task.status === 'done') return '#2a6644';
-  return task.priority === 'high' ? '#c04444' : '#3a78c0';
+  if (task.status === 'done') return themeColor('--green');
+  return taskAccentColorResolved(task);
 }
 function flujoNodeText(task) {
   return task.status === 'done' ? '#4a7a5a' : '#d8dae8';
@@ -6693,7 +6738,7 @@ function renderFlujoNoLabelPanel() {
       row.addEventListener('mouseleave', () => row.style.borderColor = 'var(--border)');
       row.addEventListener('click', () => openModal(t));
       const dot = document.createElement('span');
-      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+(isDone?'var(--green)':t.priority==='high'?'var(--red)':'var(--blue)')+';opacity:'+(isDone?'.4':'1');
+      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+(isDone?'var(--green)':taskAccentColor(t))+';opacity:'+(isDone?'.4':'1');
       const title = document.createElement('span');
       title.style.cssText = 'font-size:13px;color:'+(isDone?'var(--text-faint)':'var(--text)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+(isDone?'text-decoration:line-through;':'');
       title.textContent = t.title;
