@@ -5051,8 +5051,17 @@ function renderDayView() {
     }
   });
 
-  // Filtrar completadas si corresponde
-  const visible = calShowDone ? entries : entries.filter(e => e.task.status !== 'done');
+  // Filtrar completadas y por búsqueda, si corresponde (mismo criterio que la vista mensual)
+  const dayQ = normSearch(calSearchQuery);
+  const visible = entries.filter(e => {
+    if (!calShowDone && e.task.status === 'done') return false;
+    if (dayQ) {
+      return normSearch(e.task.title).includes(dayQ)
+        || normSearch(e.task.description||'').includes(dayQ)
+        || (e.task.tags||[]).some(t => normSearch(t).includes(dayQ));
+    }
+    return true;
+  });
 
   // Ordenar: alta/estratégica primero, luego por título
   const rank = e => {
