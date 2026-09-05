@@ -2019,6 +2019,15 @@ function taskAccentColorResolved(task) {
   }
   return task.type === 'strategic' ? themeColor('--blue') : themeColor('--border-hi');
 }
+// ── BÚSQUEDA SIN ACENTOS (ÚNICA) ────────────────────────────────────────
+// Fuente única de verdad para normalizar texto antes de comparar en
+// cualquier buscador de la app (Lista, Matriz, Calendario, Gantt, Flujo y
+// las sugerencias de etiquetas). Saca acentos/diacríticos y pasa a
+// minúsculas, así "López" y "Lopez" matchean igual sin importar cómo se
+// haya escrito la búsqueda ni el dato guardado.
+function normSearch(s) {
+  return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
 function getAllTags() {
   const s = new Set(freeTags);
   tasks.forEach(t => (t.tags||[]).forEach(tag => s.add(tag)));
@@ -2589,11 +2598,11 @@ function getFiltered() {
     list = list.filter(t => t.dueDate === todayStr);
   }
   if (searchQuery) {
-    const q = searchQuery.toLowerCase();
+    const q = normSearch(searchQuery);
     list = list.filter(t =>
-      t.title.toLowerCase().includes(q) ||
-      (t.description||'').toLowerCase().includes(q) ||
-      (t.tags||[]).some(tag => tag.toLowerCase().includes(q))
+      normSearch(t.title).includes(q) ||
+      normSearch(t.description||'').includes(q) ||
+      (t.tags||[]).some(tag => normSearch(tag).includes(q))
     );
   }
   return list;
@@ -2906,9 +2915,9 @@ function renderTagsUI() {
 function renderTagSuggestions(filterText) {
   const suggestionsEl = document.getElementById('tag-suggestions');
   if (!suggestionsEl) return;
-  const q = (filterText || '').trim().toLowerCase();
+  const q = normSearch((filterText || '').trim());
   let existing = getAllTags().filter(t => !currentTags.includes(t));
-  if (q) existing = existing.filter(t => t.toLowerCase().includes(q));
+  if (q) existing = existing.filter(t => normSearch(t).includes(q));
   suggestionsEl.innerHTML = '';
   if (existing.length === 0) {
     suggestionsEl.innerHTML = '<span class="tag-dd-empty">' + (q ? 'Sin coincidencias' : 'Sin etiquetas disponibles') + '</span>';
@@ -3821,9 +3830,9 @@ function spRenderTagsUI() {
 
 function spRenderTagSuggestions(filterText) {
   const el = document.getElementById('sp-tag-suggestions'); if (!el) return;
-  const q = (filterText || '').trim().toLowerCase();
+  const q = normSearch((filterText || '').trim());
   let existing = getAllTags().filter(t => !splitCurrentTags.includes(t));
-  if (q) existing = existing.filter(t => t.toLowerCase().includes(q));
+  if (q) existing = existing.filter(t => normSearch(t).includes(q));
   el.innerHTML = '';
   if (existing.length === 0) {
     el.innerHTML = '<span class="tag-dd-empty">' + (q ? 'Sin coincidencias' : 'Sin etiquetas disponibles') + '</span>';
@@ -4316,11 +4325,11 @@ function applyMatrixFilters(items) {
     items = items.filter(t => (t.tags || []).includes(matrixFilterTag));
   }
   if (matrixSearchQuery) {
-    const q = matrixSearchQuery.toLowerCase();
+    const q = normSearch(matrixSearchQuery);
     items = items.filter(t =>
-      t.title.toLowerCase().includes(q) ||
-      (t.description||'').toLowerCase().includes(q) ||
-      (t.tags||[]).some(tag => tag.toLowerCase().includes(q))
+      normSearch(t.title).includes(q) ||
+      normSearch(t.description||'').includes(q) ||
+      (t.tags||[]).some(tag => normSearch(tag).includes(q))
     );
   }
   return items;
@@ -4759,7 +4768,7 @@ function renderCalendar() {
   });
 
   // Filtro de búsqueda
-  const q = calSearchQuery.toLowerCase();
+  const q = normSearch(calSearchQuery);
 
   grid.innerHTML = '';
   const cur = new Date(startCell);
@@ -4794,9 +4803,9 @@ function renderCalendar() {
     let entries = (dateMap[dateStr] || []).filter(e => {
       if (!calShowDone && e.task.status === 'done') return false;
       if (q) {
-        return e.task.title.toLowerCase().includes(q)
-          || (e.task.description||'').toLowerCase().includes(q)
-          || (e.task.tags||[]).some(t => t.toLowerCase().includes(q));
+        return normSearch(e.task.title).includes(q)
+          || normSearch(e.task.description||'').includes(q)
+          || (e.task.tags||[]).some(t => normSearch(t).includes(q));
       }
       return true;
     });
@@ -5573,9 +5582,9 @@ function gspRenderTagsUI(){
 }
 function gspRenderTagSuggestions(filterText){
   const el=document.getElementById('gsp-tag-suggestions');if(!el)return;
-  const q=(filterText||'').trim().toLowerCase();
+  const q=normSearch((filterText||'').trim());
   let existing=getAllTags().filter(t=>!ganttSplitCurrentTags.includes(t));
-  if(q) existing=existing.filter(t=>t.toLowerCase().includes(q));
+  if(q) existing=existing.filter(t=>normSearch(t).includes(q));
   el.innerHTML='';
   if(existing.length===0){
     el.innerHTML='<span class="tag-dd-empty">'+(q?'Sin coincidencias':'Sin etiquetas disponibles')+'</span>';
@@ -5743,8 +5752,8 @@ function renderGantt() {
   let ganttTasks=tasks.filter(t=>t.gantt&&t.gantt.enabled&&t.gantt.startDate);
   if (ganttHideDone) ganttTasks=ganttTasks.filter(t=>t.status!=='done');
   if (ganttSearchQuery) {
-    const q=ganttSearchQuery.toLowerCase();
-    ganttTasks=ganttTasks.filter(t=>t.title.toLowerCase().includes(q)||(t.description||'').toLowerCase().includes(q));
+    const q=normSearch(ganttSearchQuery);
+    ganttTasks=ganttTasks.filter(t=>normSearch(t.title).includes(q)||normSearch(t.description||'').includes(q));
   }
 
   if (!ganttTasks.length) {
@@ -6349,7 +6358,7 @@ function showFlujoTagDropdown(task, anchorEl) {
 // ── buildFlujoElements: construye nodos con filtros completos ───────────────
 function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter, fStatus, fPriority, fType) {
   const els = [];
-  const q = search.trim().toLowerCase();
+  const q = normSearch(search.trim());
 
   const visible = taskList.filter(t => {
     // Status: si hideDone está activo y no hay filtro de status específico, ocultamos done
@@ -6361,7 +6370,7 @@ function buildFlujoElements(taskList, search, hideDone, showNoLabel, tagFilter, 
     if (fPriority !== 'all' && t.priority !== fPriority) return false;
     if (fType !== 'all' && t.type !== fType) return false;
     if (!showNoLabel && (!t.tags || t.tags.length === 0)) return false;
-    if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
+    if (q && !normSearch(t.title).includes(q) && !normSearch(t.description||'').includes(q)) return false;
     if (tagFilter && tagFilter.length > 0) {
       const tTags = t.tags || [];
       if (!tagFilter.some(f => tTags.includes(f))) return false;
@@ -6785,11 +6794,11 @@ function renderFlujoNoLabelPanel() {
   const list  = document.getElementById('flujo-nolabel-list');
   if (!panel || !list) return;
   if (!flujoShowNoLabel) { panel.style.display = 'none'; return; }
-  const q = flujoSearch.trim().toLowerCase();
+  const q = normSearch(flujoSearch.trim());
   const unlabeled = tasks.filter(t => {
     if (!t.tags || t.tags.length === 0) {
       if (flujoHideDone && t.status === 'done') return false;
-      if (q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
+      if (q && !normSearch(t.title).includes(q) && !normSearch(t.description||'').includes(q)) return false;
       return true;
     }
     return false;
