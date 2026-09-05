@@ -1794,7 +1794,7 @@ async function fsAdd(collection, data) {
     updatedAt: { _isOffline: true, iso: new Date().toISOString() },
     _offline: true
   };
-  queueAdd({ type: 'add', collection, data, tempId });
+  queueAdd({ type: 'add', collection, data: { ...data, createdAt: localDoc.createdAt, updatedAt: localDoc.updatedAt }, tempId });
   // Inyectar en el array local para que aparezca en pantalla ahora
   tasks.push(localDoc);
   renderList(); renderMatrix(); renderCalendar();
@@ -1832,6 +1832,11 @@ async function fsDelete(collection, docId) {
   }
   if (!docId.startsWith('offline_')) {
     queueAdd({ type: 'delete', collection, docId });
+  } else {
+    // La tarea se había creado offline y todavía no se sincronizó: sacamos
+    // directamente el alta de la cola en vez de encolar un borrado, para que
+    // no "resucite" al reconectar.
+    queueSave(queueGet().filter(op => op.tempId !== docId));
   }
   // Quitar de memoria inmediatamente
   const idx = tasks.findIndex(t => t.id === docId);
@@ -1839,6 +1844,83 @@ async function fsDelete(collection, docId) {
   renderList(); renderMatrix(); renderCalendar();
   if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
   if (document.querySelector('.nav-tab[data-panel="flujo"].active')) renderFlujo();
+}
+
+// Ejecuta varias operaciones (sobre 'tasks' y/o 'userConfig') como una unidad.
+// Con conexión usa un batch real de Firestore (atómico, igual que antes).
+// Sin conexión, aplica el efecto de cada operación en memoria de inmediato
+// —mismo criterio que fsAdd/fsUpdate/fsDelete— y encola cada una por separado
+// para reproducirlas al reconectar. No es atómico en el caso offline (la cola
+// tampoco lo era antes de este cambio), pero cada tarea de la app que dependía
+// de un batch (completar/saltar una recurrencia, renombrar/borrar una
+// etiqueta) sigue viéndose reflejada al instante y sobrevive un cierre de
+// pestaña estando offline, que es lo que no pasaba hasta ahora.
+// Forma de cada operación: { type:'add'|'set'|'update'|'delete', collection,
+// docId? (no aplica a 'add'), data?, merge? (solo 'set') }.
+async function fsBatch(ops) {
+  if (isOnline()) {
+    const batch = db.batch();
+    ops.forEach(op => {
+      if (op.type === 'add') {
+        batch.set(db.collection(op.collection).doc(), op.data);
+      } else if (op.type === 'set') {
+        batch.set(db.collection(op.collection).doc(op.docId), op.data, op.merge ? { merge: true } : {});
+      } else if (op.type === 'update') {
+        batch.update(db.collection(op.collection).doc(op.docId), op.data);
+      } else if (op.type === 'delete') {
+        batch.delete(db.collection(op.collection).doc(op.docId));
+      }
+    });
+    return batch.commit();
+  }
+  ops.forEach(op => {
+    if (op.type === 'add') {
+      const tempId = 'offline_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+      const localDoc = {
+        ...op.data, id: tempId,
+        createdAt: { _isOffline: true, iso: new Date().toISOString() },
+        updatedAt: { _isOffline: true, iso: new Date().toISOString() },
+        _offline: true
+      };
+      if (op.collection === 'tasks') tasks.push(localDoc);
+      queueAdd({ type: 'add', collection: op.collection, data: { ...op.data, createdAt: localDoc.createdAt, updatedAt: localDoc.updatedAt }, tempId });
+    } else if (op.type === 'update') {
+      if (op.docId.startsWith('offline_')) {
+        if (op.collection === 'tasks') {
+          const idx = tasks.findIndex(t => t.id === op.docId);
+          if (idx !== -1) tasks[idx] = { ...tasks[idx], ...op.data, updatedAt: { _isOffline: true, iso: new Date().toISOString() } };
+        }
+        queueSave(queueGet().map(o => o.tempId === op.docId ? { ...o, data: { ...o.data, ...op.data } } : o));
+      } else {
+        if (op.collection === 'tasks') {
+          const idx = tasks.findIndex(t => t.id === op.docId);
+          if (idx !== -1) tasks[idx] = { ...tasks[idx], ...op.data };
+        }
+        queueAdd({ type: 'update', collection: op.collection, docId: op.docId, data: op.data });
+      }
+    } else if (op.type === 'set') {
+      // Hoy solo se usa para userConfig/{uid}.freeTags: el caller ya manda
+      // el array final completo en op.data.freeTags.
+      if (op.collection === 'userConfig' && op.data && Array.isArray(op.data.freeTags)) {
+        freeTags = op.data.freeTags;
+      }
+      queueAdd({ type: 'set', collection: op.collection, docId: op.docId, data: op.data, merge: !!op.merge });
+    } else if (op.type === 'delete') {
+      if (!op.docId.startsWith('offline_')) {
+        queueAdd({ type: 'delete', collection: op.collection, docId: op.docId });
+      } else {
+        queueSave(queueGet().filter(o => o.tempId !== op.docId));
+      }
+      if (op.collection === 'tasks') {
+        const idx = tasks.findIndex(t => t.id === op.docId);
+        if (idx !== -1) tasks.splice(idx, 1);
+      }
+    }
+  });
+  renderList(); renderMatrix(); renderCalendar();
+  if (document.querySelector('.nav-tab[data-panel="gantt"].active')) renderGantt();
+  if (document.querySelector('.nav-tab[data-panel="flujo"].active')) { renderFlujoTagFilter(); renderFlujo(); renderFlujoNoLabelPanel(); }
+  renderTagFilterRow(); renderTagsPanel();
 }
 
 // Sincronizar cola al volver online
@@ -1865,6 +1947,8 @@ async function syncOfflineQueue() {
         if (idx !== -1) tasks.splice(idx, 1);
       } else if (op.type === 'update') {
         await db.collection(op.collection).doc(op.docId).update(op.data);
+      } else if (op.type === 'set') {
+        await db.collection(op.collection).doc(op.docId).set(cleanData, op.merge ? { merge: true } : {});
       } else if (op.type === 'delete') {
         await db.collection(op.collection).doc(op.docId).delete();
       }
@@ -2188,7 +2272,7 @@ document.getElementById('import-file-input').addEventListener('change', async (e
     if (!doc.recurrence || typeof doc.recurrence !== 'object') doc.recurrence = { enabled: false };
     if (!doc.reminder   || typeof doc.reminder   !== 'object') doc.reminder   = { enabled: false };
     if (!doc.gantt      || typeof doc.gantt      !== 'object') doc.gantt      = { enabled: false };
-    try { await db.collection('tasks').add(doc); ok++; }
+    try { await fsAdd('tasks', doc); ok++; }
     catch { err++; }
   }
   showToast(`Importación completada: ${ok} tarea(s) agregada(s)${err ? `, ${err} con error` : ''}.`, ok ? 'ok' : 'err');
@@ -2257,6 +2341,7 @@ function asBuildData(formId) {
       computedDue = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
       ganttData = { enabled:true, startDate:gStartEl.value, days:gDays };
     }
+    if (rec && (rec.type === 'monthly' || rec.type === 'yearly')) rec.anchorDay = recAnchorDayFromDue(computedDue);
     return {
       title: fTitle.value.trim(), description: fDesc.value.trim(),
       priority: fPriority.value, type: fType.value, status: fStatus.value,
@@ -2287,6 +2372,7 @@ function asBuildData(formId) {
       spComputedDue = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
       spGanttData = { enabled:true, startDate:spGStartEl.value, days:gDays };
     }
+    if (rec && (rec.type === 'monthly' || rec.type === 'yearly')) rec.anchorDay = recAnchorDayFromDue(spComputedDue);
     return {
       title: (document.getElementById('sp-f-title').value||'').trim(),
       description: (document.getElementById('sp-f-desc').value||'').trim(),
@@ -2320,6 +2406,7 @@ function asBuildData(formId) {
       gspComputedDue = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
       gspGanttData = { enabled:true, startDate:gspGStartEl.value, days:gDays };
     }
+    if (rec && (rec.type === 'monthly' || rec.type === 'yearly')) rec.anchorDay = recAnchorDayFromDue(gspComputedDue);
     const gspRemDateEl = document.getElementById('gsp-reminder-date');
     const gspRemHourEl = document.getElementById('gsp-reminder-hour');
     const gspReminderData = (ganttSplitReminderOn && gspRemDateEl && gspRemHourEl && gspRemDateEl.value && gspRemHourEl.value)
@@ -2417,6 +2504,7 @@ async function saveTask() {
   } else if (!ganttOn) {
     ganttData = { enabled: false, startDate: null, days: null };
   }
+  if (rec && (rec.type === 'monthly' || rec.type === 'yearly')) rec.anchorDay = recAnchorDayFromDue(computedDueDate);
   const data = {
     title, description: fDesc.value.trim(),
     priority: fPriority.value, type: fType.value, status: fStatus.value,
@@ -2459,12 +2547,13 @@ async function toggleDone(id, current) {
   if (completing && task.recurrence && task.recurrence.enabled) {
     // Calcular la fecha de la siguiente ocurrencia
     const nextDate = calcNextRecDate(task);
-    const batch = db.batch();
-    // Marcar la tarea actual como completada
-    batch.update(db.collection('tasks').doc(id), {
-      status: 'done',
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    const ops = [
+      { type: 'update', collection: 'tasks', docId: id, data: {
+          status: 'done',
+          completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      } }
+    ];
     // Crear la siguiente tarea solo si no superó endDate
     const rec = task.recurrence;
     const shouldCreate = !rec.endDate || (nextDate && nextDate <= rec.endDate);
@@ -2486,22 +2575,25 @@ async function toggleDone(id, current) {
         status: 'pending',
         dueDate: nextDate,
         gantt: newGantt,
+        reminder: nextReminderForTask(task, task.dueDate, nextDate),
+        completedAt: null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         checklist: (task.checklist || []).map(item => ({ ...item, done: false }))
       };
       delete newTask.id;
-      batch.set(db.collection('tasks').doc(), newTask);
+      ops.push({ type: 'add', collection: 'tasks', data: newTask });
       showToast('Tarea completada · próxima creada para ' + nextDate, 'ok');
     } else {
       showToast('Tarea completada · fin de recurrencia.', 'ok');
     }
-    try { await batch.commit(); } catch(e) { showToast('Error.', 'err'); }
+    try { await fsBatch(ops); } catch(e) { showToast('Error.', 'err'); }
   } else {
     const s = completing ? 'done' : 'pending';
     try {
-      await db.collection('tasks').doc(id).update({
+      await fsUpdate('tasks', id, {
         status: s,
+        completedAt: completing ? firebase.firestore.FieldValue.serverTimestamp() : null,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     } catch(e) { showToast('Error.', 'err'); }
@@ -2520,9 +2612,7 @@ async function skipTask(id) {
   if (!nextDate || !shouldCreate) {
     showToast('No hay siguiente ocurrencia (fin de recurrencia alcanzado).', 'err'); return;
   }
-  const batch = db.batch();
-  // Eliminar la tarea actual (en vez de marcarla como completada)
-  batch.delete(db.collection('tasks').doc(id));
+  const ops = [{ type: 'delete', collection: 'tasks', docId: id }];
   // Crear la siguiente tarea
   let newGantt = task.gantt ? {...task.gantt} : null;
   if (newGantt && newGantt.enabled && newGantt.startDate && task.dueDate) {
@@ -2540,16 +2630,77 @@ async function skipTask(id) {
     status: 'pending',
     dueDate: nextDate,
     gantt: newGantt,
+    reminder: nextReminderForTask(task, task.dueDate, nextDate),
+    completedAt: null,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     checklist: (task.checklist || []).map(item => ({ ...item, done: false }))
   };
   delete newTask.id;
-  batch.set(db.collection('tasks').doc(), newTask);
+  ops.push({ type: 'add', collection: 'tasks', data: newTask });
   try {
-    await batch.commit();
+    await fsBatch(ops);
     showToast('Tarea saltada · próxima creada para ' + nextDate, 'ok');
   } catch(e) { showToast('Error al saltar tarea.', 'err'); }
+}
+
+// ── Recurrencia mensual/anual sin corrimiento de mes ────────────────────────
+// Devuelve el último día válido de un mes (0-indexado, como Date.getMonth()).
+function daysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+// Avanza `date` una cantidad de meses (1 para mensual, 12 para anual) usando
+// un día "ancla" fijo en vez de dejar que Date.setMonth() se desborde cuando
+// el mes de destino tiene menos días (ej. 31 de enero + 1 mes nativo se va
+// al 3 de marzo en vez de quedarse en febrero). Si el mes destino es más
+// corto que el ancla, cae al último día de ese mes; el mes siguiente que sí
+// tenga suficientes días vuelve a usar el día ancla completo.
+function addMonthsClamped(date, monthsToAdd, anchorDay) {
+  const day = anchorDay || date.getDate();
+  const m = date.getMonth() + monthsToAdd;
+  const targetYear  = date.getFullYear() + Math.floor(m / 12);
+  const targetMonth = ((m % 12) + 12) % 12;
+  const maxDay = daysInMonth(targetYear, targetMonth);
+  return new Date(targetYear, targetMonth, Math.min(day, maxDay));
+}
+// Día ancla a guardar en recurrence.anchorDay al crear/editar una recurrencia
+// mensual o anual: el día de la fecha límite que se está guardando, o el día
+// de hoy si todavía no hay fecha límite cargada.
+function recAnchorDayFromDue(dueDateStr) {
+  if (dueDateStr) {
+    const d = parseInt(dueDateStr.slice(8, 10), 10);
+    if (!isNaN(d)) return d;
+  }
+  return new Date().getDate();
+}
+
+// Recalcula el recordatorio para la próxima ocurrencia de una tarea
+// recurrente (al completarla o saltarla). En vez de copiar la fecha/hora
+// vieja tal cual (que ya pasó) o pisarla con el número de día de la nueva
+// fecha (que rompería si el recordatorio no es el mismo día del vencimiento),
+// calcula la distancia en días entre el recordatorio original y el
+// vencimiento original, y aplica esa misma distancia a la nueva fecha de
+// vencimiento, conservando la hora del recordatorio original.
+function nextReminderForTask(task, oldDueDate, newDueDate) {
+  const rem = task.reminder;
+  if (!rem || !rem.enabled || !rem.datetime) {
+    return { enabled: false, datetime: null, snoozedUntil: null };
+  }
+  if (!oldDueDate) {
+    // Sin fecha de vencimiento vieja no hay forma de calcular la distancia;
+    // se mantiene el recordatorio tal cual (caso raro: recurrencia sin due date).
+    return { enabled: true, datetime: rem.datetime, snoozedUntil: null };
+  }
+  const [, timePart] = rem.datetime.split('T');
+  const oldRemDateOnly = rem.datetime.slice(0, 10);
+  const oldRemDate = new Date(oldRemDateOnly + 'T00:00:00');
+  const oldDue     = new Date(oldDueDate     + 'T00:00:00');
+  const offsetDays = Math.round((oldRemDate - oldDue) / 86400000);
+  const newDue = new Date(newDueDate + 'T00:00:00');
+  const newRemDate = new Date(newDue); newRemDate.setDate(newRemDate.getDate() + offsetDays);
+  const pad = n => String(n).padStart(2, '0');
+  const newDatePart = `${newRemDate.getFullYear()}-${pad(newRemDate.getMonth()+1)}-${pad(newRemDate.getDate())}`;
+  return { enabled: true, datetime: newDatePart + 'T' + (timePart || '08:00:00'), snoozedUntil: null };
 }
 
 function calcNextRecDate(task) {
@@ -2569,9 +2720,9 @@ function calcNextRecDate(task) {
   } else if (rec.type === 'weekly') {
     next.setDate(next.getDate() + 7);
   } else if (rec.type === 'monthly') {
-    next.setMonth(next.getMonth() + 1);
+    next = addMonthsClamped(base, 1, rec.anchorDay);
   } else if (rec.type === 'yearly') {
-    next.setFullYear(next.getFullYear() + 1);
+    next = addMonthsClamped(base, 12, rec.anchorDay);
   } else {
     return null;
   }
@@ -2695,7 +2846,7 @@ function buildCard(task) {
   card.querySelector('.card-btn-delete').addEventListener('click', async e => {
     e.stopPropagation();
     if (!confirm(`¿Eliminar "${task.title}"?`)) return;
-    try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+    try { await fsDelete('tasks', task.id); showToast('Eliminada.'); }
     catch(err) { showToast('Error.', 'err'); }
   });
   card.addEventListener('click', () => openSplitPanel(task));
@@ -2737,16 +2888,16 @@ function renderTagsPanel() {
       async function commit() {
         const nv = inp.value.trim();
         if (!nv||nv===tag) { renderTagsPanel(); return; }
-        const batch = db.batch();
-        tasks.filter(t=>(t.tags||[]).includes(tag)).forEach(t => {
-          batch.update(db.collection('tasks').doc(t.id), { tags: t.tags.map(tg=>tg===tag?nv:tg), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-        });
+        const ops = tasks.filter(t=>(t.tags||[]).includes(tag)).map(t => ({
+          type: 'update', collection: 'tasks', docId: t.id,
+          data: { tags: t.tags.map(tg=>tg===tag?nv:tg), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }
+        }));
         // Actualizar en freeTags si existe
         if (freeTags.includes(tag)) {
-          const ref = db.collection('userConfig').doc(currentUser.uid);
-          batch.set(ref, { freeTags: [...freeTags.filter(t=>t!==tag), nv] }, { merge: true });
+          ops.push({ type: 'set', collection: 'userConfig', docId: currentUser.uid,
+            data: { freeTags: [...freeTags.filter(t=>t!==tag), nv] }, merge: true });
         }
-        try { await batch.commit(); showToast('Etiqueta renombrada.','ok'); } catch(e) { showToast('Error.','err'); }
+        try { await fsBatch(ops); showToast('Etiqueta renombrada.','ok'); } catch(e) { showToast('Error.','err'); }
       }
       inp.addEventListener('blur', commit);
       inp.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();inp.blur();} if(e.key==='Escape') renderTagsPanel(); });
@@ -2754,15 +2905,15 @@ function renderTagsPanel() {
 
     item.querySelector('.delete-btn').addEventListener('click', async () => {
       if (!confirm(`¿Eliminar la etiqueta "${tag}"${count ? ` de ${count} tarea${count>1?'s':''}` : ''}?`)) return;
-      const batch = db.batch();
-      tasks.filter(t=>(t.tags||[]).includes(tag)).forEach(t => {
-        batch.update(db.collection('tasks').doc(t.id), { tags: t.tags.filter(tg=>tg!==tag), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      });
+      const ops = tasks.filter(t=>(t.tags||[]).includes(tag)).map(t => ({
+        type: 'update', collection: 'tasks', docId: t.id,
+        data: { tags: t.tags.filter(tg=>tg!==tag), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }
+      }));
       if (freeTags.includes(tag)) {
-        const ref = db.collection('userConfig').doc(currentUser.uid);
-        batch.set(ref, { freeTags: freeTags.filter(t=>t!==tag) }, { merge: true });
+        ops.push({ type: 'set', collection: 'userConfig', docId: currentUser.uid,
+          data: { freeTags: freeTags.filter(t=>t!==tag) }, merge: true });
       }
-      try { await batch.commit(); showToast('Etiqueta eliminada.','ok'); } catch(e) { showToast('Error.','err'); }
+      try { await fsBatch(ops); showToast('Etiqueta eliminada.','ok'); } catch(e) { showToast('Error.','err'); }
     });
 
     tagMgmtList.appendChild(item);
@@ -2989,6 +3140,7 @@ function addCheckItem() {
 
 document.getElementById('btn-add-check-item').addEventListener('click', addCheckItem);
 
+let _depDropdownOutsideHandler = null;
 function renderDepDropdown(excludeId) {
   const trigger = document.getElementById('dep-trigger');
   const triggerLabel = document.getElementById('dep-trigger-label');
@@ -3030,13 +3182,19 @@ function renderDepDropdown(excludeId) {
     panel.classList.toggle('open', !isOpen);
     trigger.classList.toggle('open', !isOpen);
   };
-  // Cerrar al hacer click fuera
-  document.addEventListener('click', function handler(e) {
+  // Cerrar al hacer click fuera. Se guarda la referencia al handler anterior
+  // y se remueve antes de agregar uno nuevo, para no acumular un listener de
+  // más en el document cada vez que se abre el modal (renderDepDropdown se
+  // llama en cada apertura, sin importar si el usuario toca este dropdown).
+  if (_depDropdownOutsideHandler) document.removeEventListener('click', _depDropdownOutsideHandler);
+  _depDropdownOutsideHandler = function(e) {
     if (!trigger.contains(e.target) && !panel.contains(e.target)) {
       panel.classList.remove('open'); trigger.classList.remove('open');
-      document.removeEventListener('click', handler);
+      document.removeEventListener('click', _depDropdownOutsideHandler);
+      _depDropdownOutsideHandler = null;
     }
-  });
+  };
+  document.addEventListener('click', _depDropdownOutsideHandler);
 
   renderDepPills(excludeId);
 
@@ -3230,13 +3388,13 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
       // Esperar a que el contenedor tenga dimensiones reales antes de renderizar
       const cy = document.getElementById('flujo-cy');
       if (cy.offsetHeight > 0) {
-        renderFlujo();
+        renderFlujo(true); // entrando a la pestaña: refrescar el layout guardado de verdad
       } else {
         const ro = new ResizeObserver((entries, obs) => {
           for (const entry of entries) {
             if (entry.contentRect.height > 0) {
               obs.disconnect();
-              renderFlujo();
+              renderFlujo(true);
               break;
             }
           }
@@ -3884,6 +4042,7 @@ function spAddCheckItem() {
   if (inputs.length) inputs[inputs.length-1].focus();
 }
 
+let _spDepDropdownOutsideHandler = null;
 function spRenderDepDropdown(excludeId) {
   const trigger=document.getElementById('sp-dep-trigger'), label=document.getElementById('sp-dep-trigger-label'),
         panel=document.getElementById('sp-dep-dropdown-panel'), pillsEl=document.getElementById('sp-dep-selected-pills');
@@ -3910,7 +4069,16 @@ function spRenderDepDropdown(excludeId) {
   function updLabel(){const c=splitSelectedDeps.size;label.textContent=c?c+' tarea'+(c>1?'s':'')+' seleccionada'+(c>1?'s':''):'Seleccionar tareas\u2026';}
   updLabel();
   trigger.onclick = e => { e.stopPropagation(); const open=panel.classList.contains('open'); panel.classList.toggle('open',!open); trigger.classList.toggle('open',!open); };
-  document.addEventListener('click', function h(e){ if(!trigger.contains(e.target)&&!panel.contains(e.target)){panel.classList.remove('open');trigger.classList.remove('open');document.removeEventListener('click',h);} });
+  // Cerrar al hacer click fuera (ver comentario equivalente en renderDepDropdown)
+  if (_spDepDropdownOutsideHandler) document.removeEventListener('click', _spDepDropdownOutsideHandler);
+  _spDepDropdownOutsideHandler = function(e) {
+    if (!trigger.contains(e.target) && !panel.contains(e.target)) {
+      panel.classList.remove('open'); trigger.classList.remove('open');
+      document.removeEventListener('click', _spDepDropdownOutsideHandler);
+      _spDepDropdownOutsideHandler = null;
+    }
+  };
+  document.addEventListener('click', _spDepDropdownOutsideHandler);
   spRenderDepPills(excludeId);
   function spRenderDepPills(exId){
     pillsEl.innerHTML='';
@@ -3954,6 +4122,7 @@ async function saveSplitTask() {
   } else {
     spGanttData = { enabled: false, startDate: null, days: null };
   }
+  if (rec && (rec.type === 'monthly' || rec.type === 'yearly')) rec.anchorDay = recAnchorDayFromDue(spComputedDue);
   const data = {
     title,
     description: (document.getElementById('sp-f-desc').value||'').trim(),
@@ -4085,7 +4254,7 @@ function showContextMenu(task, x, y, fromMatrix) {
         let nxt;
         if (cb.checked) { nxt=cur.filter(t=>t!==tag); cb.checked=false; }
         else             { nxt=[...cur,tag]; cb.checked=true; }
-        try { await db.collection('tasks').doc(task.id).update({tags:nxt,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); }
+        try { await fsUpdate('tasks', task.id, {tags:nxt,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); }
         catch(err){ showToast('Error.','err'); }
       });
       tagsWrapEl.appendChild(row);
@@ -4107,15 +4276,14 @@ function showContextMenu(task, x, y, fromMatrix) {
     const btn = e.target.closest('[data-action]'); if (!btn) return;
     e.stopPropagation();
     const action=btn.dataset.action, val=btn.dataset.val;
-    const ref=db.collection('tasks').doc(task.id);
     const ts = firebase.firestore.FieldValue.serverTimestamp();
-    if (action==='status')   { try{await ref.update({status:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
-    else if (action==='priority') { try{await ref.update({priority:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
-    else if (action==='type')     { try{await ref.update({type:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
+    if (action==='status')   { try{await fsUpdate('tasks', task.id, {status:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
+    else if (action==='priority') { try{await fsUpdate('tasks', task.id, {priority:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
+    else if (action==='type')     { try{await fsUpdate('tasks', task.id, {type:val,updatedAt:ts});closeCtxMenu();}catch(err){showToast('Error.','err');} }
     else if (action==='today') {
       const d=new Date(); const pad=n=>String(n).padStart(2,'0');
       const today=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-      try{await ref.update({dueDate:today,updatedAt:ts});closeCtxMenu();showToast('Fecha actualizada.','ok');}catch(err){showToast('Error.','err');}
+      try{await fsUpdate('tasks', task.id, {dueDate:today,updatedAt:ts});closeCtxMenu();showToast('Fecha actualizada.','ok');}catch(err){showToast('Error.','err');}
     }
     else if (action==='open-due') { closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'due'); }
     else if (action==='open-tags'){ closeCtxMenu(); const t2=tasks.find(t=>t.id===task.id)||task; if(fromMatrix) openModal(t2); else openSplitPanel(t2,'tags'); }
@@ -4124,9 +4292,12 @@ function showContextMenu(task, x, y, fromMatrix) {
     else if (action==='duplicate') {
       const orig=tasks.find(t=>t.id===task.id)||task;
       const copy={...orig,title:orig.title+' (copia)',status:'pending',uid:currentUser.uid,
+        checklist:(orig.checklist||[]).map(item=>({...item,done:false})),
+        reminder:{enabled:false,datetime:null,snoozedUntil:null},
+        completedAt:null,
         createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
       delete copy.id;
-      try{await db.collection('tasks').add(copy);showToast('Tarea duplicada.','ok');closeCtxMenu();}catch(err){showToast('Error.','err');}
+      try{await fsAdd('tasks', copy);showToast('Tarea duplicada.','ok');closeCtxMenu();}catch(err){showToast('Error.','err');}
     }
     else if (action==='gantt-duration') {
       closeCtxMenu();
@@ -4142,7 +4313,7 @@ function showContextMenu(task, x, y, fromMatrix) {
       const pad=n=>String(n).padStart(2,'0');
       const gEndStr=gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
       try{
-        await db.collection('tasks').doc(task.id).update({
+        await fsUpdate('tasks', task.id, {
           'gantt.days':newDays,'gantt.enabled':true,'gantt.startDate':startDate,
           dueDate:gEndStr, updatedAt:firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -4163,7 +4334,7 @@ function showContextMenu(task, x, y, fromMatrix) {
       const pad=n=>String(n).padStart(2,'0');
       const gEndStr=gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
       try{
-        await db.collection('tasks').doc(task.id).update({
+        await fsUpdate('tasks', task.id, {
           'gantt.startDate':newStart,'gantt.enabled':true,'gantt.days':days,
           dueDate:gEndStr, updatedAt:firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -4175,7 +4346,7 @@ function showContextMenu(task, x, y, fromMatrix) {
   const ctxDateInput = menu.querySelector('#ctx-date-input');
   ctxDateInput.addEventListener('change', async () => {
     const v=ctxDateInput.value;
-    try{await db.collection('tasks').doc(task.id).update({dueDate:v||null,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});showToast('Fecha actualizada.','ok');}
+    try{await fsUpdate('tasks', task.id, {dueDate:v||null,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});showToast('Fecha actualizada.','ok');}
     catch(err){showToast('Error.','err');}
   });
   ctxDateInput.addEventListener('click', e => e.stopPropagation());
@@ -4205,7 +4376,7 @@ function initMatrixDragDrop() {
       const task=tasks.find(t=>t.id===dragTaskId); if(!task) return;
       if (task.priority===q.priority && task.type===q.type) return;
       try{
-        await db.collection('tasks').doc(dragTaskId).update({priority:q.priority,type:q.type,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        await fsUpdate('tasks', dragTaskId, {priority:q.priority,type:q.type,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
         showToast('Tarea movida.','ok');
       }catch(err){showToast('Error.','err');}
       dragTaskId=null;
@@ -4433,7 +4604,7 @@ function buildMCard(task) {
   card.querySelector('.mcard-btn-delete').addEventListener('click', async e => {
     e.stopPropagation();
     if (!confirm(`¿Eliminar "${task.title}"?`)) return;
-    try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+    try { await fsDelete('tasks', task.id); showToast('Eliminada.'); }
     catch(err) { showToast('Error.', 'err'); }
   });
   card.addEventListener('click', () => openModal(task));
@@ -4467,9 +4638,9 @@ async function saveNewTag() {
   if (getAllTags().includes(name)) { showToast('Esa etiqueta ya existe.', 'err'); return; }
   // Crear una tarea placeholder no es viable — la etiqueta solo existe asociada a tareas.
   // Solución: guardar etiquetas "libres" en un documento de config del usuario.
-  const ref = db.collection('userConfig').doc(currentUser.uid);
   try {
-    await ref.set({ freeTags: firebase.firestore.FieldValue.arrayUnion(name) }, { merge: true });
+    await fsBatch([{ type:'set', collection:'userConfig', docId: currentUser.uid,
+      data: { freeTags: [...new Set([...freeTags, name])] }, merge: true }]);
     showToast('Etiqueta creada.', 'ok');
     newTagInput.value = ''; newTagForm.classList.add('hidden');
   } catch(e) { showToast('Error al guardar.', 'err'); }
@@ -4637,7 +4808,7 @@ function showReminderPopup(task) {
   popup.querySelector('.reminder-btn-confirm').addEventListener('click', async () => {
     popup.remove();
     try {
-      await db.collection('tasks').doc(task.id).update({
+      await fsUpdate('tasks', task.id, {
         'reminder.enabled': false, 'reminder.snoozedUntil': null,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -4668,7 +4839,7 @@ function showReminderPopup(task) {
         + 'T' + pad(snoozed.getHours()) + ':' + pad(snoozed.getMinutes()) + ':00';
       popup.remove();
       try {
-        await db.collection('tasks').doc(task.id).update({
+        await fsUpdate('tasks', task.id, {
           'reminder.snoozedUntil': sISO,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -4698,12 +4869,12 @@ function removeReminderPopup(taskId) {
 // ── CALENDARIO ────────────────────────────────────────────────────────────────
 
 function stepRecurrence(d, rec) {
-  const next = new Date(d);
+  let next = new Date(d);
   if      (rec.type === 'workdays') { next.setDate(next.getDate()+1); while(next.getDay()===0||next.getDay()===6) next.setDate(next.getDate()+1); }
   else if (rec.type === 'daily')    { next.setDate(next.getDate() + (parseInt(rec.interval)||1)); }
   else if (rec.type === 'weekly')   { next.setDate(next.getDate() + 7); }
-  else if (rec.type === 'monthly')  { next.setMonth(next.getMonth() + 1); }
-  else if (rec.type === 'yearly')   { next.setFullYear(next.getFullYear() + 1); }
+  else if (rec.type === 'monthly')  { next = addMonthsClamped(d, 1, rec.anchorDay); }
+  else if (rec.type === 'yearly')   { next = addMonthsClamped(d, 12, rec.anchorDay); }
   else return null;
   return next;
 }
@@ -4872,7 +5043,7 @@ function renderCalendar() {
       const sourceDateStr = e.dataTransfer.getData('sourceDateStr');
       if (!taskId || dateStr === sourceDateStr) return;
       try {
-        await db.collection('tasks').doc(taskId).update({
+        await fsUpdate('tasks', taskId, {
           dueDate: dateStr,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -4951,7 +5122,7 @@ function buildCalTask(task, isRecurrent, dateStr, today) {
     el.querySelector('.cal-task-del').addEventListener('click', async e => {
       e.stopPropagation();
       if (!confirm('\u00bfEliminar "' + task.title + '"?')) return;
-      try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+      try { await fsDelete('tasks', task.id); showToast('Eliminada.'); }
       catch(err) { showToast('Error.', 'err'); }
     });
   }
@@ -5624,6 +5795,7 @@ function gspRenderTagSuggestions(filterText){
     });
   }
 }
+let _gspDepDropdownOutsideHandler = null;
 function gspRenderDepDropdown(excludeId){
   const trigger=document.getElementById('gsp-dep-trigger'),label=document.getElementById('gsp-dep-trigger-label'),
         panel=document.getElementById('gsp-dep-dropdown-panel'),pillsEl=document.getElementById('gsp-dep-selected-pills');
@@ -5649,7 +5821,16 @@ function gspRenderDepDropdown(excludeId){
   function updGspLabel(){const c=ganttSplitSelectedDeps.size;label.textContent=c?c+' tarea'+(c>1?'s':'')+' seleccionada'+(c>1?'s':''):'Seleccionar tareas…';}
   updGspLabel();
   trigger.onclick=e=>{e.stopPropagation();const open=panel.classList.contains('open');panel.classList.toggle('open',!open);trigger.classList.toggle('open',!open);};
-  document.addEventListener('click',function h(e){if(!trigger.contains(e.target)&&!panel.contains(e.target)){panel.classList.remove('open');trigger.classList.remove('open');document.removeEventListener('click',h);}});
+  // Cerrar al hacer click fuera (ver comentario equivalente en renderDepDropdown)
+  if (_gspDepDropdownOutsideHandler) document.removeEventListener('click', _gspDepDropdownOutsideHandler);
+  _gspDepDropdownOutsideHandler = function(e) {
+    if (!trigger.contains(e.target) && !panel.contains(e.target)) {
+      panel.classList.remove('open'); trigger.classList.remove('open');
+      document.removeEventListener('click', _gspDepDropdownOutsideHandler);
+      _gspDepDropdownOutsideHandler = null;
+    }
+  };
+  document.addEventListener('click', _gspDepDropdownOutsideHandler);
   gspRenderDepPills(excludeId);
   function gspRenderDepPills(exId){
     pillsEl.innerHTML='';
@@ -5696,6 +5877,7 @@ async function saveGanttSplitTask() {
   const gspReminderData=(ganttSplitReminderOn&&gspRemDateEl&&gspRemHourEl&&gspRemDateEl.value&&gspRemHourEl.value)
     ?{enabled:true,datetime:gspRemDateEl.value+'T'+gspRemHourEl.value+':00',snoozedUntil:null}
     :{enabled:false,datetime:null,snoozedUntil:null};
+  if (rec && (rec.type === 'monthly' || rec.type === 'yearly')) rec.anchorDay = recAnchorDayFromDue(gspComputedDue);
   const data = {
     title,
     description: (document.getElementById('gsp-f-desc').value||'').trim(),
@@ -5911,7 +6093,7 @@ function renderGantt() {
     tdLabel.querySelector('[data-del]').addEventListener('click', async e => {
       e.stopPropagation();
       if (!confirm('¿Eliminar "'+task.title+'"?')) return;
-      try { await db.collection('tasks').doc(task.id).delete(); showToast('Eliminada.'); }
+      try { await fsDelete('tasks', task.id); showToast('Eliminada.'); }
       catch(err){ showToast('Error.','err'); }
     });
     tr.appendChild(tdLabel);
@@ -5993,51 +6175,58 @@ function renderGantt() {
 }
 
 // ── Drag horizontal de barras ─────────────────────────────────────────────────
+// Estado del arrastre de una barra del Gantt, compartido entre renders. Los
+// listeners de mousemove/mouseup se registran una sola vez (después de esta
+// función, a nivel de script) en vez de uno nuevo por barra en cada render
+// de renderGantt — así no se van acumulando en el document con el uso.
+let ganttDrag = null;
+
 function ganttBindBarDrag(bar, task, daysCols, rangeStart, CELL_W) {
-  let dragStartX=0, origStartDate='', dragging=false, movedEnough=false;
   bar.addEventListener('mousedown', e=>{
     if (e.button!==0) return;
-    dragging=true; movedEnough=false; dragStartX=e.clientX;
-    origStartDate=task.gantt.startDate;
+    ganttDrag = { bar, task, rangeStart, CELL_W, dragStartX: e.clientX, origStartDate: task.gantt.startDate, movedEnough: false };
     bar.classList.add('dragging');
     e.preventDefault();
   });
-  document.addEventListener('mousemove', e=>{
-    if (!dragging) return;
-    const dx=e.clientX-dragStartX;
-    const daysDelta=Math.round(dx/CELL_W);
-    if (daysDelta!==0) movedEnough=true;
-    if (!movedEnough) return;
-    const orig=new Date(origStartDate+'T00:00:00');
-    const newStart=ganttAddDays(orig,daysDelta);
-    bar.style.left=(ganttDiffDays(rangeStart,newStart)*CELL_W)+'px';
-  });
-  document.addEventListener('mouseup', async e=>{
-    if (!dragging) return;
-    dragging=false; bar.classList.remove('dragging');
-    if (!movedEnough) return;
-    // absorber el click siguiente para no abrir el panel
-    bar.addEventListener('click', function absorb(ev){ ev.stopPropagation(); ev.preventDefault(); bar.removeEventListener('click',absorb,true); }, true);
-    const dx=e.clientX-dragStartX;
-    const daysDelta=Math.round(dx/CELL_W);
-    if (daysDelta===0) return;
-    const orig=new Date(origStartDate+'T00:00:00');
-    const newStart=ganttAddDays(orig,daysDelta);
-    const gDays=task.gantt.days||1;
-    const newEnd=ganttAddDays(newStart,gDays-1);
-    const pad=n=>String(n).padStart(2,'0');
-    const newStartStr=ganttDateStr(newStart);
-    const newEndStr=ganttDateStr(newEnd);
-    try{
-      await db.collection('tasks').doc(task.id).update({
-        'gantt.startDate':newStartStr,
-        dueDate:newEndStr,
-        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      });
-      showToast('Fechas actualizadas.','ok');
-    }catch(err){showToast('Error al mover.','err'); renderGantt();}
-  });
 }
+
+document.addEventListener('mousemove', e=>{
+  if (!ganttDrag) return;
+  const { bar, dragStartX, origStartDate, rangeStart, CELL_W } = ganttDrag;
+  const dx=e.clientX-dragStartX;
+  const daysDelta=Math.round(dx/CELL_W);
+  if (daysDelta!==0) ganttDrag.movedEnough=true;
+  if (!ganttDrag.movedEnough) return;
+  const orig=new Date(origStartDate+'T00:00:00');
+  const newStart=ganttAddDays(orig,daysDelta);
+  bar.style.left=(ganttDiffDays(rangeStart,newStart)*CELL_W)+'px';
+});
+document.addEventListener('mouseup', async e=>{
+  if (!ganttDrag) return;
+  const { bar, task, dragStartX, origStartDate, movedEnough, CELL_W } = ganttDrag;
+  ganttDrag = null;
+  bar.classList.remove('dragging');
+  if (!movedEnough) return;
+  // absorber el click siguiente para no abrir el panel
+  bar.addEventListener('click', function absorb(ev){ ev.stopPropagation(); ev.preventDefault(); bar.removeEventListener('click',absorb,true); }, true);
+  const dx=e.clientX-dragStartX;
+  const daysDelta=Math.round(dx/CELL_W);
+  if (daysDelta===0) return;
+  const orig=new Date(origStartDate+'T00:00:00');
+  const newStart=ganttAddDays(orig,daysDelta);
+  const gDays=task.gantt.days||1;
+  const newEnd=ganttAddDays(newStart,gDays-1);
+  const newStartStr=ganttDateStr(newStart);
+  const newEndStr=ganttDateStr(newEnd);
+  try{
+    await fsUpdate('tasks', task.id, {
+      'gantt.startDate':newStartStr,
+      dueDate:newEndStr,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Fechas actualizadas.','ok');
+  }catch(err){showToast('Error al mover.','err'); renderGantt();}
+});
 
 // ── Controles del Gantt ──────────────────────────────────────────────────────
 document.getElementById('gantt-prev').addEventListener('click', ()=>{
@@ -6131,12 +6320,11 @@ function showGanttContextMenu(task, x, y) {
     const btn = e.target.closest('[data-action]'); if (!btn) return;
     e.stopPropagation();
     const action = btn.dataset.action, val = btn.dataset.val;
-    const ref = db.collection('tasks').doc(task.id);
     const ts  = firebase.firestore.FieldValue.serverTimestamp();
     const pad = n => String(n).padStart(2,'0');
 
     if (action === 'status') {
-      try { await ref.update({status:val, updatedAt:ts}); closeCtxMenu(); } catch(err){showToast('Error.','err');}
+      try { await fsUpdate('tasks', task.id, {status:val, updatedAt:ts}); closeCtxMenu(); } catch(err){showToast('Error.','err');}
     }
     else if (action === 'edit-full') {
       closeCtxMenu();
@@ -6145,9 +6333,12 @@ function showGanttContextMenu(task, x, y) {
     else if (action === 'duplicate') {
       const orig = tasks.find(t=>t.id===task.id)||task;
       const copy = {...orig, title:orig.title+' (copia)', status:'pending', uid:currentUser.uid,
+        checklist:(orig.checklist||[]).map(item=>({...item,done:false})),
+        reminder:{enabled:false,datetime:null,snoozedUntil:null},
+        completedAt:null,
         createdAt:ts, updatedAt:ts};
       delete copy.id;
-      try { await db.collection('tasks').add(copy); showToast('Duplicada.','ok'); closeCtxMenu(); }
+      try { await fsAdd('tasks', copy); showToast('Duplicada.','ok'); closeCtxMenu(); }
       catch(err){showToast('Error.','err');}
     }
     else if (action === 'gantt-duration') {
@@ -6163,7 +6354,7 @@ function showGanttContextMenu(task, x, y) {
       const gEnd = new Date(gStart); gEnd.setDate(gEnd.getDate()+newDays-1);
       const gEndStr = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
       try {
-        await ref.update({'gantt.days':newDays,'gantt.enabled':true,'gantt.startDate':startDate, dueDate:gEndStr, updatedAt:ts});
+        await fsUpdate('tasks', task.id, {'gantt.days':newDays,'gantt.enabled':true,'gantt.startDate':startDate, dueDate:gEndStr, updatedAt:ts});
         showToast('Duración actualizada.','ok');
       } catch(err){showToast('Error.','err');}
     }
@@ -6179,7 +6370,7 @@ function showGanttContextMenu(task, x, y) {
       const gEnd = new Date(gStart); gEnd.setDate(gEnd.getDate()+days-1);
       const gEndStr = gEnd.getFullYear()+'-'+pad(gEnd.getMonth()+1)+'-'+pad(gEnd.getDate());
       try {
-        await ref.update({'gantt.startDate':newStart,'gantt.enabled':true,'gantt.days':days, dueDate:gEndStr, updatedAt:ts});
+        await fsUpdate('tasks', task.id, {'gantt.startDate':newStart,'gantt.enabled':true,'gantt.days':days, dueDate:gEndStr, updatedAt:ts});
         showToast('Fecha de inicio actualizada.','ok');
       } catch(err){showToast('Error.','err');}
     }
@@ -6208,6 +6399,12 @@ let flujoFilterStatus   = 'all';
 let flujoFilterPriority = 'all';
 let flujoFilterType     = 'all';
 let flujoSidebarOpen = true;
+// Caché en memoria de flujoLayouts (posiciones guardadas del grafo). Se pide
+// a Firestore una sola vez por sesión (o al reentrar a la pestaña), no en
+// cada render — antes se leía en cada renderFlujo(), y como cualquier cambio
+// de tarea en cualquier vista dispara un render de Flujo si esa pestaña está
+// activa, eso eran lecturas de más sin ninguna necesidad real.
+let flujoLayoutCache = null; // { positions, labelSetHash } | null si aún no se cargó
 
 // ── Helpers de color de nodo (sin cambios) ──────────────────────────────────
 function flujoNodeBg(task) {
@@ -6238,10 +6435,10 @@ function showFlujoPopover(task, renderedPos) {
   chk.title = isDone ? 'Marcar pendiente' : 'Marcar completada';
   chk.style.cssText = 'width:22px;height:22px;border-radius:4px;border:1.5px solid '+(isDone?'var(--green)':'var(--border-hi)')+';background:'+(isDone?'var(--green)':'transparent')+';color:var(--bg);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans)';
   chk.textContent = isDone ? '\u2713' : '';
-  chk.addEventListener('click', async e => {
+  chk.addEventListener('click', e => {
     e.stopPropagation();
-    const newStatus = isDone ? 'pending' : 'done';
-    try { await db.collection('tasks').doc(task.id).update({status:newStatus, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); closeFlujoPopover(); } catch(err) { showToast('Error.','err'); }
+    closeFlujoPopover();
+    toggleDone(task.id, task.status);
   });
 
   const editBtn = document.createElement('button');
@@ -6269,7 +6466,7 @@ function showFlujoPopover(task, renderedPos) {
   delBtn.addEventListener('click', async e => {
     e.stopPropagation();
     if (!confirm('Eliminar "'+task.title+'"?')) return;
-    try { await db.collection('tasks').doc(task.id).delete(); closeFlujoPopover(); showToast('Tarea eliminada.','ok'); } catch(err) { showToast('Error.','err'); }
+    try { await fsDelete('tasks', task.id); closeFlujoPopover(); showToast('Tarea eliminada.','ok'); } catch(err) { showToast('Error.','err'); }
   });
 
   pop.append(chk, editBtn, tagBtn, delBtn);
@@ -6327,7 +6524,7 @@ function showFlujoTagDropdown(task, anchorEl) {
           : [...(task.tags || []), tag];
         dd.remove();
         try {
-          await db.collection('tasks').doc(task.id).update({ tags: newTags, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+          await fsUpdate('tasks', task.id, { tags: newTags, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
           showToast(active ? 'Etiqueta quitada.' : 'Etiqueta asignada.', 'ok');
         } catch(err) { showToast('Error.', 'err'); }
       });
@@ -6524,19 +6721,9 @@ function computeQuadrantPositions(elements) {
     return { lbl, n, tasksPerRow, rows, w, h };
   });
 
-  // Posicionar cuadrantes en grilla 2 columnas
-  let colX = [0, 0];   // cursor X por columna
-  let colY = [0, 0];   // cursor Y por columna
-
-  qDims.forEach((dim, i) => {
-    const col = i % COLS;
-    const otherCol = 1 - col;
-
-    // Ancho de columna: máximo de todos los cuadrantes de esa columna
-    // Usamos colX como acumulador de offset horizontal (se recalcula abajo)
-  });
-
-  // Recalcular: primero obtener ancho máximo por columna
+  // Posicionar cuadrantes en grilla 2 columnas.
+  // Primero se necesita el ancho máximo por columna, para poder calcular el
+  // offset horizontal de la segunda columna.
   const colWidths = [0, 0];
   qDims.forEach((dim, i) => {
     const col = i % COLS;
@@ -6570,7 +6757,7 @@ function computeQuadrantPositions(elements) {
 }
 
 // ── renderFlujo ─────────────────────────────────────────────────────────────
-function renderFlujo() {
+function renderFlujo(forceRefetch) {
   const container = document.getElementById('flujo-cy');
   const emptyDiv  = document.getElementById('flujo-empty');
   if (!container) return;
@@ -6595,7 +6782,7 @@ function renderFlujo() {
   if (container.offsetHeight === 0) {
     const ro = new ResizeObserver((entries, obs) => {
       for (const entry of entries) {
-        if (entry.contentRect.height > 0) { obs.disconnect(); renderFlujo(); break; }
+        if (entry.contentRect.height > 0) { obs.disconnect(); renderFlujo(forceRefetch); break; }
       }
     });
     ro.observe(container);
@@ -6639,6 +6826,7 @@ function renderFlujo() {
       try {
         const pos = {};
         flujoCy.nodes().forEach(n => { pos[n.id()] = n.position(); });
+        flujoLayoutCache = { positions: pos, labelSetHash: currentLabelHash };
         db.collection('flujoLayouts').doc(uid).set({
           positions: pos,
           labelSetHash: currentLabelHash,
@@ -6694,19 +6882,24 @@ function renderFlujo() {
     setTimeout(() => { if (flujoCy) { flujoCy.resize(); flujoCy.fit(undefined, 40); } }, 250);
   }; // fin buildAndMountCy
 
-  // Leer posiciones guardadas de Firestore y montar el grafo
+  // Leer posiciones guardadas: de la caché en memoria si ya la teníamos (y no
+  // se pidió refrescar a la fuerza), o de Firestore si es la primera vez en
+  // esta sesión o si se entró recién a la pestaña Flujo.
   const uid = auth.currentUser ? auth.currentUser.uid : null;
-  if (uid) {
+  if (uid && (forceRefetch || !flujoLayoutCache)) {
     db.collection('flujoLayouts').doc(uid).get()
       .then(snap => {
-        if (snap.exists) {
-          const data = snap.data();
-          buildAndMountCy(data.positions || {}, data.labelSetHash || '');
-        } else {
-          buildAndMountCy({}, '');
-        }
+        flujoLayoutCache = snap.exists
+          ? { positions: snap.data().positions || {}, labelSetHash: snap.data().labelSetHash || '' }
+          : { positions: {}, labelSetHash: '' };
+        buildAndMountCy(flujoLayoutCache.positions, flujoLayoutCache.labelSetHash);
       })
-      .catch(() => { buildAndMountCy({}, ''); });
+      .catch(() => {
+        flujoLayoutCache = { positions: {}, labelSetHash: '' };
+        buildAndMountCy({}, '');
+      });
+  } else if (uid) {
+    buildAndMountCy(flujoLayoutCache.positions, flujoLayoutCache.labelSetHash);
   } else {
     buildAndMountCy({}, '');
   }
@@ -6937,6 +7130,15 @@ function tsToDate(ts) {
   return null;
 }
 
+// Fecha real de finalización de una tarea completada, para el Resumen y su
+// exportación. Usa completedAt (se fija únicamente al marcar la tarea como
+// completada, y no se toca con ediciones posteriores). Para tareas marcadas
+// como completadas antes de que existiera este campo, cae de vuelta a
+// updatedAt como aproximación, igual que se hacía antes.
+function taskCompletionDate(t) {
+  return tsToDate(t.completedAt) || tsToDate(t.updatedAt);
+}
+
 // Devuelve etiqueta legible del intervalo de recurrencia
 function recLabelFull(rec) {
   if (!rec || !rec.enabled) return null;
@@ -6971,10 +7173,10 @@ function renderResumen() {
     if (dateFrom > dateTo) { showToast('La fecha de inicio debe ser anterior al cierre.', 'err'); return; }
   }
 
-  // Filtrar tareas completadas en el período por updatedAt
+  // Filtrar tareas completadas en el período por su fecha real de finalización
   const completadas = tasks.filter(t => {
     if (t.status !== 'done') return false;
-    const d = tsToDate(t.updatedAt);
+    const d = taskCompletionDate(t);
     if (!d) return false;
     return d >= dateFrom && d <= dateTo;
   });
@@ -7071,7 +7273,7 @@ function buildResumenTagBody(items, collapsed) {
   let html = '<div class="resumen-tag-body' + (collapsed ? ' collapsed' : '') + '">';
   items.forEach(t => {
     const rec      = recLabelFull(t.recurrence);
-    const dateStr  = (() => { const d = tsToDate(t.updatedAt); return d ? d.toLocaleDateString('es-AR', {day:'2-digit', month:'short', year:'numeric'}) : ''; })();
+    const dateStr  = (() => { const d = taskCompletionDate(t); return d ? d.toLocaleDateString('es-AR', {day:'2-digit', month:'short', year:'numeric'}) : ''; })();
     const tipoBadge = t.type === 'strategic'
       ? '<span class="resumen-badge resumen-badge-strategic">Estratégica</span>'
       : '<span class="resumen-badge resumen-badge-operational">Operacional</span>';
